@@ -1,0 +1,104 @@
+\documentclass[
+  % doi=10.XXXX/XXXXXX,   % Uncomment and fill in for the camera-ready version.
+  % startpage=1,           % Uncomment and set first page number for the camera-ready version.
+  year=26,                 % Two-digit year (FMCAD 20YY).
+]{fmcad}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs} 
+\usepackage[square,comma,numbers,sort&compress]{natbib}      % Offers more control over citation appearance and bib spacing
+
+% Relax float-placement parameters so figures don't get pushed to the end.
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.7}
+\renewcommand{\dbltopfraction}{0.95}
+\renewcommand{\dblfloatpagefraction}{0.7}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+\setcounter{dbltopnumber}{3}
+
+% --- todo notes ---
+% Comment out the next line (or pass [disable]) before camera-ready
+% to suppress every \todo / \zk / \as marker in one go.
+\usepackage[colorinlistoftodos,prependcaption,textsize=small]{todonotes}
+% \usepackage[disable]{todonotes}
+
+% Per-author inline todo macros. Usage: \zk{rephrase this} or \as{cite?}.
+\newcommand{\zk}[1]{\todo[inline,color=blue!20,size=\small]{\textbf{ZK:} #1}}
+\newcommand{\as}[1]{\todo[inline,color=green!20,size=\small]{\textbf{AS:} #1}}
+% Margin variants (shorter notes that don't break the paragraph).
+\newcommand{\zkm}[1]{\todo[color=blue!20,size=\scriptsize]{ZK: #1}}
+\newcommand{\asm}[1]{\todo[color=green!20,size=\scriptsize]{AS: #1}}
+
+
+\begin{document}
+
+\title{Parallelizing Congruence Closure}
+
+\author{
+  \IEEEauthorblockN{Zak Kent\IEEEauthorrefmark{1},
+                    Amar Shah\IEEEauthorrefmark{2}}
+  \IEEEauthorblockA{\IEEEauthorrefmark{1}Carnegie Mellon University,
+                    \texttt{zkent@cmu.edu}}
+  \IEEEauthorblockA{\IEEEauthorrefmark{2}Carnegie Mellon University,
+                    \texttt{amarshah@cmu.edu}}
+}
+
+\maketitle
+
+\begin{abstract}
+  Given a set of ground equalities over terms with uninterpreted function
+  symbols, congruence closure computes all ground equalities entailed by
+  reflexivity, symmetry, transitivity, and congruence. While congruence closure
+  is a performance-critical component of satisfiability modulo theories (SMT)
+  solvers, automatic theorem provers, and equality saturation engines, all
+  existing implementations are sequential. In this work, we provide the first
+  parallel algorithm for congruence closure. 
+  
+  We build on two ideas from the parallel algorithms literature: a union-find
+  data structure that supports concurrent union operations and a parallel
+  semisort (group-by) algorithm that allows us to discover new congruences in
+  parallel.
+
+  We present two algorithms. The first replaces the classic sequential worklist
+  with a bulk-synchronous closure loop: it processes all pending unions in
+  parallel, then detects new congruences, and repeats until a fixpoint. The
+  second removes the global barrier between these phases, detecting congruences
+  concurrently with union processing and feeding the resulting unions back into
+  a shared worklist. We evaluate both these algorithms against a sequential
+  baseline on a number of synthetic and real-world equality saturation
+  benchmarks. Both of our algorithms can be extended to support backtracking,
+  proof production, and dynamic term insertion. These algorithms are compatible
+  with modern SMT solver and equality saturation architectures.
+\end{abstract}
+
+\cite{uf}
+
+% \input{sections/1-intro}
+
+% \input{sections/2-background}
+
+% \input{sections/3-algorithm}
+
+% \input{sections/4-evaluation}
+
+% \input{sections/5-discussion.tex}
+
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}
