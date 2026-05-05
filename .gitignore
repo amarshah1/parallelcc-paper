@@ -12,6 +12,7 @@
 auto-save-list
 tramp
 .\#*
+paper.pdf
 
 # Org-mode
 .org-id-locations

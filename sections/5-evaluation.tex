@@ -1,2 +1,32 @@
 \section{Evaluation}
 \label{sec:evaluation}
+
+\subsection{Random Benchmarks}
+
+\subsection{Synthetic Benchmarks}
+
+\subsection{Equality Saturation Benchmarks}
+
+To get equality saturation benchmarks, we ran egglog~\cite{egglog} on the egg-cc
+project~\cite{egg-cc}—an experimental optimizing compiler for the LLVM-like IR 
+Bril. We ran egglog on a number of Bril programs for \as{todo} seconds and logged
+all of the unions egglog generated during this time. We then extracted these unions
+into and MST-LIB file and evaluated our parallel congruence closure algorithms on these
+benchmarks.
+
+\subsection{SMT Benchmarks}
+
+To get SMT benchmarks, we took benchmarks from the QF-UF logic
+in the annual 2025 SMT competition~\cite{smtcomp2025}. In this category, we picked
+the benchmarks from \asm{fill in} as the other benchmarks were either very simple
+or required more complicated boolean reasoning.
+
+These benchmarks include boolean connectives, so to get pure congruence closure
+constraints, we ran each of the bencmarks through the Sundance-SMT solver
+~\cite{sundance}, every time Sundance-SMT found a conflict in its congruence 
+closure solver, we extracted the set of equalities into an SMT-LIB file.
+
+
+
+
+
