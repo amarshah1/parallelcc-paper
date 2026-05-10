@@ -16,7 +16,21 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{booktabs} 
+\usepackage{amsthm}
 \usepackage[square,comma,numbers,sort&compress]{natbib}      % Offers more control over citation appearance and bib spacing
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}[definition]{Example}
+
+\theoremstyle{plain}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{proposition}[definition]{Proposition}
+
+\theoremstyle{remark}
+\newtheorem{remark}[definition]{Remark}
 
 % Relax float-placement parameters so figures don't get pushed to the end.
 \renewcommand{\topfraction}{0.95}
@@ -63,12 +77,12 @@
   symbols, congruence closure computes all ground equalities entailed by
   reflexivity, symmetry, transitivity, and congruence. While congruence closure
   is a performance-critical component of satisfiability modulo theories (SMT)
-  solvers, automatic theorem provers, and equality saturation engines, all
-  existing implementations are sequential. In this work, we provide the first
-  parallel algorithm for congruence closure. 
+  solvers and equality saturation engines, all existing implementations are
+  sequential. In this work, we provide the first parallel algorithm for
+  congruence closure. 
   
   We build on two ideas from the parallel algorithms literature: a union-find
-  data structure that supports concurrent union operations and a parallel
+  data structure that supports concurrent union operations and a
   semisort (group-by) algorithm that allows us to discover new congruences in
   parallel.
 
@@ -77,14 +91,12 @@
   parallel, then detects new congruences, and repeats until a fixpoint. The
   second removes the global barrier between these phases, detecting congruences
   concurrently with union processing and feeding the resulting unions back into
-  a shared worklist. We evaluate both these algorithms against a sequential
-  baseline on a number of synthetic and real-world equality saturation
-  benchmarks. Both of our algorithms can be extended to support backtracking,
-  proof production, and dynamic term insertion. These algorithms are compatible
-  with modern SMT solver and equality saturation architectures.
+  a concurrent bag datastructure. We evaluate both these algorithms against several
+  sequential baselines on a number of benchmarks and show near-linear speedup on 
+  up to 32 cores. Both of our algorithms can be extended to support
+  backtracking, proof production, and dynamic term insertion. These algorithms
+  are compatible with modern SMT solver and equality saturation architectures.
 \end{abstract}
-
-\cite{uf}
 
 \input{sections/1-intro}
 

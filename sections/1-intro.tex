@@ -1,2 +1,88 @@
 \section{Introduction}
 \label{sec:intro}
+
+% Given a set of ground equalities over terms with uninterpreted function
+% symbols, congruence closure computes all ground equalities entailed by
+% reflexivity, symmetry, transitivity, and congruence. While congruence closure
+% is a performance-critical component of satisfiability modulo theories (SMT)
+% solvers, automatic theorem provers, and equality saturation engines, all
+% existing implementations are sequential. In this work, we provide the first
+% parallel algorithm for congruence closure. 
+
+% We build on two ideas from the parallel algorithms literature: a union-find
+% data structure that supports concurrent union operations and a parallel
+% semisort (group-by) algorithm that allows us to discover new congruences in
+% parallel.
+
+% We present two algorithms. The first replaces the classic sequential worklist
+% with a bulk-synchronous closure loop: it processes all pending unions in
+% parallel, then detects new congruences, and repeats until a fixpoint. The
+% second removes the global barrier between these phases, detecting congruences
+% concurrently with union processing and feeding the resulting unions back into
+% a shared worklist. We evaluate both these algorithms against a sequential
+% baseline on a number of synthetic and real-world equality saturation
+% benchmarks. Both of our algorithms can be extended to support backtracking,
+% proof production, and dynamic term insertion. These algorithms are compatible
+% with modern SMT solver and equality saturation architectures.
+
+Congruence closure is a important algorithm for (1)~satisfiability modulo
+theories (SMT) solvers to determine the truth of a logical formulas~\cite{smt};
+and (2)~equality saturation engines to determine the equivalence of two
+programs~\cite{eqsat}. Congruence closure determines whether a set of equalities
+and disequalities between terms is satisfiable. For example, given the
+equalities $a = b$ and $b = c$ and the disequality $f(a) \neq f(c)$, congruence
+closure will conclude that this is unsatisfiable since $a = c$ by
+\emph{transitivity} and thus the two ``parent terms'' $f(a) = f(c)$ by
+\emph{congruence}. To decide this problem in practice, one must maintain
+equalities using a union-find data structure and propagate congruences to parent
+terms.
+
+
+% Satisfiability modulo theories (SMT) solvers are used to decided the
+% satisfiability of first-order logic formulas. State-of-the-art solvers such as
+% Z3~\cite{z3} and cvc5~\cite{cvc5} can reason about a wide variety of
+% ``theories'' such as uninterpreted functions, linear arithmetic, bit-vectors,
+% and many others.
+
+Both equality saturation engines like egg~\cite{egg} and egglog~\cite{egglog}
+and SMT solvers like Z3~\cite{z3} and cvc5~\cite{cvc5} are widely used in a
+variety of applications, including software verification~\cite{dafny,verus},
+hardware design~\cite{hardware}, and mathematical theorem proving~\cite{math}.
+Hence, their performance is critical, and much work has gone into improving
+their efficiency. One promising avenue for improving the performance is
+\emph{parallelization}: utilizing multiple processors to solve the problem
+faster. 
+
+To this end, we present a novel parallel congruence closure algorithm. Our
+algorithm uses a concurrent union find data structure and a bulk-synchronous
+parallel design to efficiently compute the congruence closure of a set of
+equalities and disequalities.
+
+Sequential congruence closure algorithms are based on the seminal work by Nelson
+and Oppen~\cite{nelson-oppen-cc}, which maintains a worklist of pairs of terms
+that are known to be equal. The algorithm repeatedly processes pairs from the
+worklist, merging their equivalence classes in the union-find data structure and
+adding new pairs to the worklist until no more pairs can be added.
+
+At a high level, our algorithm replaces the classical sequential worklist of
+Nelson and Oppen~\cite{nelson-oppen-cc} with a \emph{bulk-synchronous} closure
+loop. Initial equalities are unioned into a lock-free concurrent
+union-find~\cite{jayanti16}, marking each affected e-class as \emph{changed}.
+The algorithm then proceeds in rounds. In each round we (i)~collect the current
+frontier of changed classes in parallel, (ii)~gather every parent e-node whose
+canonical signature could have shifted, (iii)~hash each parent's signature under
+the current union-find roots, (iv)~group nodes by signature using a parallel
+semisort~\cite{semisort}, and (v)~union together every group that witnesses a
+new congruence. Each step is a pure data-parallel primitive—\texttt{filter},
+\texttt{flat\_map}, \texttt{map}, semisort, and a parallel union pass—built on
+\textsc{ParlayLib}'s scheduler and sequence types~\cite{parlaylib}. 
+
+The algorithm terminates when no round discovers a new merge, exactly mirroring
+the fixed point of the sequential procedure. 
+
+While congruence closure is P-complete~\cite{ccpcomplete}, we show that our
+algorithm can achiev near linear speedups on random benchmarks, a synthetic
+benchmark suite designed to stress test our algorithm, and a set of circuit
+equivalence benchmarks~\cite{eqsat}. Our algorithm efficiently utilizes multiple
+cores and we discuss what would be required to integrate it into an existing SMT
+solver or equality saturation engine. 
