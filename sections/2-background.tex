@@ -4,10 +4,35 @@
 
 \subsection{Congruence closure}
 
-\emph{Congruence closure} takes in terms like $x, y, f(x), g(x, y)$ and
-equalities over these terms like $x = y$. It keeps track of these terms using a
+\emph{Congruence} ($\equiv$) requires that two terms that
+that have the same function and pairwise-congruent children, must
+be congruent, i.e. $f(s_1,
+\ldots, s_k) \equiv f(t_1, \ldots, t_k)$ whenever $s_i \equiv t_i$ for every
+$i$. \emph{Congruence closure} refers to the problem of building the smallest
+equivalence relation that contains a given set of equalities and is closed under
+congruence.
+
+Typically, congruence closure is implemented using a
 datastructure called an \emph{e-graph}~\cite{egraphs}, which maintains a
-partition of terms into equivalence classes.
+partition of terms into equivalence classes. More formally we consider:
+
+\begin{definition}[]
+    We define $T$ to be a set of terms over a list of function symbols $F$,
+    where each $t\in T$ is either a leaf-term, for example $x, y, z$ or a
+    compound term of the form $f(t_1, \ldots, t_k)$ where $f\in F$ $\text{arity}(f) = k$
+    and $t_1, \ldots, t_k \in T$.
+\end{definition}
+
+\begin{definition}[Congruence Closure]
+    Given $(F, T, E)$ where $F$ is a list of function symbols, $T$ is a set of
+    terms over $F$, and $E = \{a_1 = b_1, \ldots, a_n = b_n\}$ is a set of
+    equalities between terms in $T$ where $a_1, \ldots, a_n, b_1, \ldots, b_n
+    \in T$ for every $i$, the congruence closure of $(F, T, E)$ is the smallest
+    equivalence relation $\equiv$ over $T$ such that:
+\end{definition}
+
+We formally consider the congruence closure over the set of terms and equalities
+$(T, E)$, where 
 
 We say that term $x$ is the \emph{child} of term $f(x)$ and conversely term
 $f(x)$ is the \emph{parent} of term $x$. Two terms are \emph{congruent} if they
