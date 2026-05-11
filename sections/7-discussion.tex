@@ -1,2 +1,55 @@
 \section{Discussion}
 \label{sec:discussion}
+
+\subsection{Answer to Research Questions}~\label{sec:disc:rq}
+
+We answer the research questions as follows:
+
+\begin{itemize}
+  \item \textbf{RQ1:} Our parallel congruence closure algorithm achieves a
+  meaningful speedup on random benchmarks, a synthetic benchmark suite designed
+  to stress test our algorithm, and a set of circuit equivalence benchmarks. We 
+  scale well up to 32 cores (\as{give a number here}), but began to plateau beyond
+  that, especially on smaller benchmarks.
+  \item \textbf{RQ2:} Our algorithm tends to perform better on benchmarks with a
+  large number of merges per round. Having more rounds of congruence closure
+  does not necessarily lead to worse performance, but it does not lead to better
+  performance either as we only parallelize within rounds.
+  \item \textbf{RQ3:} Our algorithm provides a meaningful speedup over a
+  sequential implementation on the circuit equivalence benchmarks. It is difficult
+  to evaluate our algorithm on SMT or equality saturation benchmarks, as congruence
+  closure is part of a larger system and thus difficult to isolate. We leave it to
+  future work to integrate our algorithm into an SMT solver or equality saturation
+  engine.
+\end{itemize}
+
+\subsection{Algorithm Modifications andFuture Work}~\label{sec:disc:limit-alg}
+
+There are several extensions to the algorithm as presented that we would like
+to address in future work. 
+
+\textbf{Synchronous Round Structure.} Our synchronous round structure could be 
+limited in terms of parallel scaling. In particular, the round structure means that we
+
+inherently
+limits parallel scaling. In particular, the instance size processed at each
+round is small relative to the size of the problem for several benchmarks we
+have examined (like the \texttt{egg} benchmarks). We will likely have to take a
+more asynchronous approach to achieve better thread scaling; this would entail
+generating new congruences from discovered equalities immediately instead of
+waiting for the round to complete.
+
+\textbf{Backtracking.} 
+\as{Zak can you fill in how we could make our implementation backtrackable}
+
+\textbf{Proof Production.} Our implementation does not produce \emph{proofs} or
+\emph{witnesses} of the equalities it discovers. For instance if our algorithm
+discovers that $x = y$, it cannot replay the chain of equalities and congruences
+that led to this conclusion. This is important for a number of reasons: it is
+necessary to justify correctness and it is used to produce conflict clauses in
+SMT solvers.
+
+Finally, we would like to support our implementation to incremental updates
+(where equalities and new E-node may arrive dynamically). This is important for
+both equality saturation and SMT solvers, where new equalities may be discovered
+via for example quantifier instantiation.
