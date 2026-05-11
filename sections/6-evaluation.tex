@@ -1,30 +1,56 @@
 \section{Evaluation}
-\label{sec:evaluation}
+\label{sec:eval}
 
-\subsection{Random Benchmarks}
+\subsection{Random Benchmarks}~\label{sec:eval:random}
 
-\subsection{Synthetic Benchmarks}
+\subsection{Synthetic Benchmarks}~\label{sec:eval:synthetic}
 
-\subsection{Equality Saturation Benchmarks}
 
-To get equality saturation benchmarks, we ran egglog~\cite{egglog} on the egg-cc
-project~\cite{egg-cc}—an experimental optimizing compiler for the LLVM-like IR 
-Bril. We ran egglog on a number of Bril programs for \as{todo} seconds and logged
-all of the unions egglog generated during this time. We then extracted these unions
-into and MST-LIB file and evaluated our parallel congruence closure algorithms on these
-benchmarks.
+\subsection{Hardware Benchmarks}~\label{sec:eval:hardware}
 
-\subsection{SMT Benchmarks}
+In this section, we evaluate on a set of benchmarks checking the equivalence of
+two circuits. The canonical way to check circuit equivalence is using a miter, a
+construction where given two circuits $C_1$ and $C_2$ (with the same number of
+inputs and outputs), we construct a new circuit $M$ that (1) for each output of
+$C_1$ and $C_2$, takes their XOR and (2) ORs all the XOR results together. We
+then check whether the output of $M$ is always 0, which indicates that $C_1$ and
+$C_2$ are equivalent.
 
-To get SMT benchmarks, we took benchmarks from the QF-UF logic
-in the annual 2025 SMT competition~\cite{smtcomp2025}. In this category, we picked
-the benchmarks from \asm{fill in} as the other benchmarks were either very simple
-or required more complicated boolean reasoning.
+Typically, the miter is converted into conjunctive normal form (CNF) and given to 
+a SAT solver. However, these formulas can be very large and difficult to solve.
+Biere et al.~\cite{clausal-cc} showed that often different circuits have redundant subcircuits and 
+thus these formulas can be simplified significantly using congruence closure.
 
-These benchmarks include boolean connectives, so to get pure congruence closure
-constraints, we ran each of the bencmarks through the Sundance-SMT solver
-~\cite{sundance}, every time Sundance-SMT found a conflict in its congruence 
-closure solver, we extracted the set of equalities into an SMT-LIB file.
+Biere et al. evaluated their clausal congruence closure algorithm on two benchmark sets:
+five circuit pairs that curated to be difficult for SAT solvers~\cite{iwls} and a set of 
+benchmarks comparing an original circuit against an ABC-optimized version~\cite{hwmcc}.
+They implemented their congruence closure algorithm as a preprocessing pass in the SAT solver
+Kissat~\cite{kissat} and showed that it significantly reduced the time taken to
+solve these benchmarks. For our evaluation, we take the same benchmarks and run
+them through our parallel congruence closure algorithms, comparing the time
+taken to solve the benchmarks with and without congruence closure.
+
+
+% \subsection{Equality Saturation Benchmarks}
+
+% To get equality saturation benchmarks, we ran egglog~\cite{egglog} on the egg-cc
+% project~\cite{egg-cc}—an experimental optimizing compiler for the LLVM-like IR 
+% Bril. We ran egglog on a number of Bril programs for \as{todo} seconds and logged
+% all of the unions egglog generated during this time. We then extracted these unions
+% into and MST-LIB file and evaluated our parallel congruence closure algorithms on these
+% benchmarks.
+
+% \subsection{SMT Benchmarks}
+
+% To get SMT benchmarks, we took benchmarks from the QF-UF logic
+% in the annual 2025 SMT competition~\cite{smtcomp2025}. In this category, we picked
+% the benchmarks from \asm{fill in} as the other benchmarks were either very simple
+% or required more complicated boolean reasoning.
+
+% These benchmarks include boolean connectives, so to get pure congruence closure
+% constraints, we ran each of the bencmarks through the Sundance-SMT solver
+% ~\cite{sundance}, every time Sundance-SMT found a conflict in its congruence 
+% closure solver, we extracted the set of equalities into an SMT-LIB file.
 
 
 
