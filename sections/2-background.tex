@@ -23,35 +23,37 @@ partition of terms into equivalence classes. More formally we consider:
     and $t_1, \ldots, t_k \in T$.
 \end{definition}
 
+We say that term $x$ is the \emph{child} of term $f(x)$ and conversely term
+$f(x)$ is the \emph{parent} of term $x$.
+
 \begin{definition}[Congruence Closure]
     Given $(F, T, E)$ where $F$ is a list of function symbols, $T$ is a set of
     terms over $F$, and $E = \{a_1 = b_1, \ldots, a_n = b_n\}$ is a set of
     equalities between terms in $T$ where $a_1, \ldots, a_n, b_1, \ldots, b_n
     \in T$ for every $i$, the congruence closure of $(F, T, E)$ is the smallest
     equivalence relation $\equiv$ over $T$ such that:
+    \begin{enumerate}
+        \item $a_i \equiv b_i$ for every $i$.
+        \item $s \equiv s$ for every term $s$ (reflexivity).
+        \item If $s \equiv t$ then $t \equiv s$ (symmetry).
+        \item If $s \equiv t$ and $t \equiv u$ then $s \equiv u$ (transitivity).
+        \item If $s_i \equiv t_i$ for every $i$ then $f(s_1, \ldots, s_k) \equiv
+        f(t_1, \ldots, t_k)$ (congruence).     
+    \end{enumerate}
 \end{definition}
 
-We formally consider the congruence closure over the set of terms and equalities
-$(T, E)$, where 
+Congruence closure is useful in practice for SMT solvers, given a formula
+$\phi = a_1 = b_1 \land \ldots \land a_n = b_n \land s \neq t$, an SMT solver
+will run congruence closure on the equalities $E = \{a_i = b_i\}_{i=1}^n$ to
+obtain the congruence closure $\equiv$ of $E$. Then, it will check if $s$ and
+$t$ are in the same equivalence class under $\equiv$. If they are, then we 
+know that $s \neq t$ is false and thus the formula $\phi$ is unsatisfiable.
 
-We say that term $x$ is the \emph{child} of term $f(x)$ and conversely term
-$f(x)$ is the \emph{parent} of term $x$. Two terms are \emph{congruent} if they
-are equal (i.e. we are given $x = y$) when they have the same function and
-pairwise-congruent children: $f(s_1, \ldots, s_k) \equiv f(t_1, \ldots, t_k)$
-whenever $s_i \equiv t_i$ for every $i$. Together with reflexivity, symmetry,
-and transitivity of equality, this gives an equivalence relation on terms;
-closing under it propagates a small set of asserted equalities to all of their
-consequences.
-
-This is useful in practice for SMT solvers. If given a disequality $s \neq t$
-and if $s$ and $t$ are in the same equivalence class, then it knows the formula
-is unsatisfiable. Similarly, an equality saturation engine may ask if two
-programs $P$ and $Q$ are equivalent under a set of rewrite rules by checking if
-$P$ and $Q$ are in the same equivalence class.
-
-Hence, the decision problem of congruence closure is to determine whether any
-two terms are in the same equivalence class after closing under the asserted
-equalities and congruence.
+Similarly, an equality saturation engine may ask: what programs are equivalent
+to $P$ under a set of rewrite rules $E$. To answer this question, it can run
+congruence closure on $E$ to obtain the congruence closure $\equiv$ of $E$.
+Then, it may check which programs $Q$ are in the same equivalence class as $P$
+under $\equiv$.
 
 The classical algorithm of Nelson and Oppen~\cite{nelson-oppen-cc} maintains a
 union-find over equivalence classes of subterms. A worklist holds classes that
@@ -59,7 +61,8 @@ have just been merged. Processing a class involves walking its \emph{parent
 list}---all e-nodes that mention this class as a direct
 child---re-canonicalizing each, and merging any pair that the hashcons
 identifies as a duplicate. New merges produce new worklist entries; the loop
-runs to a fixed point. 
+runs to a fixed point. An improvement by Downey et al.~\cite{downey} uses a 
+hash-cons to detect new congruences in $O(1)$ time.
 
 \subsection{Motivating Example}
 \label{sec:bg:motivating}
@@ -87,6 +90,10 @@ Once these equalities fire, the $g$-terms become congruent $g(f(a_0), f(a_1))
 \equiv g(f(b_0), f(b_1))$. Thus, the SMT solver knows that these two terms must
 be equal and thus the given formula is false.
 
+Notice that this propagates in rounds: the initial equalities are added to the
+union-find, then the four $f$-term equalities are added, and finally the
+$g$-term equality is added.
+
 \begin{definition}[Congruence Depth]
     We say that two terms are $k$-step congruent if they are congruent after $k$
     rounds of congruence closure. We say that the \emph{congruence depth} of a
@@ -102,16 +109,21 @@ be equal and thus the given formula is false.
     equalities that can be added in a single round of congruence closure.
 \end{definition}
 
+In general, if we have a large number of terms that
+become congruent in a single round, we can add all of these terms to the
+union-find concurrently. This motivates our parallel algorithm for congruence
+closure, which processes each round of congruence closure in parallel.
 
-Notice that this propagates in rounds: initially, the only equalities we know
-are $a_0 = b_0$ and $a_1 = b_1$, these can be added to the union-find
-concurrently. Once these are added, the four equalities between the $f$-terms
-are directly implied by these. Hence, they can be added concurrently in the next
-round. Finally, once these are added, the two $g$-terms are equal and can be
-added. Using our parallel algorithm (described in \autoref{sec:alg}), we can
-finish congruence closure in three rounds of size $2, 4, 1$ respectively. This
-is opposed to the sequential algorithm, which would process $7$ merges one at a
-time. We make these intuitions precise in Section~\ref{sec:alg}.
+
+% : initially, the only equalities we know
+% are $a_0 = b_0$ and $a_1 = b_1$, these can be added to the union-find
+% concurrently. Once these are added, the four equalities between the $f$-terms
+% are directly implied by these. Hence, they can be added concurrently in the next
+% round. Finally, once these are added, the two $g$-terms are equal and can be
+% added. Using our parallel algorithm (described in \autoref{sec:alg}), we can
+% finish congruence closure in three rounds of size $2, 4, 1$ respectively. This
+% is opposed to the sequential algorithm, which would process $7$ merges one at a
+% time. We make these intuitions precise in Section~\ref{sec:alg}.
 
 
 \subsection{Parallel algorithms}
