@@ -12,8 +12,9 @@ equivalence relation that contains a given set of equalities and is closed under
 congruence.
 
 Typically, congruence closure is implemented using a datastructure called an
-\emph{e-graph}~\cite{egraphs}, which maintains a partition of terms into
-equivalence classes. More formally:
+\emph{e-graph}~\cite{egraphs}, which extends unionfind~\cite{unionfindtarjan}
+to represent equivalence classes of terms, while maintaining congruence.
+
 
 \begin{definition}[]
     We define $T$ to be a set of \emph{terms} over function symbols $F$, where
@@ -33,7 +34,7 @@ We say that term $x$ is the \emph{child} of $f(x)$ and conversely $f(x)$ is the
     equivalence closure of $=$ over $T$ that respects congruence. More
     specifically:
     \begin{enumerate}
-        \item $a_i \equiv b_i$ for every $i$.
+        \item $a_i \equiv b_i$ for every $i$ (input equalities $=$).
         \item $s \equiv s$ for every term $s$ (reflexivity).
         \item If $s \equiv t$ then $t \equiv s$ (symmetry).
         \item If $s \equiv t$ and $t \equiv u$ then $s \equiv u$ (transitivity).
@@ -60,14 +61,7 @@ Equality saturation, on the other hand, asks given a program $P$, what is the
 ``best'' program $Q$ under a set of rewrite rules $E$. The insight is to treat
 this as a congruence closure problem. We apply the rewrite rules $E$ to $P$ and
 apply congruence to get an egraph representing the set of programs equivalent to
-$P$
-
-
-Similarly, an equality saturation engine may ask: what programs are equivalent
-to $P$ under a set of rewrite rules $E$. To answer this question, it can run
-congruence closure on $E$ to obtain the congruence closure $\equiv$ of $E$.
-Then, it may check which programs $Q$ are in the same equivalence class as $P$
-under $\equiv$. After congruence closure reaches saturation or times out, a cost
+$P$.After congruence closure reaches saturation or times out, a cost
 function can be used to select the best program $Q$ from the equivalence class
 of $P$.
 
@@ -81,15 +75,14 @@ solver:
 %
 \begin{equation*}\label{ex:formula}
 \begin{aligned}
-& \;\;\;\;\;\; a_0 = b_0 \land\; a_1 = b_1 \\
-&\;\land\;g(f(a_0), f(a_1)) \neq g(f(b_0), f(b_1))
+& \;\;\;\;\;\; a_0 = b_0 \land\; a_1 = b_1 \land\;g(f(a_0), f(a_1)) \neq g(f(b_0), f(b_1))
 \end{aligned}
 \end{equation*}
 %
 
 This formula consists of two equalities $a_0 = b_0$ and $a_1 = b_1$, and a
 single disequality between two terms built from $f$ and $g$. The disequality
-compares two applications of $g$, whose four arguments are the $f$-terms.
+compares two applications of $g$, whose arguments are the $f$-terms.
 
 Congruence closure proceeds as follows. After applying the two asserted unions,
 the union-find places $a_0 \equiv b_0$ and $a_1 \equiv b_1$. Then by congruence
@@ -100,7 +93,7 @@ Once these equalities fire, the $g$-terms become congruent $g(f(a_0), f(a_1))
 be equal and thus the given formula is false.
 
 Notice that this propagates in rounds: the initial equalities are added to the
-union-find, then the four $f$-term equalities are added, and finally the
+union-find, then the two $f$-term equalities are added, and finally the
 $g$-term equality is added.
 
 \begin{definition}[Congruence Depth]
@@ -111,10 +104,10 @@ $g$-term equality is added.
 \end{definition}
 
 \begin{definition}[Congruence Width]
-    For each round $r$ of congruence closure, we say that $\text{width}(r)$ is
+    For each round $r$ of congruence closure, we say that $\textit{width}(r)$ is
     the number of new equalities that are added in round $r$. We define the
     total width of a congruence closure problem to be $\max_{r \in
-    0\ldots\text{depth}} \text{width}(r)$, i.e.the maximum number of new
+    0\ldots\textit{depth}} \textit{width}(r)$, i.e.the maximum number of new
     equalities that can be added in a single round of congruence closure.
 \end{definition}
 
@@ -122,6 +115,8 @@ In general, if we have a large number of terms that become congruent in a single
 round, we can add all of these terms to the union-find concurrently. This
 motivates our parallel algorithm for congruence closure, which processes each
 round of congruence closure in parallel.
+
+
 
 
 % : initially, the only equalities we know are $a_0 = b_0$ and $a_1 = b_1$,

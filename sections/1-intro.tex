@@ -58,13 +58,13 @@ algorithm uses a concurrent union find data structure and a bulk-synchronous
 parallel design to efficiently compute the congruence closure of a set of
 equalities and disequalities.
 
-Sequential congruence closure algorithms are based on the seminal work by Nelson
-and Oppen~\cite{nelson-oppen-cc}, which maintains a worklist of pairs of terms
-that are known to be equal. The algorithm repeatedly processes pairs from the
-worklist, merging their equivalence classes in the union-find data structure and
-adding new pairs to the worklist until no more pairs can be added.
+% Sequential congruence closure algorithms are based on the seminal work by Nelson
+% and Oppen~\cite{nelson-oppen-cc}, which maintains a worklist of pairs of terms
+% that are known to be equal. The algorithm repeatedly processes pairs from the
+% worklist, merging their equivalence classes in the union-find data structure and
+% adding new pairs to the worklist until no more pairs can be added.
 
-At a high level, our algorithm replaces the classical sequential worklist of
+At a high level, our algorithms replaces the classical sequential worklist of
 Nelson and Oppen~\cite{nelson-oppen-cc} with a \emph{bulk-synchronous} closure
 loop. Initial equalities are unioned into a lock-free concurrent
 union-find~\cite{jayanti16}, marking each affected e-class as \emph{changed}.
@@ -77,11 +77,18 @@ new congruence. Each step is a pure data-parallel primitive—\texttt{filter},
 \texttt{flat\_map}, \texttt{map}, semisort, and a parallel union pass—built on
 \textsc{ParlayLib}'s scheduler and sequence types~\cite{parlaylib}. 
 
+The two algorithms differ in how they detect new congruences in step (ii): the
+first keeps track of parents list for each term and when a term is involved in a
+union, it adds all of its parents to a worklist. The second algorithm marks
+terms as dirty when they are involved in a union and then filters terms to find
+which ones have dirty children.
+
 The algorithm terminates when no round discovers a new merge, exactly mirroring
 the fixed point of the sequential procedure. 
 
-While congruence closure is P-complete~\cite{ccpcomplete}, we show that our
-algorithm can achiev near linear speedups on random benchmarks, a synthetic
+While congruence closure is P-complete (i.e. it is believed to not have a
+theoretically efficient parallel algorithm)~\cite{ccpcomplete}, we show that our
+algorithm can achieve near linear speedups on random benchmarks, a synthetic
 benchmark suite designed to stress test our algorithm, and a set of circuit
 equivalence benchmarks~\cite{eqsat}. Our algorithm efficiently utilizes multiple
 cores and we discuss what would be required to integrate it into an existing SMT
