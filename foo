@@ -1,0 +1,14 @@
+# 1. Find the actual path of `shutdown` on this distro
+which shutdown
+# typically /usr/sbin/shutdown on Ubuntu, /sbin/shutdown on Amazon Linux
+
+# 2. Find your username (the user that'll run the script)
+whoami
+# typically ubuntu or ec2-user
+
+# 3. Edit a new sudoers drop-in file via visudo (syntax-checks before saving)
+sudo visudo -f /etc/sudoers.d/shutdown-nopasswd
+In the editor, add one line (substitute your username and the path from step 1):
+
+
+ubuntu ALL=(ALL) NOPASSWD: /usr/sbin/shutdown
