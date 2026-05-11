@@ -93,8 +93,8 @@
 
 \begin{abstract}
   Given a set of ground equalities over terms with uninterpreted function
-  symbols, congruence closure computes all ground equalities entailed by
-  reflexivity, symmetry, transitivity, and congruence. While congruence closure
+  symbols, congruence closure computes the smallest equivalence relation
+  containing these equalities that respects functional congruence. While congruence closure
   is a performance-critical component of satisfiability modulo theories (SMT)
   solvers and equality saturation engines, all existing implementations are
   sequential. In this work, we provide the first parallel algorithm for
@@ -103,18 +103,28 @@
   We build on two ideas from the parallel algorithms literature: a union-find
   data structure that supports concurrent union operations and a
   semisort (group-by) algorithm that allows us to discover new congruences in
-  parallel.
-
-  We present two algorithms. The first replaces the classic sequential worklist
+  parallel. We present two algorithms that replaces the classic sequential worklist
   with a bulk-synchronous closure loop: it processes all pending unions in
-  parallel, then detects new congruences, and repeats until a fixpoint. The
-  second removes the global barrier between these phases, detecting congruences
-  concurrently with union processing and feeding the resulting unions back into
-  a concurrent bag datastructure. We evaluate both these algorithms against several
-  sequential baselines on a number of benchmarks and show near-linear speedup on 
-  up to 32 cores. Both of our algorithms can be extended to support
-  backtracking, proof production, and dynamic term insertion. These algorithms
-  are compatible with modern SMT solver and equality saturation architectures.
+  parallel, then detects new congruences, and repeats until a fixpoint.
+  
+%   The two algorithms differ in how they detect new congruences: the first 
+%   keeps track of parents list for each term and when a term is involved 
+%   in a union, it adds all of its parents to a worklist. The second algorithm
+%   marks terms as dirty when they are involved in a union and then filters terms
+%   to find which ones have dirty children.
+
+%   We present two algorithms. 
+%   The first replaces the classic sequential worklist
+%   with a bulk-synchronous closure loop: it processes all pending unions in
+%   parallel, then detects new congruences, and repeats until a fixpoint. The
+%   second removes the global barrier between these phases, detecting congruences
+%   concurrently with union processing and feeding the resulting unions back into
+%   a concurrent bag datastructure.
+  We evaluate both these algorithms against a sequential baseline on a number of
+  benchmarks and show near-linear speedup on up to 32 cores. Both of our
+  algorithms can be extended to support backtracking, proof production, and
+  dynamic term insertion. These algorithms are compatible with modern SMT solvers
+  and equality saturation architectures.
 \end{abstract}
 
 \input{sections/1-intro}
