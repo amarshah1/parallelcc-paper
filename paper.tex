@@ -10,14 +10,15 @@
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithm}
-\usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{subcaption}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\usepackage{booktabs} 
+\usepackage{booktabs}
 \usepackage{amsthm}
 \usepackage[square,comma,numbers,sort&compress]{natbib}      % Offers more control over citation appearance and bib spacing
+\usepackage{algpseudocodex}
+
 
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
@@ -56,6 +57,24 @@
 % Margin variants (shorter notes that don't break the paragraph).
 \newcommand{\zkm}[1]{\todo[color=blue!20,size=\scriptsize]{ZK: #1}}
 \newcommand{\asm}[1]{\todo[color=green!20,size=\scriptsize]{AS: #1}}
+
+\algnewcommand\algorithmicparfor{\textbf{parfor}}
+\algnewcommand\algorithmicendparfor{\textbf{end parfor}}
+\makeatletter
+\algdef{SE}[PARFOR]{ParFor}{EndParFor}[1]{%
+    \algpx@startCodeCommand\algpx@startIndent\algorithmicparfor\ #1\ \algorithmicdo%
+}{%
+    \algpx@startEndBlockCommand\algpx@endIndent\algorithmicendparfor%
+}
+\pretocmd{\ParFor}{\algpx@endCodeCommand}{}{}
+\ifbool{algpx@noEnd}{%
+    \algtext*{EndParFor}%
+    \pretocmd{\EndParFor}{\algpx@endIndent}{}{}%
+    \pretocmd{\EndParFor}{\algpx@endCodeCommand[1]}{}{}%
+}{%
+    \pretocmd{\EndParFor}{\algpx@endCodeCommand[0]}{}{}%
+}
+\makeatother
 
 
 \begin{document}
@@ -104,11 +123,13 @@
 
 \input{sections/3-algorithm}
 
-\input{sections/4-implementation}
+\input{sections/4-parallelalgorithm}
 
-\input{sections/5-evaluation}
+\input{sections/5-implementation}
 
-\input{sections/6-discussion}
+\input{sections/6-evaluation}
+
+\input{sections/7-discussion}
 
 
 \bibliographystyle{IEEEtran}
