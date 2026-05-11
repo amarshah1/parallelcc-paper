@@ -12,8 +12,9 @@ equivalence relation that contains a given set of equalities and is closed under
 congruence.
 
 Typically, congruence closure is implemented using a datastructure called an
-\emph{e-graph}~\cite{egraphs}, which extends unionfind~\cite{unionfindtarjan}
-to represent equivalence classes of terms, while maintaining congruence.
+\emph{e-graph}~\cite{egraphs}, which extends a union-find
+datastructure~\cite{unionfindtarjan} to represent equivalence classes of terms,
+while maintaining congruence.
 
 
 \begin{definition}[]
@@ -58,12 +59,11 @@ unsatisfiable.
 
 
 Equality saturation, on the other hand, asks given a program $P$, what is the
-``best'' program $Q$ under a set of rewrite rules $E$. The insight is to treat
-this as a congruence closure problem. We apply the rewrite rules $E$ to $P$ and
-apply congruence to get an egraph representing the set of programs equivalent to
-$P$.After congruence closure reaches saturation or times out, a cost
-function can be used to select the best program $Q$ from the equivalence class
-of $P$.
+``best'' program $Q$ under a set of rewrite rules $E$. This can be treated as a
+congruence closure problem. We apply the rewrite rules $E$ to $P$ and apply
+congruence to get an egraph representing the set of programs equivalent to
+$P$.After congruence closure reaches saturation or times out, a cost function
+can be used to select the best program $Q$ from the equivalence class of $P$.
 
 
 
@@ -134,7 +134,7 @@ round of congruence closure in parallel.
 \label{sec:bg:parallel}
 
 We describe our algorithm in the standard \emph{work--span} model of
-shared-memory parallelism~\cite{blelloch-greiner}. The \emph{work} $W$ of a
+shared-memory parallelism~\cite{parallel-algos}. The \emph{work} $W$ of a
 computation is the total number of operations it performs; the \emph{span} (or
 depth) $S$ is the length of its longest sequential dependency chain. A famous
 result states that on $p$ processors with a greedy scheduler, the running time
@@ -170,13 +170,13 @@ algorithm in the next section.
 
 
 For this paper, we assume an arbritrary forking Multi-Process Random-Access
-Machine (MP-RAM) model of parallelism~\cite{mp-ram}. In this model, we have a
+Machine (MP-RAM) model of parallelism~\cite{parallel-algos}. In this model, we have a
 number of processors sharing an unbounded memory. Each processor can perform
 sequential computations and are extended with the \textsc{fork} instruction,
 that can fork $k$ new threads.
 
 In practice, we will describe our algorithm using standard parallel constructs
-implemented in the Parlay-Lib library~\cite{parla`y-lib}, which provides a
+implemented in the Parlay-Lib library~\cite{parlaylib}, which provides a
 high-level interface for parallel programming in C++. For instance, we will use 
 a parallel for loop (\textbf{parfor}) to express the parallel processing of a set of
 independent tasks. It is easy to see how this could have been implemented using 
@@ -218,7 +218,7 @@ have just been merged. Processing a class involves walking its \emph{parent
 list}---all e-nodes that mention this class as a direct
 child---re-canonicalizing each, and merging any pair that the hashcons
 identifies as a duplicate. New merges produce new worklist entries; the loop
-runs to a fixed point. An improvement by Downey et al.~\cite{downey} uses a
+runs to a fixed point. An improvement by Downey et al.~\cite{downey-sethi-tarjan} uses a
 hash-cons to detect new congruences in $O(1)$ time.
 
 \subsubsection{Parallelized SMT solvers}

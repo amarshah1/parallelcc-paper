@@ -25,17 +25,16 @@
 % proof production, and dynamic term insertion. These algorithms are compatible
 % with modern SMT solver and equality saturation architectures.
 
-Congruence closure is a important algorithm for (1)~satisfiability modulo
-theories (SMT) solvers to determine the truth of a logical formulas~\cite{smt};
-and (2)~equality saturation engines to determine the equivalence of two
-programs~\cite{eqsat}. Congruence closure determines whether a set of equalities
-and disequalities between terms is satisfiable. For example, given the
-equalities $a = b$ and $b = c$ and the disequality $f(a) \neq f(c)$, congruence
-closure will conclude that this is unsatisfiable since $a = c$ by
-\emph{transitivity} and thus the two ``parent terms'' $f(a) = f(c)$ by
-\emph{congruence}. To decide this problem in practice, one must maintain
-equalities using a union-find data structure and propagate congruences to parent
-terms.
+Congruence closure is a important algorithm for satisfiability modulo theories
+(SMT) solving~\cite{smt}, equality saturation~\cite{eqsat}, type
+unification~\cite{unification}, and hardware verification~\cite{clausal-cc}.
+Congruence closure determines whether a set of equalities and disequalities
+between terms is satisfiable. For example, given the equalities $a = b$ and $b =
+c$ and the disequality $f(a) \neq f(c)$, congruence closure will conclude that
+this is unsatisfiable since $a = c$ by \emph{transitivity} and thus the two
+``parent terms'' $f(a) = f(c)$ by \emph{congruence}. To decide this problem in
+practice, one must maintain equalities using a union-find data structure and
+propagate congruences to parent terms.
 
 
 % Satisfiability modulo theories (SMT) solvers are used to decided the
@@ -47,14 +46,14 @@ terms.
 Both equality saturation engines like egg~\cite{egg} and egglog~\cite{egglog}
 and SMT solvers like Z3~\cite{z3} and cvc5~\cite{cvc5} are widely used in a
 variety of applications, including software verification~\cite{dafny,verus},
-hardware design~\cite{hardware}, and mathematical theorem proving~\cite{math}.
+hardware design~\cite{hardware}, and mathematical theorem proving~\cite{lean-grind}.
 Hence, their performance is critical, and much work has gone into improving
 their efficiency. One promising avenue for improving the performance is
 \emph{parallelization}: utilizing multiple processors to solve the problem
 faster. 
 
-To this end, we present a novel parallel congruence closure algorithm. Our
-algorithm uses a concurrent union find data structure and a bulk-synchronous
+To this end, we present two novel parallel congruence closure algorithms. Our
+algorithms use a concurrent union find data structure and a bulk-synchronous
 parallel design to efficiently compute the congruence closure of a set of
 equalities and disequalities.
 
@@ -77,19 +76,20 @@ new congruence. Each step is a pure data-parallel primitive—\texttt{filter},
 \texttt{flat\_map}, \texttt{map}, semisort, and a parallel union pass—built on
 \textsc{ParlayLib}'s scheduler and sequence types~\cite{parlaylib}. 
 
-The two algorithms differ in how they detect new congruences in step (ii): the
-first keeps track of parents list for each term and when a term is involved in a
-union, it adds all of its parents to a worklist. The second algorithm marks
-terms as dirty when they are involved in a union and then filters terms to find
-which ones have dirty children.
-
 The algorithm terminates when no round discovers a new merge, exactly mirroring
-the fixed point of the sequential procedure. 
+the fixed point of the sequential procedure.
 
+The two algorithms differ in how they detect new congruences in step (ii). The
+algorithm \parentalgo keeps track of parents list for each term and when a term
+is involved in a union, it adds all of its parents to a worklist. The second
+algorithm \filteralgo marks terms as dirty when they are involved in a union and
+then filters terms to find which ones have dirty children.
+
+ 
 While congruence closure is P-complete (i.e. it is believed to not have a
 theoretically efficient parallel algorithm)~\cite{ccpcomplete}, we show that our
-algorithm can achieve near linear speedups on random benchmarks, a synthetic
-benchmark suite designed to stress test our algorithm, and a set of circuit
-equivalence benchmarks~\cite{eqsat}. Our algorithm efficiently utilizes multiple
-cores and we discuss what would be required to integrate it into an existing SMT
-solver or equality saturation engine. 
+algorithm can achieve near linear speedups up to 32 cores on random
+benchmarks(\todo{add a specific number}), a synthetic benchmark suite designed to
+stress test our algorithm, and a set of circuit equivalence
+benchmarks~\cite{eqsat}. Finally, we discuss what would be required to integrate
+it into an existing SMT solver or equality saturation engine. 

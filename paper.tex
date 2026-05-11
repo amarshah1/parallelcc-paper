@@ -11,6 +11,7 @@
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithm}
 \usepackage{graphicx}
+\usepackage{xspace}
 \usepackage{float}
 \usepackage{dblfloatfix}
 \usepackage{subcaption}
@@ -77,6 +78,9 @@
     \pretocmd{\EndParFor}{\algpx@endCodeCommand[0]}{}{}%
 }
 \makeatother
+
+\newcommand{\parentalgo}{\textsc{ParentAlgorithm}\xspace}
+\newcommand{\filteralgo}{\textsc{FilterAlgorithm}\xspace}
 
 
 \begin{document}
