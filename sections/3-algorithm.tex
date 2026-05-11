@@ -2,7 +2,12 @@
 \label{sec:algorithm}
 
 
-\subsection{Nelson-Oppen Sequential Algorithm}~\label{sec:algorithm:no}
+\subsection{Sequential Baseline}~\label{sec:algorithm:no}
+
+Our baseline is a simple yet efficient worklist algorithm based on one developed by Nieuwenhuis and Oliveras.
+
+We maintain a \emph{signature table} that maps every term to the representative of its e-class. It is implemented via a hashtable, where hashing a term entails hashing its function symbol and the e-class identifiers of its operands. The signature table admits operations $\textsc{Call}(e)$ which enters term $e$ into the signature table, $\textsc{Lookup}(e)$, which finds the 
+
 
 
 \subsection{Other Sequential Algorithms}~\label{sec:algorithm:topo}
