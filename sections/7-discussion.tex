@@ -23,33 +23,55 @@ We answer the research questions as follows:
   engine.
 \end{itemize}
 
-\subsection{Algorithm Modifications andFuture Work}~\label{sec:disc:limit-alg}
+\subsection{Algorithm Modifications and Future Work}~\label{sec:disc:limit-alg}
 
-There are several extensions to the algorithm as presented that we would like
-to address in future work. 
+There are several extensions to the algorithm as presented to be addressed in 
+future work.
 
-\textbf{Synchronous Round Structure.} Our synchronous round structure could be 
-limited in terms of parallel scaling. In particular, the round structure means that we
+\textbf{Synchronous Round Structure.} Our synchronous round structure could be
+limited in terms of parallel scaling. In particular, if we have congruence
+closure problems with large \emph{depth}, but small \emph{width}, our
+parallization strategy cannot achieve a good speedup. We implemented an
+asynchronous version of the dirty children algorithm, where we did semisort and
+unions happened at the same time. Certain threads would semisort and discover
+new congruences which the would add to a concurrent bag
+datastructure~\cite{concurrentbag}. Then the threads that wer unioning would
+probe this concurrent bag for new merges to perform.
 
-inherently
-limits parallel scaling. In particular, the instance size processed at each
-round is small relative to the size of the problem for several benchmarks we
-have examined (like the \texttt{egg} benchmarks). We will likely have to take a
-more asynchronous approach to achieve better thread scaling; this would entail
-generating new congruences from discovered equalities immediately instead of
-waiting for the round to complete.
+We found that this was slower than the synchronous version. A challenge to
+address is that even this asynchronous algorithm cannot efficiently parallize a
+chain of congruences, i.e. where we you have add the merges $x \equiv y$, $f(x)
+\equiv f(y)$, $f(f(x)) \equiv f(f(y))$, etc.
+
+
+
+% inherently
+% limits parallel scaling. In particular, the instance size processed at each
+% round is small relative to the size of the problem for several benchmarks we
+% have examined (like the \texttt{egg} benchmarks). We will likely have to take a
+% more asynchronous approach to achieve better thread scaling; this would entail
+% generating new congruences from discovered equalities immediately instead of
+% waiting for the round to complete.
 
 \textbf{Backtracking.} 
 \as{Zak can you fill in how we could make our implementation backtrackable}
 
-\textbf{Proof Production.} Our implementation does not produce \emph{proofs} or
-\emph{witnesses} of the equalities it discovers. For instance if our algorithm
+\textbf{Proof Production.} Our implementation does not produce \emph{proofs}(i.e.
+\emph{witnesses}) of the equalities it discovers. For instance if our algorithm
 discovers that $x = y$, it cannot replay the chain of equalities and congruences
 that led to this conclusion. This is important for a number of reasons: it is
 necessary to justify correctness and it is used to produce conflict clauses in
-SMT solvers.
+SMT solvers. Our implementation could easily be extended to support proof
+production by avoiding path compression in the union-find data structure.
+Another option is to maintain two union-find data structures: one for the actual
+congruence closure algorithm, and another that maintains the proof forest as
+done by the Z3 SMT solver does~\cite{z3-internals}.
 
-Finally, we would like to support our implementation to incremental updates
-(where equalities and new E-node may arrive dynamically). This is important for
-both equality saturation and SMT solvers, where new equalities may be discovered
-via for example quantifier instantiation.
+\textbf{Incremental Update.} Our algorithms could support incremental update
+(where equalities and new terms may arrive dynamically)
+
+Finally, we would like to support our
+implementation to incremental updates (where equalities and new E-node may
+arrive dynamically). This is important for both equality saturation and SMT
+solvers, where new equalities may be discovered via for example quantifier
+instantiation.
