@@ -4,17 +4,16 @@
 
 \subsection{Congruence closure}
 
-\emph{Congruence} ($\equiv$) requires that two terms that
-that have the same function and pairwise-congruent children, must
-be congruent, i.e. $f(s_1,
+\emph{Congruence} ($\equiv$) requires that two terms that that have the same
+function and pairwise-congruent children, must be congruent, i.e. $f(s_1,
 \ldots, s_k) \equiv f(t_1, \ldots, t_k)$ whenever $s_i \equiv t_i$ for every
 $i$. \emph{Congruence closure} refers to the problem of building the smallest
 equivalence relation that contains a given set of equalities and is closed under
 congruence.
 
-Typically, congruence closure is implemented using a
-datastructure called an \emph{e-graph}~\cite{egraphs}, which maintains a
-partition of terms into equivalence classes. More formally:
+Typically, congruence closure is implemented using a datastructure called an
+\emph{e-graph}~\cite{egraphs}, which maintains a partition of terms into
+equivalence classes. More formally:
 
 \begin{definition}[]
     We define $T$ to be a set of \emph{terms} over function symbols $F$, where
@@ -23,15 +22,16 @@ partition of terms into equivalence classes. More formally:
     $\text{arity}(f) = k$ and $t_1, \ldots, t_k \in T$.
 \end{definition}
 
-We say that term $x$ is the \emph{child} of $f(x)$ and conversely
-$f(x)$ is the \emph{parent} of $x$.
+We say that term $x$ is the \emph{child} of $f(x)$ and conversely $f(x)$ is the
+\emph{parent} of $x$.
 
 \begin{definition}[Congruence Closure]
     Given $(F, T, E)$ where $F$ is a list of function symbols, $T$ is a set of
     terms over $F$, and $E = \{a_1 = b_1, \ldots, a_n = b_n\}$ is a set of
     equalities between terms in $T$ where $a_1, \ldots, a_n, b_1, \ldots, b_n
     \in T$, the congruence closure ($\equiv$) of $(F, T, E)$ is the smallest
-    equivalence closure of $=$ over $T$ that respects congruence. More specifically:
+    equivalence closure of $=$ over $T$ that respects congruence. More
+    specifically:
     \begin{enumerate}
         \item $a_i \equiv b_i$ for every $i$.
         \item $s \equiv s$ for every term $s$ (reflexivity).
@@ -45,20 +45,21 @@ $f(x)$ is the \emph{parent} of $x$.
 
 SMT solvers determine the satisfiability of a first-order logic formula by using
 a Boolean Satisfiability (SAT) solver to search for a satisfying assignment to
-the propositional skeleton of the formula and then using a theory solver to check
-if the assignment is consistent with the theory. Congruence closure is useful in
-practice when dealing with the theory of uninterpreted functions (UF). Given a
-formula $\phi = a_1 = b_1 \land \ldots \land a_n = b_n \land s \neq t$, an SMT
-solver will run congruence closure on the equalities $E = \{a_i = b_i\}_{i=1}^n$
-to obtain the congruence closure $\equiv$ of $E$. Then, it will check if $s$ and
-$t$ are in the same equivalence class under $\equiv$. If they are, then we know
-that $s \neq t$ cannot be true and thus the formula $\phi$ is unsatisfiable.
+the propositional skeleton of the formula and then using a theory solver to
+check if the assignment is consistent with the theory. Congruence closure is
+useful in practice when dealing with the theory of uninterpreted functions (UF).
+Given a formula $\phi = a_1 = b_1 \land \ldots \land a_n = b_n \land s \neq t$,
+an SMT solver will run congruence closure on the equalities $E = \{a_i =
+b_i\}_{i=1}^n$ to obtain the congruence closure $\equiv$ of $E$. Then, it will
+check if $s$ and $t$ are in the same equivalence class under $\equiv$. If they
+are, then we know that $s \neq t$ cannot be true and thus the formula $\phi$ is
+unsatisfiable.
 
 
-Equality saturation, on the other hand, asks given a program $P$, what is the 
+Equality saturation, on the other hand, asks given a program $P$, what is the
 ``best'' program $Q$ under a set of rewrite rules $E$. The insight is to treat
-this as a congruence closure problem. We apply the rewrite rules $E$ to $P$ and 
-apply congruence to get an egraph representing the set of programs equivalent to 
+this as a congruence closure problem. We apply the rewrite rules $E$ to $P$ and
+apply congruence to get an egraph representing the set of programs equivalent to
 $P$
 
 
@@ -117,21 +118,21 @@ $g$-term equality is added.
     equalities that can be added in a single round of congruence closure.
 \end{definition}
 
-In general, if we have a large number of terms that
-become congruent in a single round, we can add all of these terms to the
-union-find concurrently. This motivates our parallel algorithm for congruence
-closure, which processes each round of congruence closure in parallel.
+In general, if we have a large number of terms that become congruent in a single
+round, we can add all of these terms to the union-find concurrently. This
+motivates our parallel algorithm for congruence closure, which processes each
+round of congruence closure in parallel.
 
 
-% : initially, the only equalities we know
-% are $a_0 = b_0$ and $a_1 = b_1$, these can be added to the union-find
-% concurrently. Once these are added, the four equalities between the $f$-terms
-% are directly implied by these. Hence, they can be added concurrently in the next
-% round. Finally, once these are added, the two $g$-terms are equal and can be
-% added. Using our parallel algorithm (described in \autoref{sec:alg}), we can
-% finish congruence closure in three rounds of size $2, 4, 1$ respectively. This
-% is opposed to the sequential algorithm, which would process $7$ merges one at a
-% time. We make these intuitions precise in Section~\ref{sec:alg}.
+% : initially, the only equalities we know are $a_0 = b_0$ and $a_1 = b_1$,
+% these can be added to the union-find concurrently. Once these are added, the
+% four equalities between the $f$-terms are directly implied by these. Hence,
+% they can be added concurrently in the next round. Finally, once these are
+% added, the two $g$-terms are equal and can be added. Using our parallel
+% algorithm (described in \autoref{sec:alg}), we can finish congruence closure
+% in three rounds of size $2, 4, 1$ respectively. This is opposed to the
+% sequential algorithm, which would process $7$ merges one at a time. We make
+% these intuitions precise in Section~\ref{sec:alg}.
 
 
 \subsection{Parallel algorithms}
@@ -147,41 +148,66 @@ $W/S$, its \emph{parallelism}, is large compared to the available cores.
 
 
 However, congruence closure is known to be
-\textsc{P}-complete~\cite{p-complete}, so we cannot hope for a log-span,
-work-optimal algorithm:
+\textsc{P}-complete~\cite{p-complete}:
 
 \begin{definition}
-    A problem is \textsc{P}-complete if it is in \textsc{P} and every problem in
-    \textsc{P} can be reduced to it in using a logarithmic-space reduction.
+    A problem is \textsc{P}-complete if
+    
+    \begin{enumerate}
+        \item It can be solved in polynomial time, i.e. there is an algorithm
+        that solves it in $O(n^k)$ time for some constant $k$ where $n$ is the
+        size of the input, and
+        \item Every problem in \textsc{P} can be reduced to it in using a
+        logarithmic-space reduction, i.e. for every problem $A$ in \textsc{P},
+        there is a function $f$ that maps instances of $A$ to instances of the
+        problem such that $f$ can be computed using only $O(\log n)$ space and
+        such that the answer to the instance of $A$ is the same as the answer to
+        the corresponding instance of the problem.
+    \end{enumerate}
 \end{definition}
 
 
 \textsc{P}-complete problems are widely believed to not be solvable in
-polylogarithmic span and polynomial work, so they are not efficiently
+poly-logarithmic span and polynomial work, so they are not efficiently
 parallelizable. However, this does not preclude the existence of a parallel
-algorithm that works well on most examples. We discuss such an algorithm in the
-next section.
+algorithm that works well on most practical examples. We discuss such an
+algorithm in the next section.
 
-We use two forms of parallel composition. \emph{Fork--join} spawns two
-subcomputations that run concurrently and synchronizes at their join point; we
-write $a \parallel b$ for the parallel composition of $a$ and $b$. A
-\textbf{parfor} is the natural extension to $n$ independent iterations, which we
-implement as a balanced fork--join tree of depth $O(\log n)$. We write
-\textbf{parfor} in pseudocode whenever the iterations are mutually independent.
 
-Concurrent updates to shared state are mediated by atomic primitives. We rely
-on \emph{compare-and-swap} (\texttt{CAS}): $\Call{CAS}{addr, old, new}$
-atomically writes $new$ to $addr$ if its current value is $old$, and returns
-whether it succeeded. \texttt{CAS} is the building block for the lock-free
-union-find we use in Section~\ref{subsec:uf}: contention shows up as a failed
-\texttt{CAS} that is retried against the new value, never as blocking.
+For this paper, we assume an arbritrary forking Multi-Process Random-Access
+Machine (MP-RAM) model of parallelism~\cite{mp-ram}. In this model, we have a
+number of processors sharing an unbounded memory. Each processor can perform
+sequential computations and are extended with the \textsc{fork} instruction,
+that can fork $k$ new threads.
+
+In practice, we will describe our algorithm using standard parallel constructs
+implemented in the Parlay-Lib library~\cite{parla`y-lib}, which provides a
+high-level interface for parallel programming in C++. For instance, we will use 
+a parallel for loop (\textbf{parfor}) to express the parallel processing of a set of
+independent tasks. It is easy to see how this could have been implemented using 
+\textsc{fork}, where $k$ is the number of iterations in the loop.
+
+% We use two forms of parallel composition. \emph{Fork--join} spawns two
+% subcomputations that run concurrently and synchronizes at their join point; we
+% write $a \parallel b$ for the parallel composition of $a$ and $b$. A
+% \textbf{parfor} is the natural extension to $n$ independent iterations, which we
+% implement as a balanced fork--join tree of depth $O(\log n)$. We write
+% \textbf{parfor} in pseudocode whenever the iterations are mutually independent.
+
+Concurrent updates to shared state are mediated by atomic primitives. We rely on
+\emph{compare-and-swap} (\texttt{CAS}): $\Call{CAS}{addr, old, new}$ atomically
+writes $new$ to $addr$ if its current value is $old$, and returns whether it
+succeeded. \texttt{CAS} is the building block for the lock-free union-find we
+use in Section~\ref{subsec:uf}. When there is contention (two threads trying to 
+update the same location simultaneously), it shows up as a failed \texttt{CAS}
+that is retried against the new value, never as blocking.
 
 Finally, our algorithm is structured as a sequence of \emph{bulk-synchronous}
-rounds~\cite{valiant-bsp}: each round performs a large parallel computation,
-all threads synchronize at a barrier, and the next round consumes the results.
-This structure makes per-round work and span easy to reason about and matches
-how new congruences are discovered in waves (Section~\ref{sec:bg:motivating}).
-The key per-round primitive we use is \texttt{group\_by}, also called
+rounds~\cite{valiant-bsp}: each round performs a large parallel computation, all
+threads synchronize at a barrier, and the next round consumes the results. This
+structure makes per-round work and span easy to reason about and matches how new
+congruences are discovered in waves (Section~\ref{sec:bg:motivating}). The key
+per-round primitive we use is \texttt{group\_by}, also called
 \emph{semisort}~\cite{semisort}: given an array of (key, value) pairs it returns
 the values grouped by key, in $O(n)$ work and $O(\log n)$ span on average. We
 use it to gather candidate-congruent terms in each round before unioning their
@@ -197,7 +223,7 @@ have just been merged. Processing a class involves walking its \emph{parent
 list}---all e-nodes that mention this class as a direct
 child---re-canonicalizing each, and merging any pair that the hashcons
 identifies as a duplicate. New merges produce new worklist entries; the loop
-runs to a fixed point. An improvement by Downey et al.~\cite{downey} uses a 
+runs to a fixed point. An improvement by Downey et al.~\cite{downey} uses a
 hash-cons to detect new congruences in $O(1)$ time.
 
 \subsubsection{Parallelized SMT solvers}
