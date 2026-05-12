@@ -170,8 +170,8 @@ At each round, we maintain a set of terms whose congruence classes may need to
 be updated. Intially, this comprises all terms appearing in base equalities. We
 then group congruent terms based on the equalities currently discovered, and
 merge the congruence classes of each group in the union-find. Grouping is
-accomplished via semisort---the \texttt{group\_by} operation in
-\textsc{ParlayLib}---and merging congruence classes is accomplished through
+accomplished via semisort (the \texttt{group\_by} operation in
+\textsc{ParlayLib}) and merging congruence classes is accomplished through
 taking the union of the corresponding equality classes in the union-find.
 
 We then propagate terms whose congruence classes may have changed to the next

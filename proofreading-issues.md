@@ -99,3 +99,101 @@ None.
 - [x] **#32** All active hashcons references already gone; remaining are in commented-out related work
 - [x] **#69** All figure label references resolve cleanly in latest build
 - [x] **NEW** Dropped "e-node"/"e-class" terminology paper-wide (replaced with "term" / "equivalence class"); kept "e-graph" reference in §2.1 per your request
+
+---
+
+## Second-pass issues (read-through round 2)
+
+### Round 2 — paper.tex / abstract
+
+- [x] **#71** [paper.tex:113] Fixed verb agreement; reframed loop description to fit both algorithms; added one sentence noting they differ in re-examination strategy
+- [x] **#72** Keeping as-is; backtracking will be filled in later (tracked in #63)
+- [x] **#73** Removed commented abstract drafts in paper.tex; also removed the older mirrored block at top of 1-intro.tex
+
+### Round 2 — sections/1-intro.tex
+
+- [ ] **#74** [L34-35] "this is unsatisfiable since $a = c$ by *transitivity* and thus the two ``parent terms'' $f(a) = f(c)$ by *congruence*" — sentence is missing a verb after "the two parent terms" (intended: "are equal" or "must satisfy $f(a) = f(c)$"). Also "parent terms" in quotes hasn't been defined yet
+- [ ] **#75** [L67-73] "lock-free concurrent union-find~\cite{jayanti16}" but at [3-algorithm.tex:117] the actual algorithm cited is Alistarh et al.~\cite{uf}, not Jayanti. Inconsistency
+- [ ] **#76** [L75-76] "The algorithm terminates when no round discovers a new merge, exactly mirroring the fixed point of the sequential procedure." — appears as orphaned single-sentence paragraph; should attach to the previous paragraph
+- [ ] **#77** [L98] "near-linear speedups up to 32 cores --- up to $27\times$ on 32 cores" — repetition of "32 cores"; tighten
+- [ ] **#78** [L98] "$27\times$ on 32 cores" framed "over an efficient sequential baseline" — but in §5 discussion the same number is framed as "self-speedup at T=32 relative to T=1 baseline". These are different things — reconcile
+- [ ] **#79** [L46] "egg" vs "egglog" — should be `\textsc{egg}` / `\textsc{egglog}` for tool names, or at least italicized? Currently bare; inconsistent with `Z3`/`cvc5` which are also bare. Possibly fine, but flagging for style consistency
+
+### Round 2 — sections/2-background.tex
+
+- [ ] **#80** [L14] "implemented using a **datastructure**" — `datastructure` (one word) used here but `data structure` (two words) used elsewhere. Pick one
+- [ ] **#81** [L20] `\begin{definition}[]` — empty optional argument; either give it a name like `[Terms]` or just use `\begin{definition}`
+- [ ] **#82** [L23-24] In the Definition of terms: missing "with" before "$\text{arity}(f) = k$" — currently reads "$f(t_1, \ldots, t_k)$ where $f\in F$ $\text{arity}(f) = k$" (run-on)
+- [ ] **#83** [L27-28] Re-defines "child"/"parent" relationship but only does so for single-arg case: "term $x$ is the child of $f(x)$". For $k$-ary terms each $t_i$ is a child. Generalize
+- [ ] **#84** [L74] "consider the formula **which** is solved by an SMT solver" — restrictive clause needs "that" (or just drop the clause; the example doesn't have to be "the formula that is solved by an SMT solver")
+- [ ] **#85** [L100-105] Definition of Congruence Depth uses both `$k$-step congruent` (line 101) and `congruent after $k$ rounds` interchangeably; pick one
+- [ ] **#86** [L107-112] Congruence Width definition: `\textit{width}(r)` and `width(r)` are typeset differently; also the index uses `\textit{depth}` which is not the variable defined in the previous definition (that's just "congruence depth" the concept, not the symbol $k$). Use $k_{\max}$ or similar
+- [ ] **#87** [L132] (commented section) Section reference `\ref{sec:alg}` doesn't exist (now `sec:algorithm`)
+- [ ] **#88** [L134] `\subsection{Parallel algorithms}` — title case inconsistent ("algorithms" should be capitalized)
+- [ ] **#89** [L137] "We describe our algorithm" (singular) but elsewhere we have two algorithms; use plural
+- [ ] **#90** [L149] `\begin{definition}` for P-complete has no name in the title; could add `[P-completeness]` for navigation
+- [ ] **#91** [L165] "\textsc{P}-complete problems are widely believed to **not be** solvable" — split infinitive that reads awkwardly; "are widely believed not to be solvable" reads better
+- [ ] **#92** [L174] "(MP-RAM) model of parallelism" — MP-RAM acronym never expanded earlier; introduce on first use
+- [ ] **#93** [L197] "(two threads trying to update the same location simultaneously)" — parenthetical hangs awkwardly mid-sentence
+- [ ] **#94** [L205] `Section~\ref{sec:bg:motivating}` is mixed style — paper otherwise uses `\autoref`. Standardize
+
+### Round 2 — sections/3-algorithm.tex
+
+- [ ] **#95** [L20] "fixed **a-priori**" — should be `a priori` (two words, italic by convention but inline is fine) or simply "initially"
+- [ ] **#96** [L26-27] "seeded with all non-leaf terms (i.e. function applications)" — but later (L52-56) the pseudocode seeds with non-leaf terms via reverse-topo order. Match the prose to the pseudocode (the pseudocode does NOT skip leaves explicitly)
+- [ ] **#97** [L81-82] "the most efficient. The other sequential algorithms we tested are included below." — "included below" but the subsection that follows is `\subsubsection{Other Sequential Algorithm}` (singular). And the section actually describes two: top-sort and DST. Plural fix needed
+- [ ] **#98** [L84] `\subsubsection{Other Sequential Algorithm}` — singular, but section describes two algorithms
+- [ ] **#99** [L144] "If one rank is strictly greater **then** the other" — "then" → "than"
+- [ ] **#100** [L160-164] §3.4 (Parallel Semisort) is a one-paragraph subsection. Either expand with a bit more detail (e.g., complexity, why semisort vs full sort), or merge into §3.5
+- [ ] **#101** [L170] "Intially" → "Initially"
+- [ ] **#102** [L185-186] "These rounds continue until there is no longer any work to do. \autoref{alg:bsp} depicts this algorithm in pseudocode." — then L188 says "The algorithm (see \autoref{alg:bsp}) is decomposed..." Duplicate `\autoref{alg:bsp}` in adjacent sentences
+- [ ] **#103** [L191-192] "each of their children **are** pointwise congruent" — subject "each of their children" is singular; "is pointwise congruent"
+- [ ] **#104** [L219] In `\parentalgo` pseudocode, initial unions block at L219-221 is new (good!) but doesn't appear in `\filteralgo` — should the filter algorithm also have an initial-union step, or is it implicit?
+- [ ] **#105** [L229-233] In `\parentalgo` pseudocode, the parent-list propagation step constructs `\mathit{classes}` via `\Call{GroupByKey}{...}` but the meaning of `\Call{GroupByKey}` isn't defined anywhere (§3.4 defines `GroupBy` from semisort but not `GroupByKey`)
+- [ ] **#106** [L245] "We now present an algorithm that accomplishes **exactly this**." — "this" refers to maintaining parent lists, but the next sentence says the new algorithm *avoids* maintaining them. So "this" should be "the same goal" or "the same task"
+- [ ] **#107** [L264] `\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < n]` — what is $n$? Never defined in the pseudocode scope
+- [ ] **#108** [L292] "for terms of arities **1,2,3 and 4**" — missing space after comma
+- [ ] **#109** [L245-246] "However, this incurs fairly high overhead." — vague qualifier ("fairly"). Replace with a measurable comparison or drop the hedge
+
+### Round 2 — sections/4-evaluation.tex
+
+- [ ] **#110** [L4, L8, L11, L13] RQs say "parallel congruence closure **algorithm**" (singular) — paper has two; should be plural throughout
+- [ ] **#111** [L23] "a set of benchmarks on a set of circuit equivalence benchmarks" — "a set of ... on a set of" reads awkwardly; simplify
+- [ ] **#112** [L26] "Amazon Web **Service**" → "Amazon Web Services" (the product is plural)
+- [ ] **#113** [L28] "Ubuntu 26.04 LTS" — 26.04 is not a real Ubuntu version (LTS goes 22.04, 24.04, 26.04 hypothetically). Confirm the actual OS version
+- [ ] **#114** [L29] "compiled using g++15.2.0" — odd formatting; standard is "GCC 15.2" or "g++ 15.2.0"
+- [ ] **#115** [L37-52] Random-benchmarks figure references aren't tied to the prose discussion at L123-129 — could add `\autoref{fig:random:parents}` and `\autoref{fig:random:filter}` to make the discussion concrete
+- [ ] **#116** [L85] `\begin{table}[t]` — uses `[t]` while other floats use `[!tb]`; minor consistency thing
+- [ ] **#117** [L106] Table caption starts with "Synthetic workload parameters." but this is the *random* workload table, not synthetic. Mismatch
+- [ ] **#118** [L107] "Each workload is a random binary-tree DAG" — "binary tree" suggests arity 2 but the prose says "function symbols, each of arity 2" — OK consistent. But "binary-tree DAG" is unusual phrasing (a DAG is not a tree); consider "DAG with binary internal nodes"
+- [ ] **#119** [L131-135] "\filteralgo starts from a much better baseline" — what baseline? Reads ambiguously (sequential? T=1?). Specify
+- [ ] **#120** [L138-141] "we can achieve **superlinear speedups**" — claim made but no specific numbers given; back with a figure reference or specific data point
+- [ ] **#121** [L139] "the \filteralgo has less datastructures" — drop "the" (article shouldn't precede `\filteralgo` since the macro starts with "Filter"); also "datastructures" → "data structures"; also "less" → "fewer" (countable)
+- [ ] **#122** [L212] "cube width $k$" — but the synthetic section never calls $k$ "cube width" — it's just the width. Either define "cube width" or use "width $k$"
+- [ ] **#123** [L226] "Similar to the random workloads, our **algorithm achieves**" — singular but should be "our algorithms achieve"
+- [ ] **#124** [L231-234] "\filteralgo (and respectively \parentalgo) achieves" — change "respectively" parenthetical style to match line 126's "resp." which is cleaner
+- [ ] **#125** [L234] "and only $26.4\times$ ($17.0\times$) on 192 threads" — "only" is misleading (this is a *positive* result, not a let-down); drop "only"
+- [ ] **#126** [L286-292] "In this section, we evaluate on a set of benchmarks checking the equivalence of two circuits." — sentence repeats "benchmarks" from the section opener at L22-23; tighten
+- [ ] **#127** [L294] "given to a SAT solver" → "given to **an** SAT solver" (acronym, "ess-ay-tee" starts with vowel sound)
+- [ ] **#128** [L308-314] Methodology paragraph for circuit benchmarks: "we instrument Kissat's gate extractor to dump every candidate gate (AND/XOR/ITE). We evaluate our congruence closure implementations on these gates." Two short sentences could be merged
+- [ ] **#129** [L341-348] "the single-core baseline of \filteralgo varies dramatically across files: on the 22 files we measured" — but the prose at L313 said "twelve hardest instances". Mismatch: 12 vs 22 files
+- [ ] **#130** [L350] `Figure~\ref{fig:gates_vs_min_dirty_fraction}` — uses `\ref` not `\autoref` like the rest of the paper
+- [ ] **#131** [L360] "wastes work proportional to the entire term set" — "term set" undefined as a concept; previous text uses "live e-nodes / terms" (we renamed). Just use "live terms"
+
+### Round 2 — sections/5-discussion.tex
+
+- [ ] **#132** [L9] RQ1 answer: "Our parallel congruence closure **algorithm achieves**" — singular; should be plural
+- [ ] **#133** [L13] "begin to plateau" — singular subject "We" wants "begin"; OK. But this sentence is now somewhat clumsy; the parenthetical "(\filteralgo on \texttt{32xl} ... baseline)" is a lot to read mid-sentence
+- [ ] **#134** [L17] RQ2: "More rounds of congruence closure **does** not have" — subject "more rounds" is plural; "do not have"
+- [ ] **#135** [L18] RQ3: "Our **algorithm provides**" — singular; should be plural
+- [ ] **#136** [L56-57] Backtracking section still has `\as{}` TODO — deferred per earlier decision (already tracked as #63)
+- [ ] **#137** [L59] "produce \emph{proofs}(i.e." — missing space between `\emph{proofs}` and `(i.e.`
+- [ ] **#138** [L62-63] "it is necessary to justify correctness and it is used to produce conflict clauses in SMT solvers" — two clauses using "it" with different referents; restructure
+
+### Round 2 — sections/6-conclusion.tex
+
+- [ ] **#139** [L5] "two parallel congruence closure algorithms built on a bulk-synchronous design over a lock-free concurrent union-find" — "built ... over" reads oddly; "built on a bulk-synchronous design **that operates over** a lock-free concurrent union-find" reads better
+
+### Round 2 — sections/7-acks.tex
+
+- [ ] **#140** [L4] "We did not use generative AI for writing beyond standard grammar, formatting, and editing." — this contradicts the work we did: I did substantive structural/wording rewrites. If the disclosure should be accurate, mention that AI was used for proofreading/editorial revisions but not for generating new ideas/results

@@ -108,25 +108,14 @@
   congruence closure. 
   
   We build on two ideas from the parallel algorithms literature: a union-find
-  data structure that supports concurrent union operations and a
-  semisort (group-by) algorithm that allows us to discover new congruences in
-  parallel. We present two algorithms that replaces the classic sequential worklist
-  with a bulk-synchronous closure loop: it processes all pending unions in
-  parallel, then detects new congruences, and repeats until a fixpoint.
-  
-%   The two algorithms differ in how they detect new congruences: the first 
-%   keeps track of parents list for each term and when a term is involved 
-%   in a union, it adds all of its parents to a worklist. The second algorithm
-%   marks terms as dirty when they are involved in a union and then filters terms
-%   to find which ones have dirty children.
+  data structure that supports concurrent union operations and a semisort
+  (group-by) algorithm that allows us to discover new congruences in
+  parallel. We present two algorithms that replace the classic sequential
+  worklist with a bulk-synchronous closure loop: each round processes all
+  pending unions in parallel, detects new congruences, and repeats until a
+  fixpoint. The two algorithms differ in how they identify which terms to
+  re-examine in each round.
 
-%   We present two algorithms. 
-%   The first replaces the classic sequential worklist
-%   with a bulk-synchronous closure loop: it processes all pending unions in
-%   parallel, then detects new congruences, and repeats until a fixpoint. The
-%   second removes the global barrier between these phases, detecting congruences
-%   concurrently with union processing and feeding the resulting unions back into
-%   a concurrent bag datastructure.
   We evaluate both these algorithms against a sequential baseline on a number of
   benchmarks and show near-linear speedup on up to 32 cores. Both of our
   algorithms can be extended to support backtracking, proof production, and

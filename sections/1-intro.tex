@@ -1,30 +1,6 @@
 \section{Introduction}
 \label{sec:intro}
 
-% Given a set of ground equalities over terms with uninterpreted function
-% symbols, congruence closure computes all ground equalities entailed by
-% reflexivity, symmetry, transitivity, and congruence. While congruence closure
-% is a performance-critical component of satisfiability modulo theories (SMT)
-% solvers, automatic theorem provers, and equality saturation engines, all
-% existing implementations are sequential. In this work, we provide the first
-% parallel algorithm for congruence closure. 
-
-% We build on two ideas from the parallel algorithms literature: a union-find
-% data structure that supports concurrent union operations and a parallel
-% semisort (group-by) algorithm that allows us to discover new congruences in
-% parallel.
-
-% We present two algorithms. The first replaces the classic sequential worklist
-% with a bulk-synchronous closure loop: it processes all pending unions in
-% parallel, then detects new congruences, and repeats until a fixpoint. The
-% second removes the global barrier between these phases, detecting congruences
-% concurrently with union processing and feeding the resulting unions back into
-% a shared worklist. We evaluate both these algorithms against a sequential
-% baseline on a number of synthetic and real-world equality saturation
-% benchmarks. Both of our algorithms can be extended to support backtracking,
-% proof production, and dynamic term insertion. These algorithms are compatible
-% with modern SMT solver and equality saturation architectures.
-
 Congruence closure is an important algorithm for satisfiability modulo theories
 (SMT) solving~\cite{smt}, equality saturation~\cite{eqsat}, type
 unification~\cite{unification}, and hardware verification~\cite{clausal-cc}.
@@ -95,7 +71,7 @@ In summary, this paper makes the following contributions:
     \item Despite congruence closure being P-complete (i.e. believed to not
     have a theoretically efficient parallel
     algorithm)~\cite{unification}, we demonstrate near-linear speedups up to
-    32 cores --- up to $27\times$ on 32 cores --- over an efficient
+    32 cores over an efficient
     sequential baseline on random benchmarks, a synthetic benchmark suite
     designed to stress-test our algorithm, and a set of circuit equivalence
     benchmarks~\cite{clausal-cc}.
