@@ -35,7 +35,7 @@ there is a collision---meaning that a representative term $e'$ with that
 signature already exists in the table---then the congruence classes of $e$ and
 $e'$ are merged. Then the parents of the \emph{losing} term---that which is
 not the representative of the merged class---are added to the worklist if they
-are not already present. This is implemented by the following pseudocode.
+are not already present. This is implemented in \autoref{alg:seq}.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
@@ -64,7 +64,7 @@ are not already present. This is implemented by the following pseudocode.
           \State $\mathit{rep} \gets \mathit{sig\_table}.\Call{Lookup}{e}$
           \State $\rhd$ New representative of class
           \State $\mathit{winner} \gets \Call{Union}{\mathit{rep}, \mathit{e}}$
-          \State $\mathit{loser} \gets \mathit{rep} \textbf{ if } \mathit{winner} = e \mathbf{ else } e$
+          \State $\mathit{loser} \gets \mathit{rep} \textbf{ if } \mathit{winner} = e \textbf{ else } e$
           \For{$\mathit{parent} \in \mathit{class\_preds}[\mathit{loser}]$}
             \State $\rhd$ Merge parents of loser into winner
             \State Add $\mathit{parent}$ to $\mathit{class\_preds}[\mathit{winner}]$
@@ -81,7 +81,7 @@ are not already present. This is implemented by the following pseudocode.
 We tested a number of other sequential algorithms and found this one to be the
 most efficient. The other sequential algorithms we tested are included below.
 
-\subsubsection{Other Sequential Algorithm.} One approach is to topologically sort the
+\subsubsection{Other Sequential Algorithm} One approach is to topologically sort the
 terms, i.e. sort them in an order where each child must come before its parents.
 Then you can add each term to a signature table one at a time. If a term is
 already equal to a term in the signature table, you can union their equivalence
@@ -182,13 +182,14 @@ This requires maintaining the parents of every congruence class; specifically a
 mapping \textit{pred} between class identifiers and identifiers of parents of
 that class. This mapping must be updated every round; if two congruence classes
 are merged, then their parents must be merged as well. These rounds continue
-until there is no longer any work to do. Pseudocode depicting this algorithm is
-shown in Algorithm~\ref{alg:bsp}.
+until there is no longer any work to do. \autoref{alg:bsp} depicts this
+algorithm in pseudocode.
 
-The algorithm is decomposed into three different functions. The function
-\textsc{Congruent} checks whether two terms are congruent based on the
-equivalence classes in the union-find. Two terms are congruent if they have
-the same function symbol and each of their children are pointwise congruent.
+The algorithm (see \autoref{alg:bsp}) is decomposed into three different
+functions. The function \textsc{Congruent} checks whether two terms are
+congruent based on the equivalence classes in the union-find. Two terms are
+congruent if they have the same function symbol and each of their children
+are pointwise congruent.
 
 The \textsc{MergeCongruenceClass} function is used to merge the equivalence
 classes of different terms. Specifically, given a sequence $S$ of terms, it will
@@ -250,7 +251,7 @@ terms to retain those whose children are marked dirty, and propagate these
 terms to the next round to be semisorted and recanonicalized. This avoids the
 cost of maintaining parent lists, but also requires scanning all nodes every
 round. We have found that this tradeoff is generally worthwhile on most
-workloads. It is described by the following pseudocode:
+workloads. \autoref{alg:dirty-children} gives the pseudocode.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
