@@ -1,320 +1,92 @@
 \section{Algorithms}
-\label{sec:algorithms}
+\label{sec:algorithm}
 
-We present three congruence-closure algorithms: a sequential worklist
-baseline (\S\ref{subsec:seq-baseline}), a bulk-synchronous parallel
-algorithm that mirrors the baseline's parents-walk
-(\S\ref{subsec:bsp}), and a filter-based parallel algorithm that
-discovers dirty terms by round-stamp comparison rather than by
-maintaining a class-predecessor index (\S\ref{subsec:filter}). All
-three are sound: a merge is committed iff the two e-classes share a
-signature under structural equality of canonical children. Implementation
-choices common to all three (concurrent union-find, semisort primitive,
-signature representation, semisort routing) are deferred to
-\S\ref{sec:impl}.
 
-\subsection{Sequential Baseline}
-\label{subsec:seq-baseline}
+\subsection{Sequential Baseline}~\label{sec:algorithm:no}
 
-Our baseline is a simple yet efficient worklist algorithm in the style of
-Nieuwenhuis and Oliveras~\cite{nieuwenhuis-oliveras-cc}. It maintains three
-data structures.
+Our baseline is a simple yet efficient worklist algorithm based on one developed
+by Nieuwenhuis and Oliveras.
 
-\paragraph{Union-Find.}
-A standard disjoint-set data structure $U$ over the set of e-classes.
-Initially, $U$ encodes only the equalities fixed a priori; the algorithm
-extends it with every congruence it derives. $U$ supports $\Call{Find}{t}$,
-which returns the representative of $t$'s e-class, and
-$\Call{Union}{t_1, t_2}$, which merges the e-classes of $t_1$ and $t_2$
-and returns the surviving root.
+We maintain a \emph{signature table} that maps every term to the representative
+of its e-class. It is implemented via a hashtable, where hashing a term entails
+hashing its function symbol and the e-class identifiers of its operands. The
+signature table admits operations $\textsc{Lookup}(e)$, which finds the representative of term $e$ (if any), and $\textsc{Enter}(e)$, which enters term $e$ into the signature table.
 
-\paragraph{Signature table.}
-A hashtable $H$ keyed by the \emph{signature} of a term,
-$\sigma(e) = (\Call{Op}{e}, [\Call{Find}{c_1}, \ldots, \Call{Find}{c_k}])$,
-where $c_1, \ldots, c_k$ are $e$'s children. Each entry maps a signature to
-a representative term recorded under it. $H$ supports
-$H.\Call{Lookup}{\sigma}$, which returns the recorded representative
-(or $\bot$ if none), and $H.\Call{Enter}{\sigma, e}$, which records $e$ as
-the representative for $\sigma$. Signatures are computed against the
-current state of $U$, so the same term may produce different signatures
-as the algorithm progresses.
+We also maintain a Union-Find data-structure that maintains the congruence classes of every term. Initially, the union-find maintains only the equalities fixed a-priori.
 
-\paragraph{Class-predecessor map.}
-A map $P$ sending each e-class $c$ to the list of terms that have a child
-in $c$. $P$ is built once after the initial unions are applied. Whenever
-two classes with roots $r_v$ and $r_w$ are merged with surviving root
-$r^\star$ and loser $\ell \in \{r_v, r_w\} \setminus \{r^\star\}$, the
-algorithm splices $P[\ell]$ into $P[r^\star]$ and clears $P[\ell]$,
-maintaining the invariant that $P[c]$ holds the predecessors of every
-term currently in class $c$.
+Finally, we maintain the \emph{parents} of every equivalence class---the terms in which terms for those class appear as operands. 
 
-\medskip
+The algorithm then seeds a FIFO \emph{worklist} of terms whose congruence classes may be coarser than those maintained by the union-find. It is seeded with all non-leaf terms (i.e. function applications) in reverse-topological order. Reverse-topological ordering ensures that the algorithm terminates in a single pass when the quotient DAG is acyclic, and serves as a good heuristic otherwise.
 
-The algorithm seeds a FIFO \emph{worklist} $Q$ with every non-leaf term
-(every function application) in reverse-topological order---children
-before parents. $Q$ has set-membership semantics: enqueuing a term that
-is already in $Q$ is a no-op. The reverse-topological seed ensures that
-each parent is examined only after its children's e-classes have settled
-into their post-initial-union state, which suffices for single-pass
-convergence when no congruences cascade across DAG levels. When they do
-cascade, the worklist absorbs the re-canonicalizations as merges
-propagate upward.
+The algorithm then iterates until the worklist is empty. A term $e$ is popped from the front of the worklist, and then inserted into the signature table. If there is a collision---meaning that a representative term $e'$ with that signature already exists in the table---then the congruence classes of $e$ and $e'$ and merged. Then the parents of the \emph{losing} term---that which is not the representative of the merged class---are added to the worklist if they are not already present. This is implemented by the following pseudocode.
 
-The algorithm then iterates until $Q$ is empty. A term $v$ is popped from
-the front of $Q$, and its signature $\sigma(v)$ is computed against the
-current $U$. If $H.\Call{Lookup}{\sigma(v)} = \bot$, the algorithm
-records $v$ via $H.\Call{Enter}{\sigma(v), v}$ and continues. Otherwise,
-the lookup returns some $w$ whose e-class may differ from $v$'s; if so,
-the algorithm unions the two e-classes and splices the loser's predecessor
-list into the winner's, re-enqueuing every transferred term.
-Algorithm~\ref{alg:seq-simple} presents the procedure.
-
-\begin{algorithm}[t]
-\caption{Sequential congruence closure (worklist).}
-\label{alg:seq-simple}
+\begin{algorithm}
 \begin{algorithmic}[1]
-\Require Term DAG $T$ in reverse-topological order; initial equalities $E_0$.
-\Ensure  Union-find $U$ on $T$ closed under congruence over $E_0$.
-\Statex
-\State $U \gets$ Union-Find over $T$ with every $(a, b) \in E_0$ applied
-\State $P \gets$ class-predecessor map induced by $U$ and $T$
-\State $H \gets$ empty signature table
-\State $Q \gets$ FIFO worklist of every non-leaf $v \in T$ in reverse-topological order
-\Statex
-\While{$Q \neq \emptyset$}
-  \State $v \gets Q.\Call{Pop}{}$
-  \State $w \gets H.\Call{Lookup}{\sigma(v)}$
-  \If{$w = \bot$}
-    \State $H.\Call{Enter}{\sigma(v), v}$
-  \ElsIf{$U.\Call{Find}{v} \neq U.\Call{Find}{w}$}
-    \State $r^{\star} \gets U.\Call{Union}{v, w}$;\enspace
-           $\ell \gets$ the loser of the merge
-    \State splice $P[\ell]$ into $P[r^{\star}]$, enqueuing each transferred predecessor into $Q$
-  \EndIf
-\EndWhile
+    \Function{Congruent-Level1}{X, Y} \If{$X = f(M_1,\ldots,M_n)$ and $Y =
+      f(N_1,\ldots,N_n)$} \State \Return $\Call{Find}{M_i} = \Call{Find}{N_i}$
+      for all $i = 1,\ldots,n$ \Else \State \Return \textbf{false} \EndIf
+      \EndFunction
+
+    \Function{SequentialClose}{equalities = $\{e_1 = e_1', \ldots, e_w = e_w'\}$}
+      \For{$(u, v) \in \mathit{Equalities}$}
+        \State $\Call{Union}{u, v}$ \Comment{Add initial unions to union-find}
+      \EndFor
+      \State $\mathit{class\_preds} \gets$ array indexed by e-class id
+      \For{every term $e$}
+        \For{every child $c$ of $e$}
+          \State Append $e$ to $\mathit{class\_preds}[\Call{Find}{c}]$
+        \EndFor
+      \EndFor
+      \State Let $\mathit{sig\_table}$ be a signature table
+      \State Let $\mathit{worklist}$ be a FIFO worklist of nodes
+      \State Insert all nodes to $\mathit{worklist}$ in reverse-topological order
+      \While{$\mathit{Worklist}$ is not empty}
+        \State Pop node $e$ from \textit{Worklist}
+        \If{$\mathit{sig\_table}$ contains $e$}
+          \State $\mathit{rep} \gets \mathit{sig\_table}.\Call{Lookup}{e}$
+          \State $\rhd$ New representative of class
+          \State $\mathit{winner} \gets \Call{Union}{\mathit{rep}, \mathit{e}}$
+          \State $\mathit{loser} \gets \mathit{rep} \textbf{ if } \mathit{winner} = e \mathbf{ else } e$
+          \For{$\mathit{parent} \in \mathit{class\_preds}[\mathit{loser}]$}
+            \State $\rhd$ Merge parents of loser into winner
+            \State Add $\mathit{parent}$ to $\mathit{class\_preds}[\mathit{winner}]$
+            \State Add $\mathit{parent}$ to $\mathit{Worklist}$
+          \EndFor
+        \EndIf
+      \EndWhile
+    \EndFunction
 \end{algorithmic}
+\caption{Sequential worklist congruence closure algorithm}
+\label{alg:seq}
 \end{algorithm}
 
-Each loop iteration either inserts a new signature into $H$, performs
-a merge that strictly decreases the number of e-classes in $U$, or pops
-a term whose signature is already recorded for its own e-class (a
-no-op). Since $|H|$ and the class count are both bounded by $|T|$ and
-each merge re-enqueues only the loser's finite predecessor list, the
-loop terminates.
+We tested a number of other sequential algorithms and found this one to be the
+most efficient. The other sequential algorithms we tested are included below.
 
-We tested several alternative sequential designs; the worklist algorithm
-above was the most efficient in our experiments. The variants we measured
-are described below.
+\subsubsection{Other Sequential Algorithm.} One approach is to topologically sort the
+terms, i.e. sort them in an order where each child must come before its parents.
+Then you can add each term to a signature table one at a time. If a term is
+already equal to a term in the signature table, you can union their e-classes in
+the union-find data structure. If there were any unions at all, we must iterate
+through all the terms again. We must iterate this until a fixed point is
+reached, since merging two e-classes can cause new merges to be possible. This
+approach is sometimes efficient, but breaks down when many iterations must be
+done.
 
-\subsubsection{Topological sort.}
-An alternative walks the terms in reverse-topological order in a single
-pass, computing each term's signature against $U$ and inserting it into
-$H$; if the signature collides with a recorded term, the two e-classes
-are unioned. The pass is iterated to a fixed point: because a union
-introduced late in one pass can render previously-distinct signatures
-congruent, a subsequent pass may discover further merges. This strategy
-is competitive when the closure converges within a small number of
-sweeps, but its per-iteration cost is $O(|T|)$ and it degrades quickly
-on workloads where many sweeps are required. In practice, we find that
-Algorithm~\ref{alg:seq-simple} meets or exceeds the performance of this
-iterative algorithm in almost every case.
-
-\subsubsection{Smaller-into-larger merging.}
-A second baseline follows the fast congruence closure algorithm of
-Downey, Sethi, and Tarjan~\cite{downey-sethi-tarjan}. It is structurally
-similar to the simple algorithm but applies a \emph{smaller-into-larger}
-merging discipline: each merge designates the class with the smaller
-predecessor list as the loser, splices that list into the winner's, and
-re-queues the spliced terms. Because each term's enclosing predecessor
-list at least doubles every time the term is re-enqueued, each term is
-re-enqueued at most $\log n$ times, yielding an $O(n \log n)$ time bound
-under bounded arity. We omit two transformations from the original paper
-that are required for its worst-case bound but unhelpful in practice:
-the outdegree-2 reduction of \S2.2, which we replace with a hashtable
-on variable-arity signatures, and the explicit deletion of stale
-signature entries, which we leave in place because monotonicity of
-congruence makes any future match against a stale entry a sound merge.
-The smaller-into-larger discipline is retained, since it is the one
-ingredient of the analysis that also helps in practice.
-
-\subsection{Bulk-Synchronous Parallel Algorithm}
-\label{subsec:bsp}
-
-The bulk-synchronous parallel algorithm lifts the sequential worklist
-to a rounds-based BSP structure. The class-predecessor map $P$ is
-retained from the sequential algorithm: it serves the same role
-(propagating cascading congruences upward through the DAG), but every
-round operates on the entire predecessor set at once rather than on a
-single term.
-
-Each round operates on a \emph{frontier} $F$: a set of class ids whose
-canonical signatures may have changed since the previous round. The
-frontier for the first round is the parents (in $P$) of every class
-touched by an initial union; subsequent frontiers are produced as a
-byproduct of the round itself. A round proceeds in three phases:
-
-\begin{enumerate}
-  \item \textbf{Canonicalize.} In parallel, compute $\sigma(v)$ for
-        every $v \in F$ against the current $U$.
-  \item \textbf{Group and merge.} Partition $F$ by signature
-        using the parallel semisort primitive
-        (\S\ref{subsec:semisort-impl}). For each group of size
-        $\geq 2$, merge all member classes via a divide-and-conquer
-        \textsc{Union} (\textsc{MergeClass} in
-        Algorithm~\ref{alg:bsp}), splice the losers' predecessor lists
-        into the survivor's, and clear the loser slots in $P$.
-  \item \textbf{Next frontier.} Collect, in parallel, the predecessor
-        list of every survivor produced in this round. The collected
-        set is the next frontier; if it is empty, the algorithm
-        terminates.
-\end{enumerate}
-
-Algorithm~\ref{alg:bsp} presents the procedure. \textsc{MergeClass}
-reduces a group of class ids to a single survivor via a parallel
-divide-and-conquer fold: it splits the group in two, recurses on each
-half in parallel, and unions the two recursive survivors. The
-recursion bottoms out at singleton groups, where the survivor is the
-sole member. This pattern keeps the critical path of a group merge
-$O(\log |\textit{group}|)$ rather than the $O(|\textit{group}|)$ of a
-sequential fold and exposes parallelism inside large equivalence
-classes.
-
-\begin{algorithm}[t]
-\caption{Bulk-synchronous parallel congruence closure.}
-\label{alg:bsp}
-\begin{algorithmic}[1]
-\Require Term DAG $T$; initial equalities $E_0$.
-\Ensure  Union-find $U$ on $T$ closed under congruence over $E_0$.
-\Statex
-\State $U \gets$ Union-Find over $T$ with every $(a, b) \in E_0$ applied (in parallel)
-\State $P \gets$ class-predecessor map induced by $U$ and $T$ (built in parallel)
-\State $F \gets \bigcup_{(a,b) \in E_0} P[U.\Call{Find}{a}] \cup P[U.\Call{Find}{b}]$
-\Statex
-\While{$F \neq \emptyset$}
-  \State $G \gets$ partition of $F$ by signature $\sigma$ \Comment{semisort}
-  \State $S \gets \emptyset$ \Comment{survivors of this round}
-  \ParFor{$\textit{group} \in G$ with $|\textit{group}| \geq 2$}
-    \State $r^\star \gets \Call{MergeClass}{\textit{group}}$
-    \State splice $\bigcup_{\ell \in \textit{group} \setminus \{r^\star\}} P[\ell]$ into $P[r^\star]$
-    \State clear $P[\ell]$ for every $\ell \in \textit{group} \setminus \{r^\star\}$
-    \State $S \gets S \cup \{r^\star\}$
-  \EndParFor
-  \State $F \gets \bigcup_{r \in S} P[r]$
-\EndWhile
-\Statex
-\Function{MergeClass}{$g$}
-  \If{$|g| = 1$} \State \Return the sole element of $g$ \EndIf
-  \State $g_L, g_R \gets$ left and right halves of $g$
-  \State $\ell, r \gets \Call{MergeClass}{g_L} \parallel \Call{MergeClass}{g_R}$
-  \State \Return $U.\Call{Union}{\ell, r}$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-
-The algorithm terminates by the same monotonicity argument as the
-sequential baseline: every non-empty round commits at least one merge
-(otherwise $F$ would have been empty entering the round), and the class
-count is bounded below by~1. The round-count upper bound is the depth
-of the longest cascade in the closure.
-
-\subsection{Filter-Based Parallel Algorithm}
-\label{subsec:filter}
-
-The filter-based algorithm avoids maintaining a class-predecessor map.
-Instead, it discovers dirty terms each round via per-class
-\emph{round stamps}: it scans all non-leaf terms in parallel and selects
-the subset whose canonical signature may have changed since the previous
-round. The set of selected terms is exactly the analogue of the BSP
-frontier, recovered by scan rather than by inversion.
-
-Two stamps are maintained:
-\begin{itemize}
-  \item $\tau(c)$, for each class $c$: the round in which the
-        canonical root of class $c$ was last reassigned. Set to $r$
-        whenever a merge in round $r$ produces a new survivor whose
-        class id is~$c$.
-  \item $\rho(v)$, for each non-leaf term $v$: the round in which
-        $v$'s signature was last canonicalized. Set to $r$ at the end
-        of round $r$ for every $v$ examined that round.
-\end{itemize}
-
-A term $v$ is \emph{dirty} in round $r$ when some child class is fresher
-than its own canonicalization stamp:
-\[
-  v \text{ dirty in round } r \iff \exists\, c_i \in \Call{Children}{v}.\;
-  \tau(U.\Call{Find}{c_i}) > \rho(v).
-\]
-The dirty test is purely local: $O(k)$ per term for a term of arity $k$,
-two atomic loads per child. The scan over all non-leaf terms is fully
-parallel and dominated by the dirty-filter test itself; once $D$
-(the dirty set) is known, the round proceeds exactly as in the BSP
-algorithm. Algorithm~\ref{alg:filter} presents the procedure.
-
-\begin{algorithm}[t]
-\caption{Filter-based parallel congruence closure.}
-\label{alg:filter}
-\begin{algorithmic}[1]
-\Require Term DAG $T$; initial equalities $E_0$.
-\Ensure  Union-find $U$ on $T$ closed under congruence over $E_0$.
-\Statex
-\State $U \gets$ Union-Find over $T$ with every $(a, b) \in E_0$ applied (in parallel)
-\State $\rho(v) \gets 0$ for every non-leaf $v \in T$
-\State $\tau(c) \gets 0$ for every class $c$, then $\tau(U.\Call{Find}{a}) \gets 1$ for each $(a, \_) \in E_0$ (and likewise for $b$)
-\State $r \gets 1$
-\Statex
-\Loop
-  \State $D \gets \{\, v \in T \mid v \text{ non-leaf} \;\wedge\; \exists\, c \in \Call{Children}{v}.\;
-                              \tau(U.\Call{Find}{c}) > \rho(v) \,\}$ \Comment{parallel scan}
-  \If{$D = \emptyset$} \textbf{break} \EndIf
-  \State $G \gets$ partition of $D$ by signature $\sigma$ \Comment{semisort}
-  \ParFor{$\textit{group} \in G$ with $|\textit{group}| \geq 2$}
-    \State $r^\star \gets \Call{MergeClass}{\textit{group}}$
-    \State $\tau(r^\star) \gets r + 1$
-  \EndParFor
-  \ParFor{$v \in D$}
-    \State $\rho(v) \gets r$
-  \EndParFor
-  \State $r \gets r + 1$
-\EndLoop
-\end{algorithmic}
-\end{algorithm}
-
-The filter-based algorithm trades exactness of work selection for
-simplicity of state. The BSP frontier targets only the parents of newly
-merged classes; filter-rounds, by contrast, re-examine every non-leaf
-term every round. The wasted work per round is the set of non-leaf
-terms whose children have not changed since their last canonicalization
----those terms fail the dirty test in $O(k)$ time and contribute nothing
-else. The benefit is structural: no class-predecessor map to build, no
-splices, no inversion of the DAG. On irregular fanout the absence of
-$P$-maintenance overhead matches or exceeds the BSP frontier's targeting
-advantage; on regular cascades (every round touches a small fraction of
-the DAG) the BSP frontier wins by avoiding the parallel re-scan.
-
-\medskip
-
-Soundness of both parallel algorithms reduces to soundness of the
-sequential one: every committed merge corresponds to a same-signature
-group under the current $U$, and the semisort plus structural-equality
-probe (\S\ref{subsec:equality}) admits no false matches. Termination
-follows from the same class-count monotonicity argument.
+We also implemented a practical version of the Downey-Sethi-Tarjan (DST) algorithm that achieves $O(n \log n)$ work. We made some changes, including eliminating the outdegree-2 transformation that curries each term into a binary term by representing an $n$-ary term as a tree of binary terms. Additionally, we represented the signature table as a hashtable instead of a trie, which is more important in practice (although forfeits the deterministic work bound).
 
 
-\section{Implementation}
-\label{sec:impl}
+\subsection{Bulk-Synchronous Parallel Algorithm}~\label{sec:algorithm:parallel}
 
-The algorithms of \S\ref{sec:algorithms} rely on two parallel
-building blocks: a concurrent union-find
-(\S\ref{subsec:uf-impl}) and a parallel semisort primitive
-(\S\ref{subsec:semisort-impl}). \S\ref{subsec:equality}
-describes how we verify signature equality structurally without paying
-the cost of a full children-walk on every probe. \S\ref{subsec:sig-rep}
-and \S\ref{subsec:seq-opt} cover, respectively, the per-arity signature
-representation used by the sequential closure and the layout
-optimizations that follow from it.
+This section describes our bulk-synchronous-parallel approach to computing
+congruence closure. We first describe the two workhorses of our algorithm: a
+concurrent union-find data structure used to maintain congruence closure, and
+\textit{semisort}, a parallel primitive offered by
+\texttt{parlaylib}~\cite{parlaylib} that we use to group congruent terms. We
+then describe how we use these components to develop our final algorithm.
 
 \subsection{Concurrent Union-Find}
-\label{subsec:uf-impl}
+\label{subsec:uf}
 
 We employ a simple concurrent union-find presented by Alistarh et al.~\cite{uf}.
 In their experiments, they study various different union-find algorithms, and
@@ -325,24 +97,25 @@ performance. We therefore chose a simple variant with confidence that it would
 perform well in practice, even under contention.
 
 The algorithm employs best-effort linking by rank. The structure is represented
-as an array $\mathit{UF}$, where $\mathit{UF}[i]$ is the index of the parent of
+as an array \textit{UF}, where $\mathit{UF}[i]$ is the index of the parent of
 node $i$ if $i$ is not a root, or its rank otherwise. The high-order bit
 distinguishes whether the entry is another node or the rank of a root. We now
-describe the two operations it supports: \textsc{Find} and \textsc{Union}.
+describe the two operations it supports: \textsc{Find} and \textsc{Union}:
 
-\paragraph{Find.} A $\Call{Find}{u}$ returns a pair $(\mathit{root}, \mathit{rank})$
-comprising the representative of the equivalence class of $u$ and its rank. It
-first checks whether $\mathit{UF}[u]$ is a rank; if so, it returns a pair
-comprising $u$ and that rank. Otherwise, $\mathit{UF}[u]$ is its parent, and it
-invokes \textsc{Find} on the parent. It then attempts to path compress via a
-\texttt{CAS}, which may fail if the path has already been compressed.
+\textbf{Find.} A $\Call{Find}{u}$ returns a pair $(\mathit{root},
+\mathit{rank})$ comprising the representative of the equivalence class of $u$
+and its rank. It first checks whether $\mathit{UF}[u]$ is a rank; if so, it
+returns a pair comprising $u$ and that rank. Otherwise, $\mathit{UF}[u]$ is its
+parent, and it invokes \textsc{Find} on the parent. It then attempts to path
+compress via a \texttt{CAS}, which may fail if the path has already been
+compressed.
 
-\paragraph{Union.} A $\Call{Union}{u, v}$ operation unions the equivalence classes
+\textbf{Union.} A $\Call{Union}{u, v}$ operation unions the equivalence classes
 of $u$ and $v$. It first computes the roots and ranks of $u$ and $v$ via
 \textsc{Find}. It then checks whether the representatives are equal; if so, $u$
 and $v$ are already part of the same equivalence class and it returns
 immediately. Otherwise, it compares the ranks of $u$ and $v$. If one rank is
-strictly greater than the other, then the algorithm attempts to set the parent
+strictly greater then the other, then the algorithm attempts to set the parent
 of the lower-rank node to the greater-rank node with a \texttt{CAS}. This may
 fail if the parent of the lower-rank node has been updated in the meantime, in
 which case the operation retries.
@@ -356,115 +129,80 @@ longer a root, and thus has no rank. Thus incrementing the rank can fail, and
 linking by rank is best-effort.
 
 \subsection{Parallel Semisort}
-\label{subsec:semisort-impl}
+\label{subsec:semisort}
 
-At each round, we group terms by signature. We use the \emph{semisort}
-of Gu, Shun, Sun, and Blelloch~\cite{semisort}, exposed by
-\texttt{parlaylib}~\cite{parlaylib} as \texttt{group\_by\_key}. Given an
-array of (key, value) pairs, semisort permutes the array so that all
-pairs with the same key are adjacent and returns the boundaries of each
-run. Internally, the primitive performs a count-sort by hash followed by
-a per-bucket open-addressed hashtable that resolves the same-hash
-equality probe.
+At each round, we want to group congruent terms based on newly discovered
+equalities. We use the \emph{semisort} of Gu, Shun, Sun, and
+Blelloch~\cite{semisort}. Given an array of (hash, term) pairs, we want to sort
+the array such that all pairs with the same hash are adjacent. Concretely, we
+use semisort to group congruence classes at each round.
 
-\paragraph{Routing between group-by-key and integer-sort.}
-Below an empirically-measured cutoff $K_c$ (default
-$K_c = 2.5 \times 10^5$), we use the \texttt{group\_by\_key} path
-described above. Above the cutoff, we replace it with an in-place radix
-sort on the primary hash followed by a parallel run-walk: each
-contiguous same-hash run is then split by the equality predicate. The
-two paths exchange fixed cost for scaling. The hash-table path pays
-$O(n)$ allocations for the keyed-pair array and the per-bucket value
-sequences, which amortize well at small $n$; the integer-sort path
-avoids those allocations entirely but pays for the radix passes
-regardless of bucket count. Empirically, frontiers larger than
-$5 \times 10^5$ elements gained 12--20\% from the integer-sort path,
-and frontiers near $10^5$ regressed by more than 40\%; we placed the
-cutoff at the midpoint of the crossover band measured across our test
-machines. The cutoff is overridable at runtime via the
-\texttt{PE\_SEMISORT\_INT\_CUTOFF} environment variable for parameter
-sweeps.
+\subsection{Rounds-Based Congruence Closure}
+\label{subsec:rounds}
 
-\subsection{Sound Equality}
-\label{subsec:equality}
+At each round, we maintain a set of terms whose congruence classes may need to
+be updated. Intially, this comprises all terms appearing in base equalities. We
+then group congruent terms based on the equalities currently discovered, and
+merge the congruence classes of each group in the union-find. Grouping is
+accomplished via semisort---the \texttt{group\_by} operation in
+\texttt{parlaylib}---and merging congruence classes is accomplished through
+taking the union of the corresponding equality classes in the union-find.
 
-When two terms share a primary hash, semisort places them adjacent.
-We split each same-hash run by an explicit structural compare so that
-only genuinely congruent terms are grouped. Each entry in the canon
-array carries a $\langle\text{hash}, \text{root}, \text{class\_id}\rangle$
-triple (16 bytes total): the 64-bit primary FxHash, the 32-bit class id
-of the canonical root, and the 32-bit class id of the term itself. The
-class id indexes the \texttt{nodes\_} array, so we can recover the
-\textsc{ENode} for any same-hash candidate without a separate signature
-payload, and verify equality by walking children pointwise through the
-union-find:
-\[
-  v \equiv w \iff \Call{Op}{v} = \Call{Op}{w} \;\wedge\;
-  \forall i.\; U.\Call{Find}{c_i^v} = U.\Call{Find}{c_i^w}.
-\]
+We then propagate terms whose congruence classes may have changed to the next
+round. These are exactly the \emph{parents} of nodes that whose congruence
+classes have changed that round. Specifically, if the congruence class of term
+$e$ has changed, then the congruence class of $f(e)$ may have changed as well.
+This requires maintaining the parents of every congruence class; specifically a
+mapping \textit{pred} between class identifiers and identifiers of parents of
+that class. This mapping must be updated every round; if two congruence classes
+are merged, then their parents must be merged as well. These rounds continue
+until there is no longer any work to do. Pseudocode depicting this algorithm is
+shown in Algorithm~\ref{alg:bsp}.
 
-The cost of the structural compare scales with the length of each
-same-primary-hash run. On the parents-walk path
-(\S\ref{subsec:bsp}) the semisort processes a dense parent frontier,
-so same-hash runs are large enough that the comparison amortizes against
-the run length. On the filter-based path (\S\ref{subsec:filter}) the
-re-canonicalized slice is sparse and same-hash runs are almost always
-singletons, so the structural probe is rarely invoked.
+The algorithm is decomposed into three different functions. The function
+\textsc{Congruent-Level1} checks whether two terms are congruent based on the
+equivalence classes in the union find\footnote{\textsc{Level1} comes from the
+fact that we are only considering congruent terms with only one level of
+nesting}. Two terms are congruent if they are both the same function symbol and
+each of their subterms are pointwise congruent.
 
-\subsection{Signature Representation}
-\label{subsec:sig-rep}
+The \textsc{MergeCongruenceClass} function is used to merge the equivalence
+classes of different terms. Specifically, given a sequence $S$ of terms, it will
+union the classes of every term in $S$. We take a simple divide-and-conquer
+approach; we merge the left and right halves (in parallel), and then
+\textsc{Union} the representatives of the two classes.
 
-The sequential closure's hash table stores signatures by value rather
-than by class-id reference, so entry layout matters more than in the
-parallel path. We exploit the arity distribution of our workloads---gate
-inputs are dominated by arity 1 (\texttt{NOT}) and arity 2
-(\texttt{AND}); SMT-LIB QF\_UF inputs concentrate at arity 1--4---by
-templating the signature on arity:
-\[
-  \texttt{SigK<K>} \;=\; \langle\, \text{precomputed hash},\; \text{op}^\star,\; \text{Id}^{K} \,\rangle.
-\]
-For each $K \in \{1, 2, 3, 4\}$, $\texttt{SigK<K>}$ is a fixed-size struct
-with an inline \texttt{std::array<Id, K>} of children, a precomputed
-64-bit FxHash over (op, children), and a pointer into a deduplicated
-operator-string pool. The sequential closure maintains four separate
-hash tables, one per $K$; terms of arity $> 4$ fall back to a single
-hash table whose entry stores a pointer to a contiguous \texttt{Id}
-array in a chunked bump arena (4\,MB chunks, pointer-stable across
-allocations).
+\begin{algorithm}
+\begin{algorithmic}[1]
+    \Function{Congruent-Level1}{X, Y} \If{$X = f(M_1,\ldots,M_n)$ and $Y =
+      f(N_1,\ldots,N_n)$} \State \Return $\Call{Find}{M_i} = \Call{Find}{N_i}$
+      for all $i = 1,\ldots,n$ \Else \State \Return \textbf{false} \EndIf
+      \EndFunction
 
-The arity split is not visible to the closure logic---each lookup
-dispatches on the term's arity to the right table---but it eliminates
-two costs that dominate the unified-table baseline: the per-entry heap
-allocation for the children vector (replaced by inline storage) and the
-variable-length equality compare (replaced by a fixed-$K$ loop the
-compiler unrolls). The parallel paths do not pay this cost because
-their canon entries carry only $\langle\text{hash}, \text{root},
-\text{class\_id}\rangle$ and resolve the children walk through the
-shared \texttt{nodes\_} array (\S\ref{subsec:equality}).
+    \Function{MergeCongruenceClass}{\textit{Class}} \If{$\mathit{Class} =
+      \{e\}$} \State \Return{$e$} \Comment{Singleton class, return
+      representative} \EndIf \State $n \gets |\textit{Class}|$ \State $L \gets
+      \mathit{Class}[0,\ldots,\frac{n}{2}]$ \State $R \gets
+      \mathit{Class}[\frac{n}{2},\ldots,n]$ \State $\rhd$ Merge left and right
+      halves, get their representatives \State $l, r \gets
+      \Call{MergeCongruenceClass}{L} \parallel \Call{MergeCongruenceClass}{R}$
+      \State \Return $\Call{Union}{l, r}$ \Comment{Union left and right reps,
+      return root} \EndFunction
 
-\subsection{Sequential Closure Optimizations}
-\label{subsec:seq-opt}
-
-We isolated the contribution of the per-arity layout by measuring two
-sequential variants:
-
-\begin{itemize}
-  \item \texttt{simple\_bump}: single unified hash table with structural
-        equality, signatures stored in a bump-allocated arena. Pays a
-        pointer chase on every probe.
-  \item \texttt{simple\_inline}: per-arity \texttt{SigK<K>} tables of
-        \S\ref{subsec:sig-rep} with a bump-allocated fallback for
-        arity $> 4$.
-\end{itemize}
-
-Across the workloads in our corpus, \texttt{simple\_inline} is
-consistently 12--17\% faster than \texttt{simple\_bump}---the
-\texttt{SigK<K>} inline-children layout removes the pointer chase that
-otherwise dominates the per-probe cost.
-
-The per-arity dispatch did not produce the table-fragmentation effect
-we expected from splitting into four hashtables. Each per-arity table's
-steady-state size tracks the arity histogram, and the four tables
-jointly fit roughly the same cache footprint as the unified table; the
-splits buy strictly better entry layout without an offsetting working-set
-penalty.
+    \Function{ParallelClose}{equalities = $\{e_1 = e_1', \ldots, e_w = e_w'\}$}
+        \State $\mathit{Frontier} \gets \text{every term appearing in } \mathit{equalities}$
+        \While{$\mathit{Frontier}$ is not empty}
+          \State $\mathit{groups} \gets \text{congruence classes quotiented by } \textsc{Congruent-Level1}$.
+          \ParFor{$\mathit{group} \in \mathit{groups}$}
+            \State $\rhd$ Merge every term within congruence class
+            \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{\mathit{group}}$
+            \State $\rhd$ Construct new parent lists
+            \State $\mathit{Parents}[\mathit{rep}] \gets \Call{ConcatMap}{\lambda \mathit{group}. \; \mathit{Parents}[\mathit{group}]}$
+          \EndParFor
+          \State $\mathit{Frontier} \gets \Call{FlatMap}{\mathit{groups}, \lambda g. \; \mathit{Parent}[\Call{Find}{g}] }$
+        \EndWhile
+    \EndFunction
+\end{algorithmic}
+\caption{Round-based congruence closure algorithm}
+\label{alg:bsp}
+\end{algorithm}
