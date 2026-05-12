@@ -125,12 +125,11 @@ achieve a speedup over sequential of $36.8\times$ (23.4$\times$) on 32 threads,
 51.9$\times$ ($31.9\times$) on 64 threads, and only $76.1\times$ ($50.0\times$)
 on 192 threads.
 
-While both \parentalgo and \filteralgo achieve similar parallization on
-larger workloads, \filteralgo starts from a much better baseline. This is
-because \parentalgo must maintain the parent lists for each term, which is
-expensive as it requires frequent allocations. Additionally, while the 
-sequential algorithm must maintain parent lists as well, it is able to avoid
-duplicates.
+While both \parentalgo and \filteralgo achieve similar parallization on larger
+workloads, \filteralgo starts from a much better baseline. This is because
+\parentalgo must maintain the parent lists for each term, which is expensive as
+it requires frequent allocations. Additionally, while the sequential algorithm
+must maintain parent lists as well, it is able to avoid duplicates.
 
 
 Note that on sufficiently large workloads, we can achieve superlinear speedups.
@@ -208,6 +207,16 @@ $4.87\times$ for \parentalgo). Unlike the depth ratio, the width ratio grows
 sharply with thread count: at $T{=}1$ it is $1.49\times$ for \filteralgo and
 $1.78\times$ for \parentalgo, but by $T{=}192$ it reaches $20.2\times$ and
 $23.2\times$ respectively.
+
+Similar to the random workloads, our algorithm achieves near-linear speedup over
+the sequential version up to a plateau between 32 and 64 threads. However, the
+single-core baseline is noticeably worse than the sequential algorithm: at
+$k{=}205$, $l{=}2$, \filteralgo at $T{=}1$ is $2.22\times$ slower than the
+sequential algorithm and \parentalgo at $T{=}1$ is $4.25\times$ slower. On the
+same workload, \filteralgo (and respectively \parentalgo) achieves a speedup
+over sequential of $6.79\times$ ($3.30\times$) on 16 threads, $12.3\times$
+($6.16\times$) on 32 threads, $17.0\times$ ($9.09\times$) on 64 threads, and
+only $26.4\times$ ($17.0\times$) on 192 threads.
 
 
 
@@ -308,17 +317,52 @@ sequential congruence closure time.
   \label{fig:circuit}
 \end{figure*}
 
-\as{add analysis and make below more clear (comment + add explanation of the figures)}
+% \as{add analysis and make below more clear (comment + add explanation of the figures)}
 
-We do not compare to Kissat's internal congruence closure implementation as our
-sequential implementation was much faster compare to the numbers reported in the
-paper~\cite{clausal-cc}.
+% We do not compare to Kissat's internal congruence closure implementation as our
+% sequential implementation was much faster compare to the numbers reported in the
+% paper~\cite{clausal-cc}.
+
+On the circuit-equivalence benchmarks, \filteralgo and \parentalgo achieve
+near-linear speedup up to a plateau between 32 and 64 threads on most
+workloads,. However, unlike on the random and cube benchmarks, the single-core
+baseline of \filteralgo varies dramatically across files: on the 22 files we
+measured, \filteralgo at $T{=}1$ ranges from $0.71\times$ slower than sequential
+(i.e.\ actually faster) on \texttt{h5m-n04-ands.gates} to $32.3\times$ slower on
+\texttt{6s104-xits-opt.gates}; \parentalgo, by contrast, is consistently
+$\sim$$4\times$ slower at number of threads $T{=}1$ regardless of file.
+
+Figure~\ref{fig:gates_vs_min_dirty_fraction} explains this spread by plotting
+the speedup of \filteralgo against the \emph{minimum per-round dirty term
+fraction}: for each round $r$ of the algorithm we record
+$\mathrm{dirty}[r]/\mathrm{live}[r]$, where $\mathrm{dirty}[r]$ is the number of
+e-nodes the round marks as needing re-canonicalization and $\mathrm{live}[r]$ is
+the number of equivalence classes still alive after the preceding round's
+unions; we then take the minimum over all rounds the closure executes. A small
+minimum is bad for \filteralgo because every round, regardless of how few terms
+are actually dirty, pays the full $O(\mathrm{live})$ cost of scanning all live
+e-nodes to filter out the dirty ones — so a workload with even one near-empty
+round wastes work proportional to the entire e-graph for very few useful unions.
+% The figure shows a strong positive correlation (Spearman $\rho{\approx}{+}0.79$)
+% between the minimum dirty fraction and the per-file speedup, and exactly the
+% files with very low minimum fractions — \texttt{6s104-ands/xits-opt},
+% \texttt{6s163-xits-opt}, and a couple of others — are the ones where \filteralgo
+% is many times slower than sequential at $T{=}1$ and where \parentalgo (which has
+% no such filter) is faster at every thread count.
+
+%  To address the concern that
+% good speedups are an artifact of small workloads, we highlight
+% \texttt{6s125-ands-opt.gates}, the largest closure in the suite at $5.5$~seconds
+% sequentially: on this workload \filteralgo (and respectively \parentalgo)
+% achieves a speedup over sequential of $9.33\times$ ($2.94\times$) on 16 threads,
+% $17.4\times$ ($5.56\times$) on 32 threads, $22.4\times$ ($8.20\times$) on 64
+% threads, and $38.4\times$ ($17.3\times$) on 192 threads.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{figs/gates_speedup_vs_min_dirty_fraction.png}
   \caption{Slowdown of \filteralgo compared to sequential baseline vs. the smallest fraction of dirty terms across rounds}
-  \label{fig:cube}
+  \label{fig:gates_vs_min_dirty_fraction}
 \end{figure}
 
 
