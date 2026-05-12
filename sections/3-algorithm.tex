@@ -22,7 +22,7 @@ The algorithm then iterates until the worklist is empty. A term $e$ is popped fr
 
 \begin{algorithm}
 \begin{algorithmic}[1]
-    \Function{Congruent-Level1}{X, Y} \If{$X = f(M_1,\ldots,M_n)$ and $Y =
+    \Function{Congruent}{X, Y} \If{$X = f(M_1,\ldots,M_n)$ and $Y =
       f(N_1,\ldots,N_n)$} \State \Return $\Call{Find}{M_i} = \Call{Find}{N_i}$
       for all $i = 1,\ldots,n$ \Else \State \Return \textbf{false} \EndIf
       \EndFunction
@@ -160,7 +160,7 @@ until there is no longer any work to do. Pseudocode depicting this algorithm is
 shown in Algorithm~\ref{alg:bsp}.
 
 The algorithm is decomposed into three different functions. The function
-\textsc{Congruent-Level1} checks whether two terms are congruent based on the
+\textsc{Congruent} checks whether two terms are congruent based on the
 equivalence classes in the union find\footnote{\textsc{Level1} comes from the
 fact that we are only considering congruent terms with only one level of
 nesting}. Two terms are congruent if they are both the same function symbol and
@@ -174,7 +174,7 @@ approach; we merge the left and right halves (in parallel), and then
 
 \begin{algorithm}
 \begin{algorithmic}[1]
-    \Function{Congruent-Level1}{X, Y} \If{$X = f(M_1,\ldots,M_n)$ and $Y =
+    \Function{Congruent}{X, Y} \If{$X = f(M_1,\ldots,M_n)$ and $Y =
       f(N_1,\ldots,N_n)$} \State \Return $\Call{Find}{M_i} = \Call{Find}{N_i}$
       for all $i = 1,\ldots,n$ \Else \State \Return \textbf{false} \EndIf
       \EndFunction
@@ -192,7 +192,7 @@ approach; we merge the left and right halves (in parallel), and then
     \Function{ParallelClose}{equalities = $\{e_1 = e_1', \ldots, e_w = e_w'\}$}
         \State $\mathit{Frontier} \gets \text{every term appearing in } \mathit{equalities}$
         \While{$\mathit{Frontier}$ is not empty}
-          \State $\mathit{groups} \gets \text{congruence classes quotiented by } \textsc{Congruent-Level1}$.
+          \State $\mathit{groups} \gets \text{congruence classes quotiented by } \textsc{Congruent}$.
           \ParFor{$\mathit{group} \in \mathit{groups}$}
             \State $\rhd$ Merge every term within congruence class
             \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{\mathit{group}}$
@@ -222,7 +222,7 @@ We have found that this tradeoff is generally worthwhile on most workloads. It i
         \While{$\mathit{Frontier}$ is not empty}
           \State $\rhd$ Dirty flags
           \State $\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < n]$
-          \State $\mathit{groups} \gets \text{congruence classes of $\mathit{Frontier}$ quotiented by } \textsc{Congruent-Level1}$.
+          \State $\mathit{groups} \gets \text{congruence classes of $\mathit{Frontier}$ quotiented by } \textsc{Congruent}$.
           \ParFor{$\mathit{group} \in \mathit{groups}$}
             \State $\rhd$ Merge every term within congruence class
             \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{\mathit{group}}$
