@@ -226,10 +226,10 @@ approach; we merge the left and right halves (in parallel), and then
             \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{g}$
           \EndParFor
           \State $\mathit{classes} \gets \Call{GroupByKey}{\{(\Call{Find}{u}, u) \mid u \in \mathit{Frontier}\}}$
-          \ParFor{$(\mathit{rep}, \mathit{class}) \in \mathit{classes}$}
-            \State $\mathit{parents}[\mathit{rep}] \gets \Call{Flatten}{\{\mathit{Parents}[\mathit{member}] \mid \mathit{member} \in \mathit{members}\}}$
+          \ParFor{$(\mathit{rep}, \mathit{members}) \in \mathit{classes}$}
+            \State $\mathit{Parents}[\mathit{rep}] \gets \bigcup_{m \in \mathit{members}} \mathit{Parents}[m]$
           \EndParFor
-          \State $\mathit{Frontier} \gets \bigcup_{g \in \mathit{groups}} \mathit{Parents}[\Call{Find}{g}]$
+          \State $\mathit{Frontier} \gets \bigcup_{(\mathit{rep}, \_) \in \mathit{classes}} \mathit{Parents}[\mathit{rep}]$
         \EndWhile
     \EndFunction
 \end{algorithmic}
