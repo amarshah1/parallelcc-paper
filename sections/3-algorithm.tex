@@ -10,15 +10,31 @@ by Nieuwenhuis and Oliveras.
 We maintain a \emph{signature table} that maps every term to the representative
 of its e-class. It is implemented via a hashtable, where hashing a term entails
 hashing its function symbol and the e-class identifiers of its operands. The
-signature table admits operations $\textsc{Lookup}(e)$, which finds the representative of term $e$ (if any), and $\textsc{Enter}(e)$, which enters term $e$ into the signature table.
+signature table admits operations $\textsc{Lookup}(e)$, which finds the
+representative of term $e$ (if any), and $\textsc{Enter}(e)$, which enters term
+$e$ into the signature table.
 
-We also maintain a Union-Find data-structure that maintains the congruence classes of every term. Initially, the union-find maintains only the equalities fixed a-priori.
+We also maintain a Union-Find data-structure that maintains the congruence
+classes of every term. Initially, the union-find maintains only the equalities
+fixed a-priori.
 
-Finally, we maintain the \emph{parents} of every equivalence class---the terms in which terms for those class appear as operands. 
+Finally, we maintain the \emph{parents} of every equivalence class---the terms
+in which terms for those class appear as operands.
 
-The algorithm then seeds a FIFO \emph{worklist} of terms whose congruence classes may be coarser than those maintained by the union-find. It is seeded with all non-leaf terms (i.e. function applications) in reverse-topological order. Reverse-topological ordering ensures that the algorithm terminates in a single pass when the quotient DAG is acyclic, and serves as a good heuristic otherwise.
+The algorithm then seeds a FIFO \emph{worklist} of terms whose congruence
+classes may be coarser than those maintained by the union-find. It is seeded
+with all non-leaf terms (i.e. function applications) in reverse-topological
+order. Reverse-topological ordering ensures that the algorithm terminates in a
+single pass when the quotient DAG is acyclic, and serves as a good heuristic
+otherwise.
 
-The algorithm then iterates until the worklist is empty. A term $e$ is popped from the front of the worklist, and then inserted into the signature table. If there is a collision---meaning that a representative term $e'$ with that signature already exists in the table---then the congruence classes of $e$ and $e'$ and merged. Then the parents of the \emph{losing} term---that which is not the representative of the merged class---are added to the worklist if they are not already present. This is implemented by the following pseudocode.
+The algorithm then iterates until the worklist is empty. A term $e$ is popped
+from the front of the worklist, and then inserted into the signature table. If
+there is a collision---meaning that a representative term $e'$ with that
+signature already exists in the table---then the congruence classes of $e$ and
+$e'$ and merged. Then the parents of the \emph{losing} term---that which is
+not the representative of the merged class---are added to the worklist if they
+are not already present. This is implemented by the following pseudocode.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
@@ -27,8 +43,9 @@ The algorithm then iterates until the worklist is empty. A term $e$ is popped fr
       for all $i = 1,\ldots,n$ \Else \State \Return \textbf{false} \EndIf
       \EndFunction
 
-    \Function{SequentialClose}{equalities = $\{e_1 = e_1', \ldots, e_w = e_w'\}$}
-      \For{$(u, v) \in \mathit{Equalities}$}
+    \Function{SequentialClose}{$\mathit{Eq}$}
+      \State $\rhd$ $\mathit{Eq} = \{e_1 = e_1', \ldots, e_w = e_w'\}$
+      \For{$(u, v) \in \mathit{Eq}$}
         \State $\Call{Union}{u, v}$ \Comment{Add initial unions to union-find}
       \EndFor
       \State $\mathit{class\_preds} \gets$ array indexed by e-class id
@@ -73,7 +90,12 @@ reached, since merging two e-classes can cause new merges to be possible. This
 approach is sometimes efficient, but breaks down when many iterations must be
 done.
 
-We also implemented a practical version of the Downey-Sethi-Tarjan (DST) algorithm that achieves $O(n \log n)$ work. We made some changes, including eliminating the outdegree-2 transformation that curries each term into a binary term by representing an $n$-ary term as a tree of binary terms. Additionally, we represented the signature table as a hashtable instead of a trie, which is more important in practice (although forfeits the deterministic work bound).
+We also implemented a practical version of the Downey-Sethi-Tarjan (DST)
+algorithm that achieves $O(n \log n)$ work. We made some changes, including
+eliminating the outdegree-2 transformation that curries each term into a binary
+term by representing an $n$-ary term as a tree of binary terms. Additionally,
+we represented the signature table as a hashtable instead of a trie, which is
+more important in practice (although forfeits the deterministic work bound).
 
 
 \subsection{Bulk-Synchronous Parallel Algorithm}~\label{sec:algorithm:parallel}
@@ -189,17 +211,18 @@ approach; we merge the left and right halves (in parallel), and then
       \State \Return $\Call{Union}{l, r}$ \Comment{Union left and right reps,
       return root} \EndFunction
 
-    \Function{ParallelClose}{equalities = $\{e_1 = e_1', \ldots, e_w = e_w'\}$}
-        \State $\mathit{Frontier} \gets \text{every term appearing in } \mathit{equalities}$
+    \Function{ParallelClose}{$\mathit{Eq}$}
+        \State $\rhd$ $\mathit{Eq} = \{e_1 = e_1', \ldots, e_w = e_w'\}$
+        \State $\mathit{Frontier} \gets \text{terms appearing in } \mathit{Eq}$
         \While{$\mathit{Frontier}$ is not empty}
-          \State $\mathit{groups} \gets \text{congruence classes quotiented by } \textsc{Congruent}$.
-          \ParFor{$\mathit{group} \in \mathit{groups}$}
+          \State $\mathit{groups} \gets \Call{GroupBy}{\textsc{Congruent}, \mathit{Frontier}}$
+          \ParFor{$g \in \mathit{groups}$}
             \State $\rhd$ Merge every term within congruence class
-            \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{\mathit{group}}$
+            \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{g}$
             \State $\rhd$ Construct new parent lists
-            \State $\mathit{Parents}[\mathit{rep}] \gets \Call{ConcatMap}{\lambda \mathit{group}. \; \mathit{Parents}[\mathit{group}]}$
+            \State $\mathit{Parents}[\mathit{rep}] \gets \bigcup_{t \in g} \mathit{Parents}[t]$
           \EndParFor
-          \State $\mathit{Frontier} \gets \Call{FlatMap}{\mathit{groups}, \lambda g. \; \mathit{Parent}[\Call{Find}{g}] }$
+          \State $\mathit{Frontier} \gets \bigcup_{g \in \mathit{groups}} \mathit{Parents}[\Call{Find}{g}]$
         \EndWhile
     \EndFunction
 \end{algorithmic}
@@ -209,26 +232,35 @@ approach; we merge the left and right halves (in parallel), and then
 
 \subsection{Dirty Child Marking Algorithm}
 
-The previous algorithm, like the sequential baseline, explicitly maintains the parents associated with each congruence class. However, this incurs fairly high overhead. We now present an algorithm that accomplishes exactly this. 
+The previous algorithm, like the sequential baseline, explicitly maintains the
+parents associated with each congruence class. However, this incurs fairly
+high overhead. We now present an algorithm that accomplishes exactly this.
 
-Instead of explicitly maintaing lists, we instead maintain which nodes are "dirty" at a given round---i.e., the representative of their congruence class has changed since the prior round due to some merge. We then filter all terms to retain those whose children are marked dirty, and propagate these terms to the next round to be semisorted and recanonicalized. This avoids the cost of maintaing parent lists, but also requires scanning all nodes every round. 
-We have found that this tradeoff is generally worthwhile on most workloads. It is described by the following pseudocode:
+Instead of explicitly maintaing lists, we instead maintain which nodes are
+``dirty'' at a given round---i.e., the representative of their congruence
+class has changed since the prior round due to some merge. We then filter all
+terms to retain those whose children are marked dirty, and propagate these
+terms to the next round to be semisorted and recanonicalized. This avoids the
+cost of maintaing parent lists, but also requires scanning all nodes every
+round. We have found that this tradeoff is generally worthwhile on most
+workloads. It is described by the following pseudocode:
 
 \begin{algorithm}
 \begin{algorithmic}[1]
 
-    \Function{ParallelDirtyChildren}{equalities = $\{e_1 = e_1', \ldots, e_w = e_w'\}$}
-        \State $\mathit{Frontier} \gets \text{every term appearing in } \mathit{equalities}$
+    \Function{ParallelDirtyChildren}{$\mathit{Eq}$}
+        \State $\rhd$ $\mathit{Eq} = \{e_1 = e_1', \ldots, e_w = e_w'\}$
+        \State $\mathit{Frontier} \gets \text{terms appearing in } \mathit{Eq}$
         \While{$\mathit{Frontier}$ is not empty}
           \State $\rhd$ Dirty flags
           \State $\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < n]$
-          \State $\mathit{groups} \gets \text{congruence classes of $\mathit{Frontier}$ quotiented by } \textsc{Congruent}$.
-          \ParFor{$\mathit{group} \in \mathit{groups}$}
+          \State $\mathit{groups} \gets \Call{GroupBy}{\textsc{Congruent}, \mathit{Frontier}}$
+          \ParFor{$g \in \mathit{groups}$}
             \State $\rhd$ Merge every term within congruence class
-            \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{\mathit{group}}$
+            \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{g}$
             \State $\mathit{dirty}[\mathit{rep}] \gets \textbf{true}$
           \EndParFor
-          \State $\mathit{Frontier} \gets \Call{Filter}{\mathit{nodes}, \lambda u. \, \mathit{dirty}[u]}$
+          \State $\mathit{Frontier} \gets \{u \mid \mathit{dirty}[u]\}$
         \EndWhile
     \EndFunction
 \end{algorithmic}
@@ -238,6 +270,21 @@ We have found that this tradeoff is generally worthwhile on most workloads. It i
 
 \subsection{Implementation Details}
 
-We have found that several implementation details significantly improve the performance of both algorithms. Firstly, we do not actually perform the semisort as implemented by \texttt{parlaylib}. Instead, we use an integer sort to group the nodes by hash and then \emph{sequentially} bucket the resulting array manually---this requires detecting hash collisions. This is more performant for small buckets; \texttt{parlaylib} buckets in parallel, which is advantageous for small buckets, but not the smaller ones we encounter in our workloads.
+We have found that several implementation details significantly improve the
+performance of both algorithms. Firstly, we do not actually perform the
+semisort as implemented by \texttt{parlaylib}. Instead, we use an integer sort
+to group the nodes by hash and then \emph{sequentially} bucket the resulting
+array manually---this requires detecting hash collisions. This is more
+performant for small buckets; \texttt{parlaylib} buckets in parallel, which is
+advantageous for small buckets, but not the smaller ones we encounter in our
+workloads.
 
-Several implementation choices also had significant impact on the performance of the sequential algorithm. Firstly, we maintain different signature tables for terms of arities 1,2,3 and 4. Terms of greater arities fall into the general signature table. Heterogenous signature tables require sotring terms of different arities (and hence size), and require dynamic allocations for each canonical signature placed into the table. Thus for the common case (terms of small arity), it is advantageous to avoid this overhead. Even for the hetergenous table, we use a bump allocator to reduce the number of allocations.
+Several implementation choices also had significant impact on the performance
+of the sequential algorithm. Firstly, we maintain different signature tables
+for terms of arities 1,2,3 and 4. Terms of greater arities fall into the
+general signature table. Heterogenous signature tables require sotring terms
+of different arities (and hence size), and require dynamic allocations for
+each canonical signature placed into the table. Thus for the common case
+(terms of small arity), it is advantageous to avoid this overhead. Even for
+the hetergenous table, we use a bump allocator to reduce the number of
+allocations.
