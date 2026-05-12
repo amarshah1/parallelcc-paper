@@ -63,39 +63,39 @@ None.
 - [x] **#29, #54** Standardized on `n_{\text{compound}}`; clarified that total leaves = 2 × $n_{\text{leaves}}$; reconciled prose/caption on equality pairs (x-y); fixed "appliction" typo
 - [x] **#26** Fixed all three "parallization"/"parallize" → "parallelization"/"parallelize"
 - [x] **#37** [L176] `\autoref{ex:formula}` resolves now that equation is numbered
-- [ ] **#55** [L170-179] Synthetic benchmark says "based on the example" but uses different variable conventions
-- [ ] **#56** [L192-194] Depth parameter $l$ introduced with no construction — reader cannot reproduce
-- [ ] **#33** [L187 vs L197] Width parameter inconsistently called $n$ then $k$
-- [ ] **#57** [L239] Section labeled `sec:eval:hardware` but titled "Circuit equivalence Benchmarks"; "equivalence" should be capitalized
-- [ ] **#27** [L253] "sub-circuits" vs "subcircuits"
-- [ ] **#18** [L284-285] Sentence fragment / comma splice
-- [ ] **#58** [L289-291] AIGER is a file format, not a synonym for AIG
-- [ ] **#59** [L296-297] Lost the "before deduplication" detail
-- [ ] **#60** [L298-299] Lost justification for picking 12 instances
-- [ ] **#19** [L328] "on most workloads,." — stray comma
-- [ ] **#39** [L313] Caption missing terminal period
-- [ ] **#38** [L308 vs L42] `fig:circuit:parent` (singular) vs `fig:random:parents` (plural)
-- [ ] **#61** [L344-345] Em-dash style inconsistent with rest of paper
-- [ ] **#34** [L379] "MST-LIB" → "SMT-LIB" (commented text)
+- [x] **#55** Tightened tie-in to example (now "generalizes the structure of"); construction is now self-contained
+- [x] **#56** Added explicit three-layer construction (leaves, $f$-layer, $g$-tree) with parameters $k$ and $l$ — fully reproducible
+- [x] **#33** Standardized on $k$ throughout construction and analysis
+- [x] **#57** Capitalized "Equivalence"; renamed label to `sec:eval:circuit` (matches existing reference)
+- [x] **#27** Standardized on "subcircuits"
+- [x] **#18** Removed comma splice; added "on them"
+- [x] **#58** Renamed AIGER → "And-Inverter Graph"; removed undefined "ABC-optimized"
+- [ ] **#59** [L296-297] Lost the "before deduplication" detail (skipped per user)
+- [ ] **#60** [L298-299] Lost justification for picking 12 instances (skipped per user)
+- [x] **#19** Removed stray comma
+- [x] **#39** Added missing terminal periods on two captions
+- [x] **#38** Standardized on `fig:*:parents` (plural)
+- [x] **#61** All active em-dashes already converted to `---` during prior edits; remaining `—` are in commented-out blocks
+- [x] **#34** Fixed "MST-LIB" → "SMT-LIB" (also fixed "into and" → "into an")
 
 ## sections/6-discussion.tex
 
-- [ ] **#62** [L12] `\as{give a number here}` TODO
-- [ ] **#63** [L56] Backtracking section is empty
+- [x] **#62** Filled in $27\times$ self-speedup for \filteralgo on `32xl`
+- [ ] **#63** [L56] Backtracking section empty — deferred (Zak to fill in)
 - [x] **#26** [L33] Fixed (see §5 entry)
-- [ ] **#20** [L36] "which the would add" → "they"
-- [ ] **#21** [L37] "wer unioning" → "were"
+- [x] **#20** [L36] "the" → "they"
+- [x] **#21** [L37] "wer" → "were"
 - [x] **#22** [L41] Fixed (see §5 entry)
-- [ ] **#23** [L42] "where we you have add the merges" → "you have to add"
-- [ ] **#24** [L67] "as done by the Z3 SMT solver does" — drop one redundancy
+- [x] **#23** Fixed garbled "where we you have add" → "where you have to add"
+- [x] **#24** Removed "done by" redundancy
 - [x] **#30** [L73] "E-node" — paper uses "e-node" elsewhere (now: drop e-prefix entirely)
-- [ ] **#64** [L69-76] "Incremental Update" paragraph appears twice
-- [ ] **#25** [L73] Unfinished sentence
-- [ ] **#68** No Conclusion section
+- [x] **#64** Merged duplicate Incremental Update paragraphs into one coherent paragraph
+- [x] **#25** Fixed (resolved as part of #64 merge)
+- [x] **#68** Added `7-conclusion.tex`; wired into `paper.tex`
 
 ## Cross-cutting
 
 - [x] **#28** "Parlay-Lib" / "parlaylib" / "ParlayLib" — standardized on `\textsc{ParlayLib}`
-- [ ] **#32** "hashcons" / "hash-cons" / "hash cons" — pick one
-- [ ] **#69** Stale figure labels referenced from prose
-- [ ] **NEW** Drop e-graph / e-node / e-class terminology — use "data structure" / "term" or "node" / "equivalence class" or "congruence class"
+- [x] **#32** All active hashcons references already gone; remaining are in commented-out related work
+- [x] **#69** All figure label references resolve cleanly in latest build
+- [x] **NEW** Dropped "e-node"/"e-class" terminology paper-wide (replaced with "term" / "equivalence class"); kept "e-graph" reference in §2.1 per your request

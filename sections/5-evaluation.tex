@@ -176,25 +176,37 @@ of congruence closure) and the width (i.e. number of merges per round) of the
 benchmark and the performance of our algorithm, we design a synthetic benchmark
 suite that allows us to dial up these parameters.
 
-Our benchmark suite is based on the example in \autoref{ex:formula}, but instead
-we consider $f$-functions with arity $3$. We create a benchmark with $2n$ leaves
-$a_1, \ldots, a_n$ and $b_1, \ldots, b_n$, and we assert the equalities $a_i =
-b_i$ for all $i$. 
+Our benchmark suite generalizes the structure of the example in
+\autoref{ex:formula} to arbitrary widths and depths. Each benchmark is
+parameterized by a width $k$ and a $g$-tree fan-in $l$, and is constructed
+in three layers:
 
-% We then have a single disequality between two terms built from $f$ and $g$.
-% The disequality compares two applications of $g$, whose four arguments are the
-% $f$-terms over the index set $\{1, ..., k\}^2$.
+\begin{itemize}
+  \item \textbf{Leaves.} $2k$ leaf constants $a_1, \ldots, a_k$ and $b_1,
+        \ldots, b_k$.
+  \item \textbf{$f$-layer.} For every triple $(i, j, m) \in \{1, \ldots,
+        k\}^3$ we add the terms $f(a_i, a_j, a_m)$ and $f(b_i, b_j, b_m)$,
+        contributing $2k^3$ terms in total.
+  \item \textbf{$g$-tree.} On each of the $a$- and $b$-sides we build a
+        balanced $l$-ary tree of $g$-applications whose leaves are the $k^3$
+        $f$-terms on that side. Each internal $g$-node has exactly $l$
+        children, and the tree has height $\lceil \log_l(k^3) \rceil$. The
+        two sides share no $g$-nodes.
+\end{itemize}
 
-% The expected outcome is \texttt{unsat}. 
+The initial unions are $a_i = b_i$ for $i \in \{1, \ldots, k\}$. After
+congruence closure has propagated these unions through the $f$-layer there are
+$k^3$ congruences of the form $f(a_i, a_j, a_m) \equiv f(b_i, b_j, b_m)$, which
+must in turn propagate up the two $g$-trees until the two roots become equal.
 
-There are $3^n$ terms of the form $f(a_i, a_j, a_k)$, which must be congruent to
-the corresponding $f(b_i, b_j, b_k)$ terms. Thus, we start with $n$ initial
-equalities and $3^n$ merges in the second round. Hence, $n$ parameterizes the
-width of the benchmark, a larger $n$ means a larger width.
-
-The depth is parameterized by some $l$ which controls how many nested $g$
-applications we have. Each round will have $\frac1l$ of the merges of the
-previous round, so a larger $l$ means a smaller depth.
+The width $k$ controls how many merges occur at the first congruence-closure
+round above the leaves: a larger $k$ means a much larger frontier ($k^3$
+merges) of mutually-independent $f$-equalities, all of which can be discharged
+in parallel. The fan-in $l$ controls the height of the $g$-tree above the
+$f$-layer: each level reduces the active frontier by a factor of $l$, so a
+larger $l$ produces a shallower closure (fewer rounds) at the cost of wider
+fan-in per $g$-node. We sweep $k \in \{30, 55, 80, 105, 130, 155, 180, 205\}$
+and $l \in \{2, 3, 4, 5\}$.
 
 We see that the width of the benchmark has a much larger impact on the speedup
 than the depth. Holding cube width $k$ and thread count $T$ fixed, the parallel
@@ -239,7 +251,7 @@ only $26.4\times$ ($17.0\times$) on 192 threads.
 
 
 
-\subsection{Circuit equivalence Benchmarks}~\label{sec:eval:hardware}
+\subsection{Circuit Equivalence Benchmarks}~\label{sec:eval:circuit}
 
 % In this section, we evaluate on a set of benchmarks checking the equivalence
 % of two circuits. The canonical way to check circuit equivalence is using a
@@ -283,15 +295,15 @@ Miters are typically encoded into conjunctive normal form (CNF) and given to a
 SAT solver, but these formulas are large and the encoding destroys the
 gate-level structure that makes equivalence apparent. Biere et
 al.~\cite{clausal-cc} observed that the two sides of a miter often share
-equivalent sub-circuits whose equivalence can be discovered structurally. They
-showed that recovering the gates from the CNF, and running congruence closure
-can drastically simplify (and often immediately decide) the resulting formula.
+equivalent subcircuits whose equivalence can be discovered structurally. They
+showed that recovering the gates from the CNF and running congruence closure
+on them can drastically simplify (and often immediately decide) the resulting
+formula.
 They implemented their algorithm as a preprocessing pass in Kissat~\cite{kissat}
 and evaluated on two benchmark sets: five hand-curated miters from the IWLS'22
 paper~\cite{iwls}, considered hard for monolithic CNF-level SAT sweeping, and a
 derivative of the 2012 Hardware Model Checking Competition~\cite{hwmcc} that
-compares And-Inverter Graphs (AIGERs) against an optimized
-variant.
+compares each And-Inverter Graph against an optimized variant.
 
 For our evaluation we use the same circuit sources, but rather than running
 congruence closure as a preprocessing pass within Kissat we extract its
@@ -308,12 +320,12 @@ sequential congruence closure time.
     \centering
     \includegraphics[width=\linewidth]{figs/gates_par_parents_speedup.png}
     \caption{Speedup of \parentalgo compared to sequential baseline.}
-    \label{fig:circuit:parent}
+    \label{fig:circuit:parents}
   \end{subfigure}\hfill
   \begin{subfigure}[t]{0.48\linewidth}
     \centering
     \includegraphics[width=\linewidth]{figs/gates_async_speedup.png}
-    \caption{Speedup of \filteralgo compared to sequential baseline}
+    \caption{Speedup of \filteralgo compared to sequential baseline.}
     \label{fig:circuit:filter}
   \end{subfigure}
   \caption{Speedup of \parentalgo and \filteralgo on circuit equivalence benchmarks.}
@@ -328,7 +340,7 @@ sequential congruence closure time.
 
 On the circuit-equivalence benchmarks, \filteralgo and \parentalgo achieve
 near-linear speedup up to a plateau between 32 and 64 threads on most
-workloads,. However, unlike on the random and cube benchmarks, the single-core
+workloads. However, unlike on the random and cube benchmarks, the single-core
 baseline of \filteralgo varies dramatically across files: on the 22 files we
 measured, \filteralgo at $T{=}1$ ranges from $0.71\times$ slower than sequential
 (i.e.\ actually faster) on \texttt{h5m-n04-ands.gates} to $32.3\times$ slower on
@@ -364,7 +376,7 @@ round wastes work proportional to the entire term set for very few useful unions
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{figs/gates_speedup_vs_min_dirty_fraction.png}
-  \caption{Slowdown of \filteralgo compared to sequential baseline vs. the smallest fraction of dirty terms across rounds}
+  \caption{Slowdown of \filteralgo compared to sequential baseline vs.\ the smallest fraction of dirty terms across rounds.}
   \label{fig:gates_vs_min_dirty_fraction}
 \end{figure}
 
@@ -379,7 +391,7 @@ round wastes work proportional to the entire term set for very few useful unions
 % egg-cc project~\cite{eggcc}—an experimental optimizing compiler for the
 % LLVM-like IR Bril. We ran egglog on a number of Bril programs for \as{todo}
 % seconds and logged all of the unions egglog generated during this time. We
-% then extracted these unions into and MST-LIB file and evaluated our parallel
+% then extracted these unions into an SMT-LIB file and evaluated our parallel
 % congruence closure algorithms on these benchmarks.
 
 % \subsection{SMT Benchmarks}

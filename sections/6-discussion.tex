@@ -8,9 +8,10 @@ We answer the research questions as follows:
 \begin{itemize}
   \item \textbf{RQ1:} Our parallel congruence closure algorithm achieves a
   meaningful speedup on random benchmarks, a synthetic benchmark suite designed
-  to stress test our algorithm, and a set of circuit equivalence benchmarks. We
-  scale well up to 32 cores (\as{give a number here}), but began to plateau
-  beyond that, especially on smaller benchmarks.
+  to stress test our algorithm, and a set of circuit equivalence benchmarks.
+  We scale well up to 32 cores (\filteralgo on \texttt{32xl} achieves
+  $27\times$ self-speedup at $T{=}32$ relative to its $T{=}1$ baseline), but
+  begin to plateau beyond that, especially on smaller benchmarks.
   \item \textbf{RQ2:} Our algorithm tends to perform better on benchmarks with a
   large number of merges per round. More rounds of congruence closure does not
   have a major effect on parallel speedup.
@@ -31,16 +32,16 @@ future work.
 limited in terms of parallel scaling. In particular, if we have congruence
 closure problems with large \emph{depth}, but small \emph{width}, our
 parallelization strategy cannot achieve a good speedup. We implemented an
-asynchronous version of the dirty children algorithm, where we did semisort and
-unions happened at the same time. Certain threads would semisort and discover
-new congruences which the would add to a concurrent bag
-datastructure~\cite{concurrentbag}. Then the threads that wer unioning would
+asynchronous version of \filteralgo, where semisort and union happened at
+the same time. Certain threads would semisort and discover new congruences,
+which they would add to a concurrent bag data
+structure~\cite{concurrentbag}. The threads that were unioning would then
 probe this concurrent bag for new merges to perform.
 
 We found that this was slower than the synchronous version. A challenge to
-address is that even this asynchronous algorithm cannot efficiently parallelize a
-chain of congruences, i.e. where we you have add the merges $x \equiv y$, $f(x)
-\equiv f(y)$, $f(f(x)) \equiv f(f(y))$, etc.
+address is that even this asynchronous algorithm cannot efficiently
+parallelize a chain of congruences, i.e.\ where you have to add the merges
+$x \equiv y$, $f(x) \equiv f(y)$, $f(f(x)) \equiv f(f(y))$, etc.
 
 
 
@@ -62,15 +63,11 @@ that led to this conclusion. This is important for a number of reasons: it is
 necessary to justify correctness and it is used to produce conflict clauses in
 SMT solvers. Our implementation could easily be extended to support proof
 production by avoiding path compression in the union-find data structure.
-Another option is to maintain two union-find data structures: one for the actual
-congruence closure algorithm, and another that maintains the proof forest as
-done by the Z3 SMT solver does~\cite{z3-internals}.
+Another option is to maintain two union-find data structures: one for the
+actual congruence closure algorithm, and another that maintains the proof
+forest, as the Z3 SMT solver does~\cite{z3-internals}.
 
-\textbf{Incremental Update.} Our algorithms could support incremental update
-(where equalities and new terms may arrive dynamically)
-
-Finally, we would like to support our
-implementation to incremental updates (where equalities and new terms may
-arrive dynamically). This is important for both equality saturation and SMT
-solvers, where new equalities may be discovered via for example quantifier
-instantiation.
+\textbf{Incremental Update.} Our algorithms could be extended to support
+incremental updates, where equalities and new terms arrive dynamically. This
+is important for both equality saturation and SMT solvers, where new
+equalities may be discovered for example via quantifier instantiation.
