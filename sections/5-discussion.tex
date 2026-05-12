@@ -63,13 +63,20 @@ that led to this conclusion. This is important for a number of reasons: it is
 necessary to justify correctness and it is used to produce conflict clauses in
 SMT solvers. Our implementation could be extended to support proof
 production by avoiding path compression in the union-find data structure.
-This is complicated in the context of concurrency, however; it is not straightforward
-to recover the path within the union-find in the presence of concurrent updates. This
-could be addressed by taking a linearizable \emph{snapshot} of the union-find using
-recent techniques~\cite{verlib} and then reconstructing the proof based on this snapshot.
+% This is complicated in the context of concurrency, however; it is not straightforward
+% to recover the path within the union-find in the presence of concurrent updates. This
+% could be addressed by taking a linearizable \emph{snapshot} of the union-find using
+% recent techniques~\cite{verlib} and then reconstructing the proof based on this snapshot.
 Another option is to maintain two union-find data structures: one for the
 actual congruence closure algorithm, and another that maintains the proof
 forest, as the Z3 SMT solver does~\cite{z3-internals}.
+
+\textbf{Backtracking.} This can be done by taking a snapshot of the union-find
+data structure at each decision point, and then reverting to this snapshot when
+backtracking. However, this is complicated by concurrency; we
+would need to ensure that all threads have a consistent view of the union-find
+when taking a snapshot and when reverting to a snapshot. This could be achieved
+using a linearizable snapshot algorithm~\cite{verlib}.
 
 \textbf{Incremental Update.} Our algorithms could be extended to support
 incremental updates, where equalities and new terms arrive dynamically. This

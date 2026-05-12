@@ -112,17 +112,17 @@ None.
 
 ### Round 2 — sections/1-intro.tex
 
-- [ ] **#74** [L34-35] "this is unsatisfiable since $a = c$ by *transitivity* and thus the two ``parent terms'' $f(a) = f(c)$ by *congruence*" — sentence is missing a verb after "the two parent terms" (intended: "are equal" or "must satisfy $f(a) = f(c)$"). Also "parent terms" in quotes hasn't been defined yet
-- [ ] **#75** [L67-73] "lock-free concurrent union-find~\cite{jayanti16}" but at [3-algorithm.tex:117] the actual algorithm cited is Alistarh et al.~\cite{uf}, not Jayanti. Inconsistency
-- [ ] **#76** [L75-76] "The algorithm terminates when no round discovers a new merge, exactly mirroring the fixed point of the sequential procedure." — appears as orphaned single-sentence paragraph; should attach to the previous paragraph
-- [ ] **#77** [L98] "near-linear speedups up to 32 cores --- up to $27\times$ on 32 cores" — repetition of "32 cores"; tighten
-- [ ] **#78** [L98] "$27\times$ on 32 cores" framed "over an efficient sequential baseline" — but in §5 discussion the same number is framed as "self-speedup at T=32 relative to T=1 baseline". These are different things — reconcile
-- [ ] **#79** [L46] "egg" vs "egglog" — should be `\textsc{egg}` / `\textsc{egglog}` for tool names, or at least italicized? Currently bare; inconsistent with `Z3`/`cvc5` which are also bare. Possibly fine, but flagging for style consistency
+- [x] **#74** Restructured: split the chain of inferences into two clauses ("$a=c$ follows by transitivity, and then $f(a)=f(c)$ follows by congruence, contradicting the disequality"); dropped the undefined "parent terms" scare-quotes
+- [x] **#75** Intro now cites `\cite{uf}` (Alistarh et al.) to match §3.3
+- [x] **#76** Joined orphan sentence to the preceding paragraph
+- [x] **#77** Resolved by user dropping the "$27\times$" parenthetical from the contribution
+- [x] **#78** Resolved by same removal; no inconsistent framing remains in intro
+- [x] **#79** Keeping bare (current state) — all four tool names (egg/egglog/Z3/cvc5) use the same plain style, which is internally consistent
 
 ### Round 2 — sections/2-background.tex
 
-- [ ] **#80** [L14] "implemented using a **datastructure**" — `datastructure` (one word) used here but `data structure` (two words) used elsewhere. Pick one
-- [ ] **#81** [L20] `\begin{definition}[]` — empty optional argument; either give it a name like `[Terms]` or just use `\begin{definition}`
+- [x] **#80** Standardized on "data structure" (two words); fixed both §2 occurrences. §4 occurrence will be handled with #121
+- [x] **#81** Named the definition `[Terms]`
 - [ ] **#82** [L23-24] In the Definition of terms: missing "with" before "$\text{arity}(f) = k$" — currently reads "$f(t_1, \ldots, t_k)$ where $f\in F$ $\text{arity}(f) = k$" (run-on)
 - [ ] **#83** [L27-28] Re-defines "child"/"parent" relationship but only does so for single-arg case: "term $x$ is the child of $f(x)$". For $k$-ary terms each $t_i$ is a child. Generalize
 - [ ] **#84** [L74] "consider the formula **which** is solved by an SMT solver" — restrictive clause needs "that" (or just drop the clause; the example doesn't have to be "the formula that is solved by an SMT solver")

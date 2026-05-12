@@ -11,13 +11,13 @@ $i$. \emph{Congruence closure} refers to the problem of building the smallest
 equivalence relation that contains a given set of equalities and is closed under
 congruence.
 
-Typically, congruence closure is implemented using a datastructure called an
+Typically, congruence closure is implemented using a data structure called an
 \emph{e-graph}~\cite{egraphs}, which extends a union-find
-datastructure~\cite{unionfindtarjan} to represent equivalence classes of terms,
+data structure~\cite{unionfindtarjan} to represent equivalence classes of terms,
 while maintaining congruence.
 
 
-\begin{definition}[]
+\begin{definition}[Terms]
     We define $T$ to be a set of \emph{terms} over function symbols $F$, where
     each $t\in T$ is either a \emph{leaf term}, for example $x, y, z$ or a
     \emph{compound term} of the form $f(t_1, \ldots, t_k)$ where $f\in F$
