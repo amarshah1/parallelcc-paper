@@ -88,8 +88,8 @@ then filters terms to find which ones have dirty children.
  
 While congruence closure is P-complete (i.e. it is believed to not have a
 theoretically efficient parallel algorithm)~\cite{ccpcomplete}, we show that our
-algorithm can achieve near linear speedups up to 32 cores on random
-benchmarks(\todo{add a specific number}), a synthetic benchmark suite designed to
-stress test our algorithm, and a set of circuit equivalence
-benchmarks~\cite{eqsat}. Finally, we discuss what would be required to integrate
-it into an existing SMT solver or equality saturation engine. 
+algorithms can achieve near linear speedups up to 32 cores, achieving up to a
+$27\times$ speedup on 32 cores. We evaluate on random benchmarks, a synthetic
+benchmark suite designed to stress test our algorithm, and a set of circuit
+equivalence benchmarks~\cite{eqsat}. We discuss what would be required
+to integrate it into an existing SMT solver or equality saturation engine. 
