@@ -143,12 +143,12 @@ None.
 - [x] **#96** Updated pseudocode to "Insert all non-leaf terms" so it matches the prose
 - [x] **#97** Resolved: prose was already plural; the singular heading was the issue (fixed by #98)
 - [x] **#98** Pluralized heading: "Other Sequential Algorithm" → "Other Sequential Algorithms"
-- [ ] **#99** [L144] "If one rank is strictly greater **then** the other" — "then" → "than"
-- [ ] **#100** [L160-164] §3.4 (Parallel Semisort) is a one-paragraph subsection. Either expand with a bit more detail (e.g., complexity, why semisort vs full sort), or merge into §3.5
-- [ ] **#101** [L170] "Intially" → "Initially"
-- [ ] **#102** [L185-186] "These rounds continue until there is no longer any work to do. \autoref{alg:bsp} depicts this algorithm in pseudocode." — then L188 says "The algorithm (see \autoref{alg:bsp}) is decomposed..." Duplicate `\autoref{alg:bsp}` in adjacent sentences
-- [ ] **#103** [L191-192] "each of their children **are** pointwise congruent" — subject "each of their children" is singular; "is pointwise congruent"
-- [ ] **#104** [L219] In `\parentalgo` pseudocode, initial unions block at L219-221 is new (good!) but doesn't appear in `\filteralgo` — should the filter algorithm also have an initial-union step, or is it implicit?
+- [x] **#99** "then" → "than"
+- [x] **#100** Expanded §3.4 with the semisort signature (no total order across hashes) and complexity ($O(n)$ work, $O(\log n)$ span on average)
+- [x] **#101** Fixed "Intially" → "Initially"
+- [x] **#102** Merged the duplicate `\autoref{alg:bsp}` references into one
+- [x] **#103** Fixed subject/verb: "each ... is congruent" (also dropped "pointwise" per user)
+- [x] **#104** Added the same initial-union ParFor block to `\filteralgo` so both algorithms match
 - [ ] **#105** [L229-233] In `\parentalgo` pseudocode, the parent-list propagation step constructs `\mathit{classes}` via `\Call{GroupByKey}{...}` but the meaning of `\Call{GroupByKey}` isn't defined anywhere (§3.4 defines `GroupBy` from semisort but not `GroupByKey`)
 - [ ] **#106** [L245] "We now present an algorithm that accomplishes **exactly this**." — "this" refers to maintaining parent lists, but the next sentence says the new algorithm *avoids* maintaining them. So "this" should be "the same goal" or "the same task"
 - [ ] **#107** [L264] `\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < n]` — what is $n$? Never defined in the pseudocode scope

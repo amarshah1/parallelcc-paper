@@ -160,15 +160,18 @@ linking by rank is best-effort.
 
 At each round, we want to group congruent terms based on newly discovered
 equalities. We use the \emph{semisort} of Gu, Shun, Sun, and
-Blelloch~\cite{semisort}. Given an array of (hash, term) pairs, we want to sort
-the array such that all pairs with the same hash are adjacent. Concretely, we
-use semisort to group congruence classes at each round.
+Blelloch~\cite{semisort}: given an array of (hash, term) pairs, semisort
+permutes the array so that all pairs sharing the same hash are adjacent,
+without imposing a total order across distinct hashes. This relaxation lets
+semisort run in $O(n)$ work and $O(\log n)$ span on average, strictly
+better than a comparison sort. We use it to
+gather congruence classes at each round.
 
 \subsection{Rounds-Based Congruence Closure}
 \label{subsec:rounds}
 
 At each round, we maintain a set of terms whose congruence classes may need to
-be updated. Intially, this comprises all terms appearing in base equalities. We
+be updated. Initially, this comprises all terms appearing in base equalities. We
 then group congruent terms based on the equalities currently discovered, and
 merge the congruence classes of each group in the union-find. Grouping is
 accomplished via semisort (the \texttt{group\_by} operation in
@@ -182,15 +185,13 @@ $e$ has changed, then the congruence class of $f(e)$ may have changed as well.
 This requires maintaining the parents of every congruence class; specifically a
 mapping \textit{pred} between class identifiers and identifiers of parents of
 that class. This mapping must be updated every round; if two congruence classes
-are merged, then their parents must be merged as well. These rounds continue
-until there is no longer any work to do. \autoref{alg:bsp} depicts this
-algorithm in pseudocode.
+are merged, then their parents must be merged as well. These rounds
+continue until there is no longer any work to do.
 
-The algorithm (see \autoref{alg:bsp}) is decomposed into three different
-functions. The function \textsc{Congruent} checks whether two terms are
-congruent based on the equivalence classes in the union-find. Two terms are
-congruent if they have the same function symbol and each of their children
-are pointwise congruent.
+\autoref{alg:bsp} gives the pseudocode, decomposed into three functions.
+The function \textsc{Congruent} checks whether two terms are congruent based
+on the equivalence classes in the union-find. Two terms are congruent if
+they have the same function symbol and each of their children is congruent.
 
 The \textsc{MergeCongruenceClass} function is used to merge the equivalence
 classes of different terms. Specifically, given a sequence $S$ of terms, it will
@@ -259,6 +260,9 @@ workloads. \autoref{alg:dirty-children} gives the pseudocode.
 
     \Function{\filteralgo}{$\mathit{Eq}$}
         \State $\rhd$ $\mathit{Eq} = \{e_1 = e_1', \ldots, e_w = e_w'\}$
+        \ParFor{$(u = v) \in \mathit{Eq}$}
+          \State $\Call{Union}{u, v}$
+        \EndParFor
         \State $\mathit{Frontier} \gets \text{terms appearing in } \mathit{Eq}$
         \While{$\mathit{Frontier}$ is not empty}
           \State $\rhd$ Dirty flags
