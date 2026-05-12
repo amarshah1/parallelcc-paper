@@ -5,21 +5,22 @@
 \subsection{Sequential Baseline}~\label{sec:algorithm:no}
 
 Our baseline is a simple yet efficient worklist algorithm based on one developed
-by Nieuwenhuis and Oliveras.
+by Nieuwenhuis and Oliveras~\cite{nieuwenhuis-oliveras-cc}.
 
 We maintain a \emph{signature table} that maps every term to the representative
-of its e-class. It is implemented via a hashtable, where hashing a term entails
-hashing its function symbol and the e-class identifiers of its operands. The
+of its equivalence class. It is implemented via a hashtable, where hashing a
+term entails hashing its function symbol and the equivalence-class identifiers
+of its children. The
 signature table admits operations $\textsc{Lookup}(e)$, which finds the
 representative of term $e$ (if any), and $\textsc{Enter}(e)$, which enters term
 $e$ into the signature table.
 
-We also maintain a Union-Find data-structure that maintains the congruence
+We also maintain a union-find data structure that maintains the congruence
 classes of every term. Initially, the union-find maintains only the equalities
 fixed a-priori.
 
-Finally, we maintain the \emph{parents} of every equivalence class---the terms
-in which terms for those class appear as operands.
+Finally, we maintain the \emph{parents} of every equivalence class: the set
+of terms that are parents of at least one member of the equivalence class.
 
 The algorithm then seeds a FIFO \emph{worklist} of terms whose congruence
 classes may be coarser than those maintained by the union-find. It is seeded
@@ -32,7 +33,7 @@ The algorithm then iterates until the worklist is empty. A term $e$ is popped
 from the front of the worklist, and then inserted into the signature table. If
 there is a collision---meaning that a representative term $e'$ with that
 signature already exists in the table---then the congruence classes of $e$ and
-$e'$ and merged. Then the parents of the \emph{losing} term---that which is
+$e'$ are merged. Then the parents of the \emph{losing} term---that which is
 not the representative of the merged class---are added to the worklist if they
 are not already present. This is implemented by the following pseudocode.
 
@@ -48,7 +49,7 @@ are not already present. This is implemented by the following pseudocode.
       \For{$(u, v) \in \mathit{Eq}$}
         \State $\Call{Union}{u, v}$ \Comment{Add initial unions to union-find}
       \EndFor
-      \State $\mathit{class\_preds} \gets$ array indexed by e-class id
+      \State $\mathit{class\_preds} \gets$ array indexed by equivalence-class id
       \For{every term $e$}
         \For{every child $c$ of $e$}
           \State Append $e$ to $\mathit{class\_preds}[\Call{Find}{c}]$
@@ -83,10 +84,11 @@ most efficient. The other sequential algorithms we tested are included below.
 \subsubsection{Other Sequential Algorithm.} One approach is to topologically sort the
 terms, i.e. sort them in an order where each child must come before its parents.
 Then you can add each term to a signature table one at a time. If a term is
-already equal to a term in the signature table, you can union their e-classes in
-the union-find data structure. If there were any unions at all, we must iterate
-through all the terms again. We must iterate this until a fixed point is
-reached, since merging two e-classes can cause new merges to be possible. This
+already equal to a term in the signature table, you can union their equivalence
+classes in the union-find data structure. If there were any unions at all, we
+must iterate through all the terms again. We must iterate this until a fixed
+point is reached, since merging two equivalence classes can cause new merges to
+be possible. This
 approach is sometimes efficient, but breaks down when many iterations must be
 done.
 
@@ -100,12 +102,14 @@ more important in practice (although forfeits the deterministic work bound).
 
 \subsection{Bulk-Synchronous Parallel Algorithm}~\label{sec:algorithm:parallel}
 
-This section describes our bulk-synchronous-parallel approach to computing
-congruence closure. We first describe the two workhorses of our algorithm: a
-concurrent union-find data structure used to maintain congruence closure, and
-\textit{semisort}, a parallel primitive offered by
-\texttt{parlaylib}~\cite{parlaylib} that we use to group congruent terms. We
-then describe how we use these components to develop our final algorithm.
+The remainder of this section describes our bulk-synchronous-parallel
+approach to computing congruence closure. We build on two workhorses, each
+covered in its own subsection below: a concurrent union-find data structure
+(\autoref{subsec:uf}) used to maintain congruence classes, and
+\textit{semisort} (\autoref{subsec:semisort}), a parallel primitive offered
+by \textsc{ParlayLib}~\cite{parlaylib} that we use to group congruent terms.
+\autoref{subsec:rounds} then puts these components together into our
+rounds-based algorithm.
 
 \subsection{Concurrent Union-Find}
 \label{subsec:uf}
@@ -167,11 +171,11 @@ be updated. Intially, this comprises all terms appearing in base equalities. We
 then group congruent terms based on the equalities currently discovered, and
 merge the congruence classes of each group in the union-find. Grouping is
 accomplished via semisort---the \texttt{group\_by} operation in
-\texttt{parlaylib}---and merging congruence classes is accomplished through
+\textsc{ParlayLib}---and merging congruence classes is accomplished through
 taking the union of the corresponding equality classes in the union-find.
 
 We then propagate terms whose congruence classes may have changed to the next
-round. These are exactly the \emph{parents} of nodes that whose congruence
+round. These are exactly the \emph{parents} of nodes whose congruence
 classes have changed that round. Specifically, if the congruence class of term
 $e$ has changed, then the congruence class of $f(e)$ may have changed as well.
 This requires maintaining the parents of every congruence class; specifically a
@@ -183,10 +187,8 @@ shown in Algorithm~\ref{alg:bsp}.
 
 The algorithm is decomposed into three different functions. The function
 \textsc{Congruent} checks whether two terms are congruent based on the
-equivalence classes in the union find\footnote{\textsc{Level1} comes from the
-fact that we are only considering congruent terms with only one level of
-nesting}. Two terms are congruent if they are both the same function symbol and
-each of their subterms are pointwise congruent.
+equivalence classes in the union-find. Two terms are congruent if they have
+the same function symbol and each of their children are pointwise congruent.
 
 The \textsc{MergeCongruenceClass} function is used to merge the equivalence
 classes of different terms. Specifically, given a sequence $S$ of terms, it will
@@ -211,7 +213,7 @@ approach; we merge the left and right halves (in parallel), and then
       \State \Return $\Call{Union}{l, r}$ \Comment{Union left and right reps,
       return root} \EndFunction
 
-    \Function{ParallelClose}{$\mathit{Eq}$}
+    \Function{\parentalgo}{$\mathit{Eq}$}
         \State $\rhd$ $\mathit{Eq} = \{e_1 = e_1', \ldots, e_w = e_w'\}$
         \State $\mathit{Frontier} \gets \text{terms appearing in } \mathit{Eq}$
         \While{$\mathit{Frontier}$ is not empty}
@@ -226,29 +228,29 @@ approach; we merge the left and right halves (in parallel), and then
         \EndWhile
     \EndFunction
 \end{algorithmic}
-\caption{Round-based congruence closure algorithm}
+\caption{\parentalgo: parents-based bulk-synchronous algorithm}
 \label{alg:bsp}
 \end{algorithm}
 
-\subsection{Dirty Child Marking Algorithm}
+\subsection{Filtering-Based Algorithm (\filteralgo)}
 
 The previous algorithm, like the sequential baseline, explicitly maintains the
 parents associated with each congruence class. However, this incurs fairly
 high overhead. We now present an algorithm that accomplishes exactly this.
 
-Instead of explicitly maintaing lists, we instead maintain which nodes are
+Instead of explicitly maintaining lists, we instead maintain which nodes are
 ``dirty'' at a given round---i.e., the representative of their congruence
 class has changed since the prior round due to some merge. We then filter all
 terms to retain those whose children are marked dirty, and propagate these
 terms to the next round to be semisorted and recanonicalized. This avoids the
-cost of maintaing parent lists, but also requires scanning all nodes every
+cost of maintaining parent lists, but also requires scanning all nodes every
 round. We have found that this tradeoff is generally worthwhile on most
 workloads. It is described by the following pseudocode:
 
 \begin{algorithm}
 \begin{algorithmic}[1]
 
-    \Function{ParallelDirtyChildren}{$\mathit{Eq}$}
+    \Function{\filteralgo}{$\mathit{Eq}$}
         \State $\rhd$ $\mathit{Eq} = \{e_1 = e_1', \ldots, e_w = e_w'\}$
         \State $\mathit{Frontier} \gets \text{terms appearing in } \mathit{Eq}$
         \While{$\mathit{Frontier}$ is not empty}
@@ -264,7 +266,7 @@ workloads. It is described by the following pseudocode:
         \EndWhile
     \EndFunction
 \end{algorithmic}
-\caption{Dirty-children based algorithm}
+\caption{\filteralgo: filtering-based bulk-synchronous algorithm}
 \label{alg:dirty-children}
 \end{algorithm}
 
@@ -272,19 +274,19 @@ workloads. It is described by the following pseudocode:
 
 We have found that several implementation details significantly improve the
 performance of both algorithms. Firstly, we do not actually perform the
-semisort as implemented by \texttt{parlaylib}. Instead, we use an integer sort
+semisort as implemented by \textsc{ParlayLib}. Instead, we use an integer sort
 to group the nodes by hash and then \emph{sequentially} bucket the resulting
 array manually---this requires detecting hash collisions. This is more
-performant for small buckets; \texttt{parlaylib} buckets in parallel, which is
-advantageous for small buckets, but not the smaller ones we encounter in our
-workloads.
+performant for small buckets. \textsc{ParlayLib} buckets in parallel, which
+is advantageous for large buckets, but not the small ones we typically
+encounter in our workloads.
 
 Several implementation choices also had significant impact on the performance
 of the sequential algorithm. Firstly, we maintain different signature tables
 for terms of arities 1,2,3 and 4. Terms of greater arities fall into the
-general signature table. Heterogenous signature tables require sotring terms
+general signature table. Heterogeneous signature tables require storing terms
 of different arities (and hence size), and require dynamic allocations for
 each canonical signature placed into the table. Thus for the common case
 (terms of small arity), it is advantageous to avoid this overhead. Even for
-the hetergenous table, we use a bump allocator to reduce the number of
+the heterogeneous table, we use a bump allocator to reduce the number of
 allocations.

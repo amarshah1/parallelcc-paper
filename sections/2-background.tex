@@ -4,8 +4,8 @@
 
 \subsection{Congruence closure}
 
-\emph{Congruence} ($\equiv$) requires that two terms that that have the same
-function and pairwise-congruent children, must be congruent, i.e. $f(s_1,
+\emph{Congruence} ($\equiv$) requires that two terms with the same function
+and pairwise-congruent children must be congruent, i.e. $f(s_1,
 \ldots, s_k) \equiv f(t_1, \ldots, t_k)$ whenever $s_i \equiv t_i$ for every
 $i$. \emph{Congruence closure} refers to the problem of building the smallest
 equivalence relation that contains a given set of equalities and is closed under
@@ -58,12 +58,13 @@ are, then we know that $s \neq t$ cannot be true and thus the formula $\phi$ is
 unsatisfiable.
 
 
-Equality saturation, on the other hand, asks given a program $P$, what is the
-``best'' program $Q$ under a set of rewrite rules $E$. This can be treated as a
-congruence closure problem. We apply the rewrite rules $E$ to $P$ and apply
-congruence to get an egraph representing the set of programs equivalent to
-$P$.After congruence closure reaches saturation or times out, a cost function
-can be used to select the best program $Q$ from the equivalence class of $P$.
+Equality saturation, on the other hand, asks: given a program $P$ and a set of
+rewrite rules $R$, what is the ``best'' program equivalent to $P$ under $R$?
+This can be treated as a congruence closure problem. We repeatedly
+apply the rewrite rules $R$ to $P$, and use congruence closure to maintain the
+equivalence class of programs equivalent to $P$. After congruence closure
+reaches saturation or times out, a cost function is used to select the best
+program $Q$ from $P$'s equivalence class.
 
 
 
@@ -73,11 +74,11 @@ can be used to select the best program $Q$ from the equivalence class of $P$.
 To make the structure concrete, consider the formula which is solved by an SMT
 solver:
 %
-\begin{equation*}\label{ex:formula}
+\begin{equation}\label{ex:formula}
 \begin{aligned}
 & \;\;\;\;\;\; a_0 = b_0 \land\; a_1 = b_1 \land\;g(f(a_0), f(a_1)) \neq g(f(b_0), f(b_1))
 \end{aligned}
-\end{equation*}
+\end{equation}
 %
 
 This formula consists of two equalities $a_0 = b_0$ and $a_1 = b_1$, and a
@@ -107,7 +108,7 @@ $g$-term equality is added.
     For each round $r$ of congruence closure, we say that $\textit{width}(r)$ is
     the number of new equalities that are added in round $r$. We define the
     total width of a congruence closure problem to be $\max_{r \in
-    0\ldots\textit{depth}} \textit{width}(r)$, i.e.the maximum number of new
+    0\ldots\textit{depth}} \textit{width}(r)$, i.e.\ the maximum number of new
     equalities that can be added in a single round of congruence closure.
 \end{definition}
 
@@ -143,16 +144,16 @@ $W/S$, its \emph{parallelism}, is large compared to the available cores.
 
 
 However, congruence closure is known to be
-\textsc{P}-complete~\cite{p-complete}:
+\textsc{P}-complete~\cite{unification}:
 
 \begin{definition}
-    A problem is \textsc{P}-complete if
+    A problem is \textsc{P}-complete~\cite{p-complete} if
     
     \begin{enumerate}
         \item It can be solved in polynomial time, i.e. there is an algorithm
         that solves it in $O(n^k)$ time for some constant $k$ where $n$ is the
         size of the input, and
-        \item Every problem in \textsc{P} can be reduced to it in using a
+        \item Every problem in \textsc{P} can be reduced to it using a
         logarithmic-space reduction, i.e. for every problem $A$ in \textsc{P},
         there is a function $f$ that maps instances of $A$ to instances of the
         problem such that $f$ can be computed using only $O(\log n)$ space and
@@ -169,14 +170,14 @@ algorithm that works well on most practical examples. We discuss such an
 algorithm in the next section.
 
 
-For this paper, we assume an arbritrary forking Multi-Process Random-Access
+For this paper, we assume an arbitrary-forking Multi-Process Random-Access
 Machine (MP-RAM) model of parallelism~\cite{parallel-algos}. In this model, we have a
-number of processors sharing an unbounded memory. Each processor can perform
-sequential computations and are extended with the \textsc{fork} instruction,
-that can fork $k$ new threads.
+number of processors sharing an unbounded memory. Each processor performs
+sequential computations and is extended with a \textsc{fork} instruction
+that can spawn $k$ new threads.
 
 In practice, we will describe our algorithm using standard parallel constructs
-implemented in the Parlay-Lib library~\cite{parlaylib}, which provides a
+implemented in the \textsc{ParlayLib} library~\cite{parlaylib}, which provides a
 high-level interface for parallel programming in C++. For instance, we will use 
 a parallel for loop (\textbf{parfor}) to express the parallel processing of a set of
 independent tasks. It is easy to see how this could have been implemented using 
@@ -208,19 +209,18 @@ the values grouped by key, in $O(n)$ work and $O(\log n)$ span on average. We
 use it to gather candidate-congruent terms in each round before unioning their
 classes.
 
-\subsection{Related Work}
+% \subsection{Related Work}
 
-\subsubsection{Existing Congruence Closure Implementations}
+% \subsubsection{Existing Congruence Closure Implementations}
 
-The classical algorithm of Nelson and Oppen~\cite{nelson-oppen-cc} maintains a
-union-find over equivalence classes of subterms. A worklist holds classes that
-have just been merged. Processing a class involves walking its \emph{parent
-list}---all e-nodes that mention this class as a direct
-child---re-canonicalizing each, and merging any pair that the hashcons
-identifies as a duplicate. New merges produce new worklist entries; the loop
-runs to a fixed point. An improvement by Downey et al.~\cite{downey-sethi-tarjan} uses a
-hash-cons to detect new congruences in $O(1)$ time.
+% The classical algorithm of Nelson and Oppen~\cite{nelson-oppen-cc} maintains a
+% union-find over equivalence classes of subterms. A worklist holds classes that
+% have just been merged. Processing a class involves walking its \emph{parent
+% list}---all e-nodes that mention this class as a direct
+% child---re-canonicalizing each, and merging any pair that the hashcons
+% identifies as a duplicate. New merges produce new worklist entries; the loop
+% runs to a fixed point. An improvement by Downey et al.~\cite{downey-sethi-tarjan} uses a
+% hash-cons to detect new congruences in $O(1)$ time.
 
-\subsubsection{Parallelized SMT solvers}
+% \subsubsection{Parallelized SMT solvers}
 
-    

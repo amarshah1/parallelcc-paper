@@ -23,7 +23,7 @@ performance of our algorithm. Finally, in \autoref{sec:eval:circuit}, we discuss
 a set of benchmarks on a set of circuit equivalence
 benchmarks~\cite{clausal-cc}.
 
-All experiments were run on an 96-core Amazon Web Service \texttt{c8i-metal}
+All experiments were run on a 96-core Amazon Web Service \texttt{c8i-metal}
 instance with Intel(R) Xeon(R) 6975P-C (3.9 GHz) and 384 GB memory. Each core is
 2-way hyperthreaded, giving 192 hyperthreads. The machine runs Ubuntu 22.04.1
 LTS, and the code was compiled using g++11 with -O3.
@@ -52,15 +52,17 @@ geometric mean of the runtime across the 5 timed runs.
 \end{figure*}
 
 
-Our first set of benchmarks are randomly generated based on several parameters.
-We first define a set of function symbols $F$, which has $n_{fns}$ total
-functions. Then we have a set of terms $T$ which has $n_{leaves}$ leaves and
-$n_{compound}$ total compound terms. The \emph{depth} $d$ denotes the depth of
-the terms, or how many nested function applications can appear. We initially
-start with the equalities $E = \ldots$ \todo{fill} We stratify our workloads
-into different size classes, which are shown in Table~\ref{tab:workloads}.
-
-\as{Zak can you check that the above is right}
+Our first set of benchmarks are randomly generated based on several
+parameters. We first define a set of function symbols $F$, which has
+$n_{\text{fns}}$ total functions. Then we have a set of terms $T$ that
+contains $n_{\text{leaves}}$ \texttt{x}-leaves and $n_{\text{leaves}}$
+\texttt{y}-leaves, plus $n_{\text{compound}}$ compound terms of \emph{depth}
+$d$ (i.e.\ with $d$ nested function applications). We initially start with
+the equalities $E = \{x_{i_1} = y_{i_1}, \ldots, x_{i_{n_{\text{merges}}}} =
+y_{i_{n_{\text{merges}}}}\}$, i.e.\ $n_{\text{merges}}$ random equalities
+where each pair contains one \texttt{x}-leaf and one \texttt{y}-leaf. We
+stratify our workloads into different size classes, which are shown in
+\autoref{tab:workloads}.
 
 
 % Our first set of benchmarks is parameterized by several parameters. $l$
@@ -101,31 +103,32 @@ into different size classes, which are shown in Table~\ref{tab:workloads}.
     \texttt{32xl} &  3\,200\,000 & 64\,000\,000 & 6\,400\,000 & 3 & 16 \\
     \bottomrule
   \end{tabular}
-  \caption{Synthetic workload parameters. We have 16 function symbols and each
-  function appliction has arity $2$. Each workload is a layered random
-  binary-tree DAG with $n_{\text{leaves}}$ \texttt{x}-leaves plus
-  $n_{\text{leaves}}$ \texttt{y}-leaves at the base, $n_{\text{nodes}}$ function
-  nodes distributed across \emph{depth} levels with $n_{\text{fns}}$
-  uniformly-chosen operators per level, and $n_{\text{merges}}$ random
-  initial-union pairs (half \texttt{x}-\texttt{x}, half \texttt{y}-\texttt{y}).
-  All workloads use a fixed merge-density ratio $n_{\text{merges}} /
-  n_{\text{leaves}} = 2$ and a constant scaling $n_{\text{nodes}} /
-  n_{\text{leaves}} = 20$.}
+  \caption{Synthetic workload parameters. We have $n_{\text{fns}}$ function
+  symbols, each of arity $2$. Each workload is a random binary-tree DAG
+  with $n_{\text{leaves}}$ \texttt{x}-leaves plus $n_{\text{leaves}}$
+  \texttt{y}-leaves at the base, $n_{\text{compound}}$ compound terms of
+  depth $d$ built from uniformly-chosen function symbols, and
+  $n_{\text{merges}}$ random initial equalities, each pairing one
+  \texttt{x}-leaf with one \texttt{y}-leaf.
+  % All workloads use a fixed merge-density ratio $n_{\text{merges}} /
+  % n_{\text{leaves}} = 2$ and a constant scaling $n_{\text{compound}} /
+  % n_{\text{leaves}} = 20$.
+  }
   \label{tab:workloads}
 \end{table}
 
 
 % \as{add analysis here}
 
-\autoref{fig:random:loglog} shows the runtime of our parallel congruence closure
-We observe that on workloads with more nodes, our algorithm achieves a close to
-linear speedup over the sequential version. This plateaus between 32 and 64
-threads, for instance, on 32-XL \filteralgo (and respectively \parentalgo)
-achieve a speedup over sequential of $36.8\times$ (23.4$\times$) on 32 threads,
-51.9$\times$ ($31.9\times$) on 64 threads, and only $76.1\times$ ($50.0\times$)
-on 192 threads.
+\autoref{fig:random} shows the speedup of our parallel algorithms over the
+sequential baseline. We observe that on workloads with more nodes, our
+algorithms achieve close to linear speedup, plateauing between 32 and 64
+threads. For instance, on \texttt{32xl}, \filteralgo (resp.\ \parentalgo)
+achieves a speedup over sequential of $36.8\times$ ($23.4\times$) on 32
+threads, $51.9\times$ ($31.9\times$) on 64 threads, and $76.1\times$
+($50.0\times$) on 192 threads.
 
-While both \parentalgo and \filteralgo achieve similar parallization on larger
+While both \parentalgo and \filteralgo achieve similar parallelization on larger
 workloads, \filteralgo starts from a much better baseline. This is because
 \parentalgo must maintain the parent lists for each term, which is expensive as
 it requires frequent allocations. Additionally, while the sequential algorithm
@@ -336,13 +339,13 @@ Figure~\ref{fig:gates_vs_min_dirty_fraction} explains this spread by plotting
 the speedup of \filteralgo against the \emph{minimum per-round dirty term
 fraction}: for each round $r$ of the algorithm we record
 $\mathrm{dirty}[r]/\mathrm{live}[r]$, where $\mathrm{dirty}[r]$ is the number of
-e-nodes the round marks as needing re-canonicalization and $\mathrm{live}[r]$ is
+terms the round marks as needing re-canonicalization and $\mathrm{live}[r]$ is
 the number of equivalence classes still alive after the preceding round's
 unions; we then take the minimum over all rounds the closure executes. A small
 minimum is bad for \filteralgo because every round, regardless of how few terms
 are actually dirty, pays the full $O(\mathrm{live})$ cost of scanning all live
-e-nodes to filter out the dirty ones — so a workload with even one near-empty
-round wastes work proportional to the entire e-graph for very few useful unions.
+terms to filter out the dirty ones --- so a workload with even one near-empty
+round wastes work proportional to the entire term set for very few useful unions.
 % The figure shows a strong positive correlation (Spearman $\rho{\approx}{+}0.79$)
 % between the minimum dirty fraction and the per-file speedup, and exactly the
 % files with very low minimum fractions — \texttt{6s104-ands/xits-opt},
