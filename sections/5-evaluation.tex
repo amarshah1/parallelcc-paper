@@ -25,8 +25,8 @@ benchmarks~\cite{clausal-cc}.
 
 All experiments were run on a 96-core Amazon Web Service \texttt{c8i-metal}
 instance with Intel(R) Xeon(R) 6975P-C (3.9 GHz) and 384 GB memory. Each core is
-2-way hyperthreaded, giving 192 hyperthreads. The machine runs Ubuntu 22.04.1
-LTS, and the code was compiled using g++11 with -O3.
+2-way hyperthreaded, giving 192 hyperthreads. The machine runs Ubuntu 26.04
+LTS, and the code was compiled using g++15.2.0 with -O3.
 
 For each benchmark, we perform 1 warmup run and 5 timed runs, and we report the
 geometric mean of the runtime across the 5 timed runs.
