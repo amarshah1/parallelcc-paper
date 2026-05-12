@@ -60,7 +60,8 @@ contains $n_{\text{leaves}}$ \texttt{x}-leaves and $n_{\text{leaves}}$
 $d$ (i.e.\ with $d$ nested function applications). We initially start with
 the equalities $E = \{x_{i_1} = y_{i_1}, \ldots, x_{i_{n_{\text{merges}}}} =
 y_{i_{n_{\text{merges}}}}\}$, i.e.\ $n_{\text{merges}}$ random equalities
-where each pair contains one \texttt{x}-leaf and one \texttt{y}-leaf. We
+where each pair contains one \texttt{x}-leaf and one \texttt{y}-leaf.
+Essentially, this setup divides the set of leaves into two We
 stratify our workloads into different size classes, which are shown in
 \autoref{tab:workloads}.
 
@@ -138,7 +139,10 @@ must maintain parent lists as well, it is able to avoid duplicates.
 Note that on sufficiently large workloads, we can achieve superlinear speedups.
 We believe that this is because the \filteralgo has less datastructures to
 maintain and thus on the larger workloads, the sequential version suffers more
-from cache misses and other overhead.
+from cache misses and other overhead. In particular, maintaining parent lists
+within the sequential algorithm (and the parent-based parallel algorithm)
+has relatively poor spatial locality, as the children of a node may be scattered
+far away from the parent in memory.
 
 % While varying the number of nodes, leads to better speedups, the results for
 % varying the depth is more complicated. For instance, while \texttt{deep-s} and
