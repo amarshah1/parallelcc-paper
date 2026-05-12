@@ -2,7 +2,7 @@
 \label{sec:background}
 
 
-\subsection{Congruence closure}
+\subsection{Congruence Closure}
 
 \emph{Congruence} ($\equiv$) requires that two terms with the same function
 and pairwise-congruent children must be congruent, i.e. $f(s_1,
@@ -20,12 +20,12 @@ while maintaining congruence.
 \begin{definition}[Terms]
     We define $T$ to be a set of \emph{terms} over function symbols $F$, where
     each $t\in T$ is either a \emph{leaf term}, for example $x, y, z$ or a
-    \emph{compound term} of the form $f(t_1, \ldots, t_k)$ where $f\in F$
-    $\text{arity}(f) = k$ and $t_1, \ldots, t_k \in T$.
+    \emph{compound term} of the form $f(t_1, \ldots, t_k)$, where $f \in F$
+    with $\text{arity}(f) = k$ and $t_1, \ldots, t_k \in T$.
 \end{definition}
 
-We say that term $x$ is the \emph{child} of $f(x)$ and conversely $f(x)$ is the
-\emph{parent} of $x$.
+For a compound term $f(x)$, we say that $x$ is a \emph{child} of $f(x)$,
+and conversely that $f(x)$ is a \emph{parent} of $x$.
 
 \begin{definition}[Congruence Closure]
     Given $(F, T, E)$ where $F$ is a list of function symbols, $T$ is a set of
@@ -71,8 +71,8 @@ program $Q$ from $P$'s equivalence class.
 \subsection{Motivating Example}
 \label{sec:bg:motivating}
 
-To make the structure concrete, consider the formula which is solved by an SMT
-solver:
+To make the structure concrete, consider the following formula given to an
+SMT solver:
 %
 \begin{equation}\label{ex:formula}
 \begin{aligned}
@@ -98,23 +98,22 @@ union-find, then the two $f$-term equalities are added, and finally the
 $g$-term equality is added.
 
 \begin{definition}[Congruence Depth]
-    We say that two terms are $k$-step congruent if they are congruent after $k$
-    rounds of congruence closure. We say that the \emph{congruence depth} of a
-    formula is the smallest $k$ such that every pair of congruent terms in the
-    formula is $k$-step congruent.
+    We say that two terms are $k$-step congruent if they are congruent after
+    $k$ rounds of congruence closure. The \emph{congruence depth} $D$ of a
+    formula is the smallest $k$ such that every pair of congruent terms in
+    the formula is $k$-step congruent.
 \end{definition}
 
 \begin{definition}[Congruence Width]
-    For each round $r$ of congruence closure, we say that $\textit{width}(r)$ is
-    the number of new equalities that are added in round $r$. We define the
-    total width of a congruence closure problem to be $\max_{r \in
-    0\ldots\textit{depth}} \textit{width}(r)$, i.e.\ the maximum number of new
-    equalities that can be added in a single round of congruence closure.
+    For each round $r$ of congruence closure, let $\textit{width}(r)$ denote
+    the number of new equalities added in round $r$. The \emph{congruence
+    width} of a problem is $\max_{r \in 0 \ldots D} \textit{width}(r)$, i.e.\
+    the maximum number of new equalities added in a single round.
 \end{definition}
 
 In general, if we have a large number of terms that become congruent in a single
 round, we can add all of these terms to the union-find concurrently. This
-motivates our parallel algorithm for congruence closure, which processes each
+motivates our parallel algorithms for congruence closure, which process each
 round of congruence closure in parallel.
 
 
@@ -125,16 +124,16 @@ round of congruence closure in parallel.
 % four equalities between the $f$-terms are directly implied by these. Hence,
 % they can be added concurrently in the next round. Finally, once these are
 % added, the two $g$-terms are equal and can be added. Using our parallel
-% algorithm (described in \autoref{sec:alg}), we can finish congruence closure
+% algorithm (described in \autoref{sec:algorithm}), we can finish congruence closure
 % in three rounds of size $2, 4, 1$ respectively. This is opposed to the
 % sequential algorithm, which would process $7$ merges one at a time. We make
-% these intuitions precise in Section~\ref{sec:alg}.
+% these intuitions precise in Section~\ref{sec:algorithm}.
 
 
-\subsection{Parallel algorithms}
+\subsection{Parallel Algorithms}
 \label{sec:bg:parallel}
 
-We describe our algorithm in the standard \emph{work--span} model of
+We describe our algorithms in the standard \emph{work--span} model of
 shared-memory parallelism~\cite{parallel-algos}. The \emph{work} $W$ of a
 computation is the total number of operations it performs; the \emph{span} (or
 depth) $S$ is the length of its longest sequential dependency chain. A famous
@@ -146,7 +145,7 @@ $W/S$, its \emph{parallelism}, is large compared to the available cores.
 However, congruence closure is known to be
 \textsc{P}-complete~\cite{unification}:
 
-\begin{definition}
+\begin{definition}[P-completeness]
     A problem is \textsc{P}-complete~\cite{p-complete} if
     
     \begin{enumerate}
@@ -163,7 +162,7 @@ However, congruence closure is known to be
 \end{definition}
 
 
-\textsc{P}-complete problems are widely believed to not be solvable in
+\textsc{P}-complete problems are widely believed not to be solvable in
 poly-logarithmic span and polynomial work, so they are not efficiently
 parallelizable. However, this does not preclude the existence of a parallel
 algorithm that works well on most practical examples. We discuss such an
@@ -176,7 +175,7 @@ number of processors sharing an unbounded memory. Each processor performs
 sequential computations and is extended with a \textsc{fork} instruction
 that can spawn $k$ new threads.
 
-In practice, we will describe our algorithm using standard parallel constructs
+In practice, we will describe our algorithms using standard parallel constructs
 implemented in the \textsc{ParlayLib} library~\cite{parlaylib}, which provides a
 high-level interface for parallel programming in C++. For instance, we will use 
 a parallel for loop (\textbf{parfor}) to express the parallel processing of a set of
@@ -194,15 +193,15 @@ Concurrent updates to shared state are mediated by atomic primitives. We rely on
 \emph{compare-and-swap} (\texttt{CAS}): $\Call{CAS}{addr, old, new}$ atomically
 writes $new$ to $addr$ if its current value is $old$, and returns whether it
 succeeded. \texttt{CAS} is the building block for the lock-free union-find we
-use in Section~\ref{subsec:uf}. When there is contention (two threads trying to 
-update the same location simultaneously), it shows up as a failed \texttt{CAS}
-that is retried against the new value, never as blocking.
+use in \autoref{subsec:uf}. Contention, where two threads attempt to update the same location
+simultaneously, manifests as a failed \texttt{CAS} that is retried against
+the new value, never as blocking.
 
-Finally, our algorithm is structured as a sequence of \emph{bulk-synchronous}
+Finally, our algorithms are structured as a sequence of \emph{bulk-synchronous}
 rounds~\cite{valiant-bsp}: each round performs a large parallel computation, all
 threads synchronize at a barrier, and the next round consumes the results. This
 structure makes per-round work and span easy to reason about and matches how new
-congruences are discovered in waves (Section~\ref{sec:bg:motivating}). The key
+congruences are discovered in waves (\autoref{sec:bg:motivating}). The key
 per-round primitive we use is \texttt{group\_by}, also called
 \emph{semisort}~\cite{semisort}: given an array of (key, value) pairs it returns
 the values grouped by key, in $O(n)$ work and $O(\log n)$ span on average. We

@@ -123,26 +123,26 @@ None.
 
 - [x] **#80** Standardized on "data structure" (two words); fixed both §2 occurrences. §4 occurrence will be handled with #121
 - [x] **#81** Named the definition `[Terms]`
-- [ ] **#82** [L23-24] In the Definition of terms: missing "with" before "$\text{arity}(f) = k$" — currently reads "$f(t_1, \ldots, t_k)$ where $f\in F$ $\text{arity}(f) = k$" (run-on)
-- [ ] **#83** [L27-28] Re-defines "child"/"parent" relationship but only does so for single-arg case: "term $x$ is the child of $f(x)$". For $k$-ary terms each $t_i$ is a child. Generalize
-- [ ] **#84** [L74] "consider the formula **which** is solved by an SMT solver" — restrictive clause needs "that" (or just drop the clause; the example doesn't have to be "the formula that is solved by an SMT solver")
-- [ ] **#85** [L100-105] Definition of Congruence Depth uses both `$k$-step congruent` (line 101) and `congruent after $k$ rounds` interchangeably; pick one
-- [ ] **#86** [L107-112] Congruence Width definition: `\textit{width}(r)` and `width(r)` are typeset differently; also the index uses `\textit{depth}` which is not the variable defined in the previous definition (that's just "congruence depth" the concept, not the symbol $k$). Use $k_{\max}$ or similar
-- [ ] **#87** [L132] (commented section) Section reference `\ref{sec:alg}` doesn't exist (now `sec:algorithm`)
-- [ ] **#88** [L134] `\subsection{Parallel algorithms}` — title case inconsistent ("algorithms" should be capitalized)
-- [ ] **#89** [L137] "We describe our algorithm" (singular) but elsewhere we have two algorithms; use plural
-- [ ] **#90** [L149] `\begin{definition}` for P-complete has no name in the title; could add `[P-completeness]` for navigation
-- [ ] **#91** [L165] "\textsc{P}-complete problems are widely believed to **not be** solvable" — split infinitive that reads awkwardly; "are widely believed not to be solvable" reads better
-- [ ] **#92** [L174] "(MP-RAM) model of parallelism" — MP-RAM acronym never expanded earlier; introduce on first use
-- [ ] **#93** [L197] "(two threads trying to update the same location simultaneously)" — parenthetical hangs awkwardly mid-sentence
-- [ ] **#94** [L205] `Section~\ref{sec:bg:motivating}` is mixed style — paper otherwise uses `\autoref`. Standardize
+- [x] **#82** Added "with" between "$f \in F$" and "$\text{arity}(f) = k$"; added comma after the form
+- [x] **#83** Kept $f(x)$ notation per user; switched articles to indefinite ("a child"/"a parent") and added "compound term" framing
+- [x] **#84** Reworded to "consider the following formula given to an SMT solver"
+- [x] **#85** Re-read; the definition introduces "$k$-step congruent" as shorthand for "congruent after $k$ rounds", then uses the shorthand. Fine as-is
+- [x] **#86** Introduced symbol `D` for congruence depth in the prior definition; reused it as the summation upper bound in the width definition. Tightened wording.
+- [x] **#87** Renamed `sec:alg` → `sec:algorithm` in commented blocks
+- [x] **#88** Capitalized "Algorithms"; also fixed "Congruence closure" → "Congruence Closure" in §2.1 for the same reason
+- [x] **#89** Pluralized all four "our algorithm" references in §2 (L116, L136, L178, L200)
+- [x] **#90** Named the definition `[P-completeness]`
+- [x] **#91** Fixed split infinitive: "to not be" → "not to be"
+- [x] **#92** False alarm — acronym IS expanded on first use ("Multi-Process Random-Access Machine (MP-RAM)")
+- [x] **#93** Lifted the parenthetical into a comma-bracketed clause; "manifests" replaces "shows up"
+- [x] **#94** Standardized to `\autoref` in §2 (two occurrences); §4's `Figure~\ref` will be handled as #130
 
 ### Round 2 — sections/3-algorithm.tex
 
-- [ ] **#95** [L20] "fixed **a-priori**" — should be `a priori` (two words, italic by convention but inline is fine) or simply "initially"
-- [ ] **#96** [L26-27] "seeded with all non-leaf terms (i.e. function applications)" — but later (L52-56) the pseudocode seeds with non-leaf terms via reverse-topo order. Match the prose to the pseudocode (the pseudocode does NOT skip leaves explicitly)
-- [ ] **#97** [L81-82] "the most efficient. The other sequential algorithms we tested are included below." — "included below" but the subsection that follows is `\subsubsection{Other Sequential Algorithm}` (singular). And the section actually describes two: top-sort and DST. Plural fix needed
-- [ ] **#98** [L84] `\subsubsection{Other Sequential Algorithm}` — singular, but section describes two algorithms
+- [x] **#95** Reworded to drop "a-priori"; also corrected the inaccurate claim that the union-find "maintains" the input equalities (it has to add them via Union)
+- [x] **#96** Updated pseudocode to "Insert all non-leaf terms" so it matches the prose
+- [x] **#97** Resolved: prose was already plural; the singular heading was the issue (fixed by #98)
+- [x] **#98** Pluralized heading: "Other Sequential Algorithm" → "Other Sequential Algorithms"
 - [ ] **#99** [L144] "If one rank is strictly greater **then** the other" — "then" → "than"
 - [ ] **#100** [L160-164] §3.4 (Parallel Semisort) is a one-paragraph subsection. Either expand with a bit more detail (e.g., complexity, why semisort vs full sort), or merge into §3.5
 - [ ] **#101** [L170] "Intially" → "Initially"

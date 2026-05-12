@@ -16,8 +16,9 @@ representative of term $e$ (if any), and $\textsc{Enter}(e)$, which enters term
 $e$ into the signature table.
 
 We also maintain a union-find data structure that maintains the congruence
-classes of every term. Initially, the union-find maintains only the equalities
-fixed a-priori.
+classes of every term. The algorithm begins by issuing a \textsc{Union} for
+each input equality, so that the initial union-find reflects exactly those
+equalities.
 
 Finally, we maintain the \emph{parents} of every equivalence class: the set
 of terms that are parents of at least one member of the equivalence class.
@@ -57,7 +58,7 @@ are not already present. This is implemented in \autoref{alg:seq}.
       \EndFor
       \State Let $\mathit{sig\_table}$ be a signature table
       \State Let $\mathit{worklist}$ be a FIFO worklist of nodes
-      \State Insert all nodes to $\mathit{worklist}$ in reverse-topological order
+      \State Insert all non-leaf terms into $\mathit{worklist}$ in reverse-topological order
       \While{$\mathit{Worklist}$ is not empty}
         \State Pop node $e$ from \textit{Worklist}
         \If{$\mathit{sig\_table}$ contains $e$}
@@ -81,7 +82,7 @@ are not already present. This is implemented in \autoref{alg:seq}.
 We tested a number of other sequential algorithms and found this one to be the
 most efficient. The other sequential algorithms we tested are included below.
 
-\subsubsection{Other Sequential Algorithm} One approach is to topologically sort the
+\subsubsection{Other Sequential Algorithms} One approach is to topologically sort the
 terms, i.e. sort them in an order where each child must come before its parents.
 Then you can add each term to a signature table one at a time. If a term is
 already equal to a term in the signature table, you can union their equivalence
@@ -141,7 +142,7 @@ of $u$ and $v$. It first computes the roots and ranks of $u$ and $v$ via
 \textsc{Find}. It then checks whether the representatives are equal; if so, $u$
 and $v$ are already part of the same equivalence class and it returns
 immediately. Otherwise, it compares the ranks of $u$ and $v$. If one rank is
-strictly greater then the other, then the algorithm attempts to set the parent
+strictly greater than the other, then the algorithm attempts to set the parent
 of the lower-rank node to the greater-rank node with a \texttt{CAS}. This may
 fail if the parent of the lower-rank node has been updated in the meantime, in
 which case the operation retries.
