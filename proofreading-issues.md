@@ -149,11 +149,11 @@ None.
 - [x] **#102** Merged the duplicate `\autoref{alg:bsp}` references into one
 - [x] **#103** Fixed subject/verb: "each ... is congruent" (also dropped "pointwise" per user)
 - [x] **#104** Added the same initial-union ParFor block to `\filteralgo` so both algorithms match
-- [ ] **#105** [L229-233] In `\parentalgo` pseudocode, the parent-list propagation step constructs `\mathit{classes}` via `\Call{GroupByKey}{...}` but the meaning of `\Call{GroupByKey}` isn't defined anywhere (§3.4 defines `GroupBy` from semisort but not `GroupByKey`)
-- [ ] **#106** [L245] "We now present an algorithm that accomplishes **exactly this**." — "this" refers to maintaining parent lists, but the next sentence says the new algorithm *avoids* maintaining them. So "this" should be "the same goal" or "the same task"
+- [x] **#105** Defined both `GroupBy` (equivalence-relation form) and `GroupByKey` (key-value form) in §3.4
+- [x] **#106** Reworded: "achieves the same effect without keeping these parent lists"
 - [ ] **#107** [L264] `\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < n]` — what is $n$? Never defined in the pseudocode scope
 - [ ] **#108** [L292] "for terms of arities **1,2,3 and 4**" — missing space after comma
-- [ ] **#109** [L245-246] "However, this incurs fairly high overhead." — vague qualifier ("fairly"). Replace with a measurable comparison or drop the hedge
+- [x] **#109** Replaced "fairly high overhead" with the concrete reason: "expensive due to frequent allocations"
 
 ### Round 2 — sections/4-evaluation.tex
 

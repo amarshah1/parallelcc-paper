@@ -164,8 +164,11 @@ Blelloch~\cite{semisort}: given an array of (hash, term) pairs, semisort
 permutes the array so that all pairs sharing the same hash are adjacent,
 without imposing a total order across distinct hashes. This relaxation lets
 semisort run in $O(n)$ work and $O(\log n)$ span on average, strictly
-better than a comparison sort. We use it to
-gather congruence classes at each round.
+better than a comparison sort. We use it to gather congruence classes at
+each round. In our pseudocode we expose two views of this primitive:
+$\Call{GroupBy}{\sim, A}$ partitions $A$ into equivalence classes under a
+relation $\sim$, while $\Call{GroupByKey}{P}$ takes a sequence of
+(key, value) pairs and groups the values by key.
 
 \subsection{Rounds-Based Congruence Closure}
 \label{subsec:rounds}
@@ -242,9 +245,10 @@ approach; we merge the left and right halves (in parallel), and then
 
 \subsection{Filtering-Based Algorithm (\filteralgo)}
 
-The previous algorithm, like the sequential baseline, explicitly maintains the
-parents associated with each congruence class. However, this incurs fairly
-high overhead. We now present an algorithm that accomplishes exactly this.
+The previous algorithm, like the sequential baseline, explicitly maintains
+the parents associated with each congruence class, which is expensive due
+to frequent allocations. We now present an algorithm that achieves the same
+effect without keeping these parent lists.
 
 Instead of explicitly maintaining lists, we instead maintain which nodes are
 ``dirty'' at a given round---i.e., the representative of their congruence
