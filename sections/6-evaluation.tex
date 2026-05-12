@@ -1,39 +1,3 @@
-\begin{figure*}[!tb]
-  \centering
-  \begin{subfigure}[t]{0.48\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{figs/random_async_speedup_vs_nelson.png}
-    \caption{Runtime vs. thread count (log-log).}
-    \label{fig:cube:loglog}
-  \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.48\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{figs/random_par_close_speedup_vs_nelson.png}
-    \caption{Per-round merge counts.}
-    \label{fig:cube:rounds}
-  \end{subfigure}
-  \caption{Random benchmarks speedup using the parents list and dirty term algorithms.}
-  \label{fig:cube}
-\end{figure*}
-
-\begin{figure*}[!tb]
-  \centering
-  \begin{subfigure}[t]{0.48\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{figs/cube_decomp_async_speedup_vs_nelson.png}
-    \caption{Runtime vs. thread count (log-log).}
-    \label{fig:cube:loglog}
-  \end{subfigure}\hfill
-  \begin{subfigure}[t]{0.48\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{figs/cube_decomp_par_close_speedup_vs_nelson.png}
-    \caption{Per-round merge counts.}
-    \label{fig:cube:rounds}
-  \end{subfigure}
-  \caption{Synthetic benchmarks speedup using the parents list and dirty term algorithms.}
-  \label{fig:cube}
-\end{figure*}
-
 \section{Evaluation}
 \label{sec:eval}
 
@@ -41,9 +5,9 @@ In this section, we evaluate our parallel congruence closure algorithm on a
 number of benchmarks in order to answer the following research questions:
 
 \begin{itemize}
-  \item \textbf{RQ1:} Do our two parallel congruence closure algorithms achieve a
-  meaningful speedup over a sequential implementation and how does this speedup
-  scale with the number of threads?
+  \item \textbf{RQ1:} Do our two parallel congruence closure algorithms achieve
+  a meaningful speedup over a sequential implementation and how does this
+  speedup scale with the number of threads?
   \item \textbf{RQ2:} What characterizes the type of benchmark that our parallel
   congruence closure algorithms perform well on?
   \item \textbf{RQ3:} How do our parallel congruence closure algorithms perform
@@ -55,17 +19,19 @@ selection of benchmarks on various workloads. In \autoref{sec:eval:random}, we
 discuss a randomly generated benchmark suite. In \autoref{sec:eval:synthetic},
 we discuss a synthetic benchmark suite that allows us to dial up the depth and
 width of the benchmark to better understand how these parameters affect the
-performance of our algorithm. Finally, in \autoref{sec:eval:egg}, we discuss a
-set of benchmarks on a set of circuit equivalence benchmarks~\cite{clausal-cc}.
+performance of our algorithm. Finally, in \autoref{sec:eval:circuit}, we discuss
+a set of benchmarks on a set of circuit equivalence
+benchmarks~\cite{clausal-cc}.
 
 \as{we need to add info about the AWS hardware}
 
-% All experiments were performed on the Bridges-2 supercomputer on nodes with 128
-% cores and 256 GB RAM~\cite{bridges}. The node consisted of NVMe SSD (3.84TB);
-% Mellanox ConnectX-6 HDR Infiniband 200Gb/s Adapter; and two AMD EPYC 7742 CPUS (
-% each with 64 cores, 2.25-3.40GHz, 256MB L3, and 8 memory channels). We linked
-% with \texttt{jemalloc}~\cite{jemalloc} and used \texttt{numactl --interleave all} to spread
-% pages evenly across sockets in a round-robin manner.
+% All experiments were performed on the Bridges-2 supercomputer on nodes with
+% 128 cores and 256 GB RAM~\cite{bridges}. The node consisted of NVMe SSD
+% (3.84TB); Mellanox ConnectX-6 HDR Infiniband 200Gb/s Adapter; and two AMD EPYC
+% 7742 CPUS ( each with 64 cores, 2.25-3.40GHz, 256MB L3, and 8 memory
+% channels). We linked with \texttt{jemalloc}~\cite{jemalloc} and used
+% \texttt{numactl --interleave all} to spread pages evenly across sockets in a
+% round-robin manner.
 
 For each run, we perform 1 warmup run and 5 timed runs, and we report the
 geometric mean of the runtime across the 5 timed runs.
@@ -73,19 +39,58 @@ geometric mean of the runtime across the 5 timed runs.
 
 \subsection{Random Benchmarks}~\label{sec:eval:random}
 
-Our first set of benchmarks is parameterized by several parameters.
-We stratify our workloads into
-different size classes, which are shown in Table~\ref{tab:workloads}.
+\begin{figure*}[!tb]
+  \centering  \begin{subfigure}[t]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figs/random_par_close_speedup_vs_nelson.png}
+    \caption{Speedup of \parentalgo compared to sequential baseline.}
+    \label{fig:random:parents}
+  \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figs/random_async_speedup_vs_nelson.png}
+    \caption{Speedup of \filteralgo compared to sequential baseline.}
+    \label{fig:random:filter}
+  \end{subfigure}
+  \caption{Random benchmarks speedup using \parentalgo and \filteralgo.}
+  \label{fig:ranedom}
+\end{figure*}
 
-\as{I think we should only report the deep versions of these benchmarks.
-I update the table to rename things}
+
+Our first set of benchmarks are randomly generated based on several parameters.
+We first define a set of function symbols $F$, which has $n_{fns}$ total
+functions. Then we have a set of terms $T$ which has $n_{leaves}$ leaves and
+$n_{compound}$ total compound terms. The \emph{depth} $d$ denotes the depth of
+the terms, or how many nested function applications can appear. We initially
+start with the equalities $E = \ldots$ \todo{fill} We stratify our workloads
+into different size classes, which are shown in Table~\ref{tab:workloads}.
+
+\as{Zak can you check that the above is right}
+
+
+% Our first set of benchmarks is parameterized by several parameters. $l$
+% denotes the number of leaves---i.e. the ``variables'' that appear within
+% terms. $w$ denotes the \emph{width} of the benchmark: how many equalities are
+% initially given before computing their congruence closure. The parameter $n$
+% denotes the total number of \emph{nodes}, which are non-leaf terms (e.g.
+% function applications). The \emph{depth} $d$ denotes the depth of the terms,
+% or how many nested function applications appear in the term. For example, the
+% term $f(g(h(x)))$ has depth 2, and the term $x$ (a single variable) has depth
+% 0. The parameter $f$ denotes the number of function symbols. Finally, the
+% parameter $p$ denotes the number of software threads.
+
+
+
+
+\as{I think we should only report the deep versions of these benchmarks. I
+update the table to rename things}
 
 \begin{table}[t]
   \centering
   \begin{tabular}{l r r r r r}
     \toprule
-    workload & $n_{\text{leaves}}$ & $n_{\text{nodes}}$ & $n_{\text{merges}}$ &
-    depth & $n_{\text{fns}}$ \\
+    workload & $n_{\text{leaves}}$ & $n_{\text{compound}}$ & $n_{\text{merges}}$
+    & depth & $n_{\text{fns}}$ \\
     \midrule
     % \texttt{small}   &      1\,000 &     10\,000 &      2\,000 & 1 &  4 \\
     \texttt{small}  &      1\,000 &     10\,000 &      2\,000 & 3 &  4 \\
@@ -102,170 +107,202 @@ I update the table to rename things}
     \bottomrule
   \end{tabular}
   \caption{Synthetic workload parameters. We have 16 function symbols and each
-  function appliction has arity $2$.
-  Each workload is a layered random binary-tree DAG with $n_{\text{leaves}}$
-  \texttt{x}-leaves plus $n_{\text{leaves}}$ \texttt{y}-leaves at the base,
-  $n_{\text{nodes}}$ function nodes distributed across \emph{depth} levels with
-  $n_{\text{fns}}$ uniformly-chosen operators per level, and $n_{\text{merges}}$
-  random initial-union pairs (half \texttt{x}-\texttt{x}, half
-  \texttt{y}-\texttt{y}). All workloads use a fixed merge-density ratio
-  $n_{\text{merges}} / n_{\text{leaves}} = 2$ and a constant scaling
-  $n_{\text{nodes}} / n_{\text{leaves}} = 20$.}
+  function appliction has arity $2$. Each workload is a layered random
+  binary-tree DAG with $n_{\text{leaves}}$ \texttt{x}-leaves plus
+  $n_{\text{leaves}}$ \texttt{y}-leaves at the base, $n_{\text{nodes}}$ function
+  nodes distributed across \emph{depth} levels with $n_{\text{fns}}$
+  uniformly-chosen operators per level, and $n_{\text{merges}}$ random
+  initial-union pairs (half \texttt{x}-\texttt{x}, half \texttt{y}-\texttt{y}).
+  All workloads use a fixed merge-density ratio $n_{\text{merges}} /
+  n_{\text{leaves}} = 2$ and a constant scaling $n_{\text{nodes}} /
+  n_{\text{leaves}} = 20$.}
   \label{tab:workloads}
 \end{table}
 
 
-\autoref{fig:random:loglog} shows the runtime of our parallel congruence closure
-We observe that on workloads with more nodes, our algorithm achieves a close to
-linear speedup over the sequential version. This plateaus at around 64 threads,
-for instance, 32-XL achieves a speedup of 67.9$\times$ on 64 threads and 79.6$\times$ on 128
-threads. Note that on sufficiently large workloads, we can achieve superlinear 
-speedups. We believe that this is because the bulk synchronous design is better 
-equiped for these very large workloads, and thus the parallel implementation is 
-faster than the sequential implementation, even when we only have $1$ core.
+\as{add analysis here}
 
-While varying the number of nodes, leads to better speedups, the results for
-varying the depth is more complicated. For instance, while \texttt{deep-s} and
-\texttt{deep-l} achieve greater speedups than their less deep counterparts,
-\texttt{deep-m} achieves a smaller speedup than \texttt{medium}. This is likely
-because the depth of the benchmark affects the number of rounds of congruence
-closure. Our algorithm only parallelizes over the merges within a round, but not
-over the total number of rounds. We evaluate this further in
-\autoref{sec:eval:synthetic}.
+% \autoref{fig:random:loglog} shows the runtime of our parallel congruence
+% closure We observe that on workloads with more nodes, our algorithm achieves a
+% close to linear speedup over the sequential version. This plateaus at around
+% 64 threads, for instance, 32-XL achieves a speedup of 67.9$\times$ on 64
+% threads and 79.6$\times$ on 128 threads. Note that on sufficiently large
+% workloads, we can achieve superlinear speedups. We believe that this is
+% because the bulk synchronous design is better equiped for these very large
+% workloads, and thus the parallel implementation is faster than the sequential
+% implementation, even when we only have $1$ core.
+
+% While varying the number of nodes, leads to better speedups, the results for
+% varying the depth is more complicated. For instance, while \texttt{deep-s} and
+% \texttt{deep-l} achieve greater speedups than their less deep counterparts,
+% \texttt{deep-m} achieves a smaller speedup than \texttt{medium}. This is
+% likely because the depth of the benchmark affects the number of rounds of
+% congruence closure. Our algorithm only parallelizes over the merges within a
+% round, but not over the total number of rounds. We evaluate this further in
+% \autoref{sec:eval:synthetic}.
 
 
 
 \subsection{Synthetic Benchmarks}~\label{sec:eval:synthetic}
+
+\begin{figure*}[!tb]
+  \centering
+  \begin{subfigure}[t]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figs/cube_decomp_par_close_speedup_vs_nelson.png}
+    \caption{Speedup of \parentalgo compared to sequential baseline.}
+    \label{fig:synthetic:parents}
+  \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figs/cube_decomp_async_speedup_vs_nelson.png}
+    \caption{Speedup of \filteralgo compared to sequential baseline.}
+    \label{fig:synthetic:filter}
+  \end{subfigure}\hfill
+  \caption{Synthetic benchmarks speedup using \parentalgo and \filteralgo.}
+  \label{fig:synthetic}
+\end{figure*}
 
 To better understand the relationship between the depth (i.e. number of rounds
 of congruence closure) and the width (i.e. number of merges per round) of the
 benchmark and the performance of our algorithm, we design a synthetic benchmark
 suite that allows us to dial up these parameters.
 
-Our benchmark suite is based on the example in \autoref{ex:formula}. We create a
-benchmark with $2k$ leaves $a_1, \ldots, a_k$ and $b_1, \ldots, b_k$, and we
-assert the equalities $a_i = b_i$ for all $i$. We then have a single disequality
-between two terms built from $f$ and $g$. The disequality compares two
-applications of $g$, whose four arguments are the $f$-terms over the index set
-$\{1, ..., k\}^2$. The expected outcome is \texttt{unsat}. Then we create a
-$3^k$ terms of the form $f(a_i, a_j, a_k)$, which must be congruent to the
-corresponding $f(b_i, b_j, b_k)$ terms. Thus, $k$ parameterizes the width of the
-benchmark, as it controls how many merges are implied by the initial $k$
-equalities. The depth is parameterized by some $d$ which controls how many
-nested $g$ applications we have. Each round will have $\frac1d$ of the merges of
-the previous round, so a larger $d$ means a slower depth. We can observe this in
+Our benchmark suite is based on the example in \autoref{ex:formula}, but instead
+we consider $f$-functions with arity $3$. We create a benchmark with $2n$ leaves
+$a_1, \ldots, a_n$ and $b_1, \ldots, b_n$, and we assert the equalities $a_i =
+b_i$ for all $i$. 
+
+% We then have a single disequality between two terms built from $f$ and $g$.
+% The disequality compares two applications of $g$, whose four arguments are the
+% $f$-terms over the index set $\{1, ..., k\}^2$.
+
+% The expected outcome is \texttt{unsat}. 
+
+There are $3^n$ terms of the form $f(a_i, a_j, a_k)$, which must be congruent to
+the corresponding $f(b_i, b_j, b_k)$ terms. Thus, we start with $n$ initial
+equalities and $3^n$ merges in the second round. Hence, $n$ parameterizes the
+width of the benchmark, a larger $n$ means a larger width.
+
+The depth is parameterized by some $d$ which controls how many nested $g$
+applications we have. Each round will have $\frac1d$ of the merges of the
+previous round, so a larger $d$ means a slower depth. We can observe this in
 \autoref{fig:cube:rounds}.
 
-\autoref{fig:cube:loglog} shows the runtime of our parallel congruence closure
-algorithm on this benchmark suite. We observerve that increasing $k$ and hence
-the width of the benchmark leads to better speedups, while decreasing $d$ and
-hence increasing the depth of the benchmark has minimal impact. The speedups are
-around half as good as a full linear speedup and start to plateau around $64$
-cores. For instrance, for $k=155$ and $d=5$, we achieve speedups of $7.47\times$
-on 16 cores, $13.89\times$ on 32 cores, $21.4\times$ on 64 cores, and
-$29.7\times$ on 128 cores.
+\as{need to redo this analysis when the time comes}
 
-Overall, we can conclude that our algorithm performs well on benchmarks with a
-large number of merges per round, and is not significantly affected by the total
-number of rounds of congruence closure.
+% \autoref{fig:cube:loglog} shows the runtime of our parallel congruence closure
+% algorithm on this benchmark suite. We observerve that increasing $k$ and hence
+% the width of the benchmark leads to better speedups, while decreasing $d$ and
+% hence increasing the depth of the benchmark has minimal impact. The speedups
+% are around half as good as a full linear speedup and start to plateau around
+% $64$ cores. For instrance, for $k=155$ and $d=5$, we achieve speedups of
+% $7.47\times$ on 16 cores, $13.89\times$ on 32 cores, $21.4\times$ on 64 cores,
+% and $29.7\times$ on 128 cores.
+
+% Overall, we can conclude that our algorithm performs well on benchmarks with a
+% large number of merges per round, and is not significantly affected by the
+% total number of rounds of congruence closure.
 
 
 
 
 \subsection{Circuit equivalence Benchmarks}~\label{sec:eval:hardware}
 
-% In this section, we evaluate on a set of benchmarks checking the equivalence of
-% two circuits. The canonical way to check circuit equivalence is using a miter, a
-% construction where given two circuits $C_1$ and $C_2$ (with the same number of
-% inputs and outputs), we construct a new circuit $M$ that (1) for each output of
-% $C_1$ and $C_2$, takes their XOR and (2) ORs all the XOR results together. Then
-% if $M$ is unsatisfiable, i.e. the output on any set of inputs is always $0$, then 
-% $C_1$ and $C_2$ are equivalent.
+% In this section, we evaluate on a set of benchmarks checking the equivalence
+% of two circuits. The canonical way to check circuit equivalence is using a
+% miter, a construction where given two circuits $C_1$ and $C_2$ (with the same
+% number of inputs and outputs), we construct a new circuit $M$ that (1) for
+% each output of $C_1$ and $C_2$, takes their XOR and (2) ORs all the XOR
+% results together. Then if $M$ is unsatisfiable, i.e. the output on any set of
+% inputs is always $0$, then $C_1$ and $C_2$ are equivalent.
 
 
-% Typically, the miter is converted into conjunctive normal form (CNF) and given to 
-% a SAT solver. However, these formulas can be very large and difficult to solve.
-% Biere et al.~\cite{clausal-cc} showed that the two sides of a miter often share
-% equivalent sub-circuits whose equivalence can be discovered structurally,
-% allowing the formula to be simplified significantly using congruence closure.
+% Typically, the miter is converted into conjunctive normal form (CNF) and given
+% to a SAT solver. However, these formulas can be very large and difficult to
+% solve. Biere et al.~\cite{clausal-cc} showed that the two sides of a miter
+% often share equivalent sub-circuits whose equivalence can be discovered
+% structurally, allowing the formula to be simplified significantly using
+% congruence closure.
 
-% % often different circuits have redundant subcircuits and 
-% % thus these formulas can be simplified significantly using congruence closure.
+% % often different circuits have redundant subcircuits and % thus these
+% formulas can be simplified significantly using congruence closure.
 
 % Biere et al. evaluated their clausal congruence closure algorithm on two
 % benchmark sets: five circuit pairs that were curated to be hard for monolithic
-% CNF-level SAT sweeping~\cite{iwls} and a set of benchmarks comparing an original
-% circuit against either (1) an optimized or (2) an isomorphic version of
-% itself~\cite{hwmcc}. They implemented their congruence closure algorithm as a
-% preprocessing pass in the SAT solver Kissat~\cite{kissat} and showed that it
+% CNF-level SAT sweeping~\cite{iwls} and a set of benchmarks comparing an
+% original circuit against either (1) an optimized or (2) an isomorphic version
+% of itself~\cite{hwmcc}. They implemented their congruence closure algorithm as
+% a preprocessing pass in the SAT solver Kissat~\cite{kissat} and showed that it
 % significantly reduced the time taken to solve these benchmarks. For our
-% evaluation, we modify Kissat to expel the congruence closure problem before . We
-% modify the benchmarks slightly so that instead of treating negation as a
+% evaluation, we modify Kissat to expel the congruence closure problem before .
+% We modify the benchmarks slightly so that instead of treating negation as a
 % specific boolean connective, we treat it as a function symbol.
 
-In this section, we evaluate on a set of benchmarks checking the
-equivalence of two circuits. The canonical construction is a \emph{miter}:
-given two circuits $C_1$ and $C_2$ with the same input and output
+In this section, we evaluate on a set of benchmarks checking the equivalence of
+two circuits. Circuit equivalence is checked using a construction called a
+\emph{miter}: given two circuits $C_1$ and $C_2$ with the same input and output
 signatures, a miter $M$ feeds shared inputs to both, XORs each pair of
-corresponding outputs, and ORs all of the XORs together.
-If $M$ is unsatisfiable, i.e. the output on any set of inputs is always $0$, then 
-$C_1$ and $C_2$ are equivalent.
+corresponding outputs, and ORs all of the XORs together. If $M$ is
+unsatisfiable, i.e. the output on any set of inputs is always $0$, then $C_1$
+and $C_2$ are equivalent.
 
-Miters are typically encoded into conjunctive normal form (CNF) and given
-to a SAT solver, but these formulas are large and the encoding destroys
-the gate-level structure that makes equivalence apparent. Biere et
+Miters are typically encoded into conjunctive normal form (CNF) and given to a
+SAT solver, but these formulas are large and the encoding destroys the
+gate-level structure that makes equivalence apparent. Biere et
 al.~\cite{clausal-cc} observed that the two sides of a miter often share
-equivalent sub-circuits whose equivalence can be discovered structurally.
-They showed that running congruence closure over the gates recovered from
-the CNF can drastically simplify (and often immediately decide) the
-resulting formula. They implemented their algorithm as a preprocessing
-pass in Kissat~\cite{kissat} and evaluated on two benchmark sets: five
-hand-curated miters from the IWLS'22 paper~\cite{iwls}, considered hard
-for monolithic CNF-level SAT sweeping, and a derivative of the 2012
-Hardware Model Checking Competition~\cite{hwmcc} that compares each of
-$341$ AIGER models against an ABC-optimized variant.
+equivalent sub-circuits whose equivalence can be discovered structurally. They
+showed that recovering the gates from the CNF, and running congruence closure
+can drastically simplify (and often immediately decide) the resulting formula.
+They implemented their algorithm as a preprocessing pass in Kissat~\cite{kissat}
+and evaluated on two benchmark sets: five hand-curated miters from the IWLS'22
+paper~\cite{iwls}, considered hard for monolithic CNF-level SAT sweeping, and a
+derivative of the 2012 Hardware Model Checking Competition~\cite{hwmcc} that
+compares And-Inverter Graphs (AIGERs) against an optimized
+variant.
 
-For our evaluation we use the same circuit sources, but rather than
-running congruence closure as a preprocessing pass within Kissat we extract its
-intermediate gate set and run our parallel congruence closure
-implementations on it directly. Concretely, we instrument Kissat's gate
-extractor to dump every candidate gate (AND/XOR/ITE) it constructs from
-the CNF, prior to its internal hash-table deduplication. The resulting
-files are the full multiset of gates that Kissat's sequential CC would
-process; discovering their equivalence classes is exactly the work of our
-parallel CC. From the HWMCC'12 set we retain the twelve hardest
-instances by sequential CC time, identified from the per-instance logs of
-\cite{clausal-cc}; the remaining benchmarks run in under five
-seconds sequentially and leave no room for measurable speedup.
+For our evaluation we use the same circuit sources, but rather than running
+congruence closure as a preprocessing pass within Kissat we extract its
+intermediate gate set and run our parallel congruence closure implementations on
+it directly. Concretely, we instrument Kissat's gate extractor to dump every
+candidate gate (AND/XOR/ITE). We evaluate our congruence closure implementations
+on these gates. From the HWMCC'12 set we pick the twelve hardest instances by
+sequential congruence closure time.
 
 \begin{figure*}[!tb]
   \centering
-  \begin{subfigure}[t]{0.48\linewidth}
-    \centering
-    \includegraphics[width=\linewidth]{figs/gates_async_speedup.png}
-    \caption{Runtime vs. thread count (log-log).}
-    \label{fig:cube:loglog}
-  \end{subfigure}\hfill
+  
   \begin{subfigure}[t]{0.48\linewidth}
     \centering
     \includegraphics[width=\linewidth]{figs/gates_par_close_speedup.png}
-    \caption{Per-round merge counts.}
-    \label{fig:cube:rounds}
+    \caption{Speedup of \parentalgo compared to sequential baseline.}
+    \label{fig:circuit:parent}
+  \end{subfigure}\hfill
+  \begin{subfigure}[t]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figs/gates_async_speedup.png}
+    \caption{Speedup of \filteralgo compared to sequential baseline}
+    \label{fig:circuit:filter}
   \end{subfigure}
-  \caption{Circuit equivalence benchmarks speedup using the parents list and dirty term algorithms.}
-  \label{fig:cube}
+  \caption{Speedup of \parentalgo and \filteralgo on circuit equivalence benchmarks.}
+  \label{fig:circuit}
 \end{figure*}
 
-We do not compare to Kissat's internal congruence closure implementation as
-our sequential implementation was much faster compare to the numbers reported
-in the paper~\cite{clausal-cc} (for instance we solve the benchmarks in the
-HWMCC'12 set in under a second, while the paper reports times of up to 100
-seconds).
+\as{add analysis and make below more clear (comment + add explanation of the figures)}
+
+We do not compare to Kissat's internal congruence closure implementation as our
+sequential implementation was much faster compare to the numbers reported in the
+paper~\cite{clausal-cc}.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{figs/gates_speedup_vs_min_dirty_fraction.png}
-  \caption{Runtime vs. thread count (log-log).}
+  \caption{Speedup of \filteralgo compared to sequential baseline vs. smallest dirty fraction 
+  across rounds. The dirty fraction of a round is the number of dirty terms in that round divided 
+  by the total number of equivalence classes in that round. We observe that benchmarks with a smaller 
+  minimum dirty fraction across rounds tend to have better speedups. This is likely because the dirty 
+  term algorithm performs better when there are fewer dirty terms, as it can focus on processing the clean
+   terms in parallel without being bottlenecked by the dirty terms.}
   \label{fig:cube}
 \end{figure}
 
@@ -276,24 +313,25 @@ seconds).
 
 % \subsection{Equality Saturation Benchmarks}
 
-% To get equality saturation benchmarks, we ran egglog~\cite{egglog} on the egg-cc
-% project~\cite{eggcc}—an experimental optimizing compiler for the LLVM-like IR
-% Bril. We ran egglog on a number of Bril programs for \as{todo} seconds and logged
-% all of the unions egglog generated during this time. We then extracted these unions
-% into and MST-LIB file and evaluated our parallel congruence closure algorithms on these
-% benchmarks.
+% To get equality saturation benchmarks, we ran egglog~\cite{egglog} on the
+% egg-cc project~\cite{eggcc}—an experimental optimizing compiler for the
+% LLVM-like IR Bril. We ran egglog on a number of Bril programs for \as{todo}
+% seconds and logged all of the unions egglog generated during this time. We
+% then extracted these unions into and MST-LIB file and evaluated our parallel
+% congruence closure algorithms on these benchmarks.
 
 % \subsection{SMT Benchmarks}
 
-% To get SMT benchmarks, we took benchmarks from the QF-UF logic
-% in the annual 2025 SMT competition~\cite{smtcomp2025}. In this category, we picked
-% the benchmarks from \asm{fill in} as the other benchmarks were either very simple
+% To get SMT benchmarks, we took benchmarks from the QF-UF logic in the annual
+% 2025 SMT competition~\cite{smtcomp2025}. In this category, we picked the
+% benchmarks from \asm{fill in} as the other benchmarks were either very simple
 % or required more complicated boolean reasoning.
 
-% These benchmarks include boolean connectives, so to get pure congruence closure
-% constraints, we ran each of the bencmarks through the Sundance-SMT solver
-% ~\cite{sundance}, every time Sundance-SMT found a conflict in its congruence 
-% closure solver, we extracted the set of equalities into an SMT-LIB file.
+% These benchmarks include boolean connectives, so to get pure congruence
+% closure constraints, we ran each of the bencmarks through the Sundance-SMT
+% solver ~\cite{sundance}, every time Sundance-SMT found a conflict in its
+% congruence closure solver, we extracted the set of equalities into an SMT-LIB
+% file.
 
 
 

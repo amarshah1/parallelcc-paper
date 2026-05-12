@@ -8,19 +8,18 @@ We answer the research questions as follows:
 \begin{itemize}
   \item \textbf{RQ1:} Our parallel congruence closure algorithm achieves a
   meaningful speedup on random benchmarks, a synthetic benchmark suite designed
-  to stress test our algorithm, and a set of circuit equivalence benchmarks. We 
-  scale well up to 32 cores (\as{give a number here}), but began to plateau beyond
-  that, especially on smaller benchmarks.
+  to stress test our algorithm, and a set of circuit equivalence benchmarks. We
+  scale well up to 32 cores (\as{give a number here}), but began to plateau
+  beyond that, especially on smaller benchmarks.
   \item \textbf{RQ2:} Our algorithm tends to perform better on benchmarks with a
-  large number of merges per round. Having more rounds of congruence closure
-  does not necessarily lead to worse performance, but it does not lead to better
-  performance either as we only parallelize within rounds.
+  large number of merges per round. More rounds of congruence closure does not
+  have a major effect on parallel speedup.
   \item \textbf{RQ3:} Our algorithm provides a meaningful speedup over a
-  sequential implementation on the circuit equivalence benchmarks. It is difficult
-  to evaluate our algorithm on SMT or equality saturation benchmarks, as congruence
-  closure is part of a larger system and thus difficult to isolate. We leave it to
-  future work to integrate our algorithm into an SMT solver or equality saturation
-  engine.
+  sequential implementation on the circuit equivalence benchmarks. It is
+  difficult to evaluate our algorithm on SMT or equality saturation benchmarks,
+  as congruence closure is part of a larger tool and thus difficult to isolate.
+  We leave it to future work to integrate our algorithm into a state-of-the-art
+  SMT solver or equality saturation engine.
 \end{itemize}
 
 \subsection{Algorithm Modifications and Future Work}~\label{sec:disc:limit-alg}
