@@ -80,7 +80,7 @@ mapping \textit{pred} between class identifiers and identifiers of parents of
 that class. This mapping must be updated every round; if two congruence classes
 are merged, then their parents must be merged as well. These rounds continue
 until there is no longer any work to do. Pseudocode depicting this algorithm is
-shown in Figure~\ref{fig:alg:bsp}.
+shown in Algorithm~\ref{alg:bsp}.
 
 The algorithm is decomposed into three different functions. The function
 \textsc{Congruent-Level1} checks whether two terms are congruent based on the
@@ -95,8 +95,7 @@ union the classes of every term in $S$. We take a simple divide-and-conquer
 approach; we merge the left and right halves (in parallel), and then
 \textsc{Union} the representatives of the two classes.
 
-\begin{figure}
-  \centering
+\begin{algorithm}
 \begin{algorithmic}[1]
     \Function{Congruent-Level1}{X, Y} \If{$X = f(M_1,\ldots,M_n)$ and $Y =
       f(N_1,\ldots,N_n)$} \State \Return $\Call{Find}{M_i} = \Call{Find}{N_i}$
@@ -127,7 +126,6 @@ approach; we merge the left and right halves (in parallel), and then
         \EndWhile
     \EndFunction
 \end{algorithmic}
-
 \caption{Round-based congruence closure algorithm}
-\label{fig:alg:bsp}
-\end{figure}
+\label{alg:bsp}
+\end{algorithm}
