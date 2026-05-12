@@ -53,16 +53,20 @@ $x \equiv y$, $f(x) \equiv f(y)$, $f(f(x)) \equiv f(f(y))$, etc.
 % generating new congruences from discovered equalities immediately instead of
 % waiting for the round to complete.
 
-\textbf{Backtracking.} 
-\as{Zak can you fill in how we could make our implementation backtrackable}
+% \textbf{Backtracking.} 
+% \as{Zak can you fill in how we could make our implementation backtrackable}
 
 \textbf{Proof Production.} Our implementation does not produce \emph{proofs}(i.e.
 \emph{witnesses}) of the equalities it discovers. For instance if our algorithm
 discovers that $x = y$, it cannot replay the chain of equalities and congruences
 that led to this conclusion. This is important for a number of reasons: it is
 necessary to justify correctness and it is used to produce conflict clauses in
-SMT solvers. Our implementation could easily be extended to support proof
+SMT solvers. Our implementation could be extended to support proof
 production by avoiding path compression in the union-find data structure.
+This is complicated in the context of concurrency, however; it is not straightforward
+to recover the path within the union-find in the presence of concurrent updates. This
+could be addressed by taking a linearizable \emph{snapshot} of the union-find using
+recent techniques~\cite{verlib} and then reconstructing the proof based on this snapshot.
 Another option is to maintain two union-find data structures: one for the
 actual congruence closure algorithm, and another that maintains the proof
 forest, as the Z3 SMT solver does~\cite{z3-internals}.

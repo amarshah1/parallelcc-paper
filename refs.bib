@@ -19,6 +19,24 @@
   doi       = {10.1007/978-3-540-78800-3_24},
 }
 
+@inproceedings{verlib,
+author = {Blelloch, Guy E. and Wei, Yuanhao},
+title = {VERLIB: Concurrent Versioned Pointers},
+year = {2024},
+isbn = {9798400704352},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3627535.3638501},
+doi = {10.1145/3627535.3638501},
+abstract = {Recent work has shown how to augment any CAS-based concurrent data structure to support taking a snapshot of the current memory state. Taking the snapshot, as well as loads and CAS (Compare and Swap) operations, take constant time. Importantly, such snapshotting can be used to easily implement linearizable queries, such as range queries, over any part of a data structure.In this paper, we make two significant improvements over this approach. The first improvement removes a subtle and hard to reason about restriction that was needed to avoid a level of indirection on pointers. We introduce an approach, which we refer to as indirection-on-need, that removes the restriction, but yet almost always avoids indirection. The second improvement is to efficiently support snapshotting with lock-free locks. This requires supporting an idempotent CAS. We show a particularly simple solution to the problem that leverages the data structures used for snapshotting.Based on these ideas we implemented an easy-to-use C++ library, verlib, centered around a versioned pointer type. The library works with lock (standard or lock-free) and CAS based algorithms, or any combination. Converting existing concurrent data-structures to use the library takes minimal effort. We present results for experiments that use verlib to convert state-of-the-art data structures for ordered maps (a B-tree), radix-ordered maps (an ART-tree), and unordered maps (an optimized hash table) to be snapshottable. The snapshottable versions perform almost as well as the original versions and far outperform any previous implementations that support atomic range queries.},
+booktitle = {Proceedings of the 29th ACM SIGPLAN Annual Symposium on Principles and Practice of Parallel Programming},
+pages = {200–214},
+numpages = {15},
+keywords = {multiversioning, concurrent data structures, snapshots, lock-based, lock-free},
+location = {Edinburgh, United Kingdom},
+series = {PPoPP '24}
+}
+
 @inproceedings{cvc5,
   author    = {Barbosa, Haniel and Barrett, Clark and Brain, Martin and Kremer, Gereon and Lachnitt, Hanna and Mann, Makai and Mohamed, Abdalrhman and Mohamed, Mudathir and Niemetz, Aina and N{\"o}tzli, Andres and Ozdemir, Alex and Preiner, Mathias and Reynolds, Andrew and Sheng, Ying and Tinelli, Cesare and Zohar, Yoni},
   title     = {{cvc5}: A Versatile and Industrial-Strength {SMT} Solver},

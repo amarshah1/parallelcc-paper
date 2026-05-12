@@ -93,7 +93,7 @@ approach is sometimes efficient, but breaks down when many iterations must be
 done.
 
 We also implemented a practical version of the Downey-Sethi-Tarjan (DST)
-algorithm that achieves $O(n \log n)$ work. We made some changes, including
+algorithm~\cite{downey-sethi-tarjan} that achieves $O(n \log n)$ work. We made some changes, including
 eliminating the outdegree-2 transformation that curries each term into a binary
 term by representing an $n$-ary term as a tree of binary terms. Additionally,
 we represented the signature table as a hashtable instead of a trie, which is
