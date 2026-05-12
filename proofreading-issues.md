@@ -151,48 +151,48 @@ None.
 - [x] **#104** Added the same initial-union ParFor block to `\filteralgo` so both algorithms match
 - [x] **#105** Defined both `GroupBy` (equivalence-relation form) and `GroupByKey` (key-value form) in §3.4
 - [x] **#106** Reworded: "achieves the same effect without keeping these parent lists"
-- [ ] **#107** [L264] `\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < n]` — what is $n$? Never defined in the pseudocode scope
-- [ ] **#108** [L292] "for terms of arities **1,2,3 and 4**" — missing space after comma
+- [x] **#107** Annotated the comment line to specify that $n$ is the total number of terms
+- [x] **#108** Added spaces in the arity list and Oxford comma
 - [x] **#109** Replaced "fairly high overhead" with the concrete reason: "expensive due to frequent allocations"
 
 ### Round 2 — sections/4-evaluation.tex
 
-- [ ] **#110** [L4, L8, L11, L13] RQs say "parallel congruence closure **algorithm**" (singular) — paper has two; should be plural throughout
-- [ ] **#111** [L23] "a set of benchmarks on a set of circuit equivalence benchmarks" — "a set of ... on a set of" reads awkwardly; simplify
-- [ ] **#112** [L26] "Amazon Web **Service**" → "Amazon Web Services" (the product is plural)
-- [ ] **#113** [L28] "Ubuntu 26.04 LTS" — 26.04 is not a real Ubuntu version (LTS goes 22.04, 24.04, 26.04 hypothetically). Confirm the actual OS version
-- [ ] **#114** [L29] "compiled using g++15.2.0" — odd formatting; standard is "GCC 15.2" or "g++ 15.2.0"
-- [ ] **#115** [L37-52] Random-benchmarks figure references aren't tied to the prose discussion at L123-129 — could add `\autoref{fig:random:parents}` and `\autoref{fig:random:filter}` to make the discussion concrete
-- [ ] **#116** [L85] `\begin{table}[t]` — uses `[t]` while other floats use `[!tb]`; minor consistency thing
-- [ ] **#117** [L106] Table caption starts with "Synthetic workload parameters." but this is the *random* workload table, not synthetic. Mismatch
-- [ ] **#118** [L107] "Each workload is a random binary-tree DAG" — "binary tree" suggests arity 2 but the prose says "function symbols, each of arity 2" — OK consistent. But "binary-tree DAG" is unusual phrasing (a DAG is not a tree); consider "DAG with binary internal nodes"
-- [ ] **#119** [L131-135] "\filteralgo starts from a much better baseline" — what baseline? Reads ambiguously (sequential? T=1?). Specify
-- [ ] **#120** [L138-141] "we can achieve **superlinear speedups**" — claim made but no specific numbers given; back with a figure reference or specific data point
-- [ ] **#121** [L139] "the \filteralgo has less datastructures" — drop "the" (article shouldn't precede `\filteralgo` since the macro starts with "Filter"); also "datastructures" → "data structures"; also "less" → "fewer" (countable)
-- [ ] **#122** [L212] "cube width $k$" — but the synthetic section never calls $k$ "cube width" — it's just the width. Either define "cube width" or use "width $k$"
-- [ ] **#123** [L226] "Similar to the random workloads, our **algorithm achieves**" — singular but should be "our algorithms achieve"
-- [ ] **#124** [L231-234] "\filteralgo (and respectively \parentalgo) achieves" — change "respectively" parenthetical style to match line 126's "resp." which is cleaner
-- [ ] **#125** [L234] "and only $26.4\times$ ($17.0\times$) on 192 threads" — "only" is misleading (this is a *positive* result, not a let-down); drop "only"
-- [ ] **#126** [L286-292] "In this section, we evaluate on a set of benchmarks checking the equivalence of two circuits." — sentence repeats "benchmarks" from the section opener at L22-23; tighten
-- [ ] **#127** [L294] "given to a SAT solver" → "given to **an** SAT solver" (acronym, "ess-ay-tee" starts with vowel sound)
-- [ ] **#128** [L308-314] Methodology paragraph for circuit benchmarks: "we instrument Kissat's gate extractor to dump every candidate gate (AND/XOR/ITE). We evaluate our congruence closure implementations on these gates." Two short sentences could be merged
-- [ ] **#129** [L341-348] "the single-core baseline of \filteralgo varies dramatically across files: on the 22 files we measured" — but the prose at L313 said "twelve hardest instances". Mismatch: 12 vs 22 files
-- [ ] **#130** [L350] `Figure~\ref{fig:gates_vs_min_dirty_fraction}` — uses `\ref` not `\autoref` like the rest of the paper
-- [ ] **#131** [L360] "wastes work proportional to the entire term set" — "term set" undefined as a concept; previous text uses "live e-nodes / terms" (we renamed). Just use "live terms"
+- [x] **#110** Pluralized L4 ("our parallel congruence closure algorithms"); RQs themselves were already plural
+- [x] **#111** Simplified to "a set of circuit equivalence benchmarks"; also fixed stale `sec:eval:hardware` ref → `sec:eval:circuit` and pluralized "our algorithm" → "algorithms"
+- [x] **#112** "Amazon Web Service" → "Amazon Web Services"
+- [x] **#113** Confirmed by user: Ubuntu 26.04 LTS is correct (released April 2026)
+- [x] **#114** Added space: "g++15.2.0" → "g++ 15.2.0"
+- [x] **#115** Skipped — discussion is about both algorithms, so the parent `\autoref{fig:random}` is appropriate
+- [x] **#116** Switched table placement to `[!tb]` to match the figures
+- [x] **#117** Caption: "Synthetic workload parameters" → "Random workload parameters"
+- [x] **#118** Dropped the misleading "binary-tree DAG" phrasing entirely
+- [x] **#119** Specified "\filteralgo's single-thread runtime is much better than \parentalgo's" instead of vague "baseline"
+- [x] **#120** Cited the concrete superlinear datapoint ($36.8\times$ on 32 threads for `32xl`)
+- [x] **#121** Fixed: dropped "the" before `\filteralgo`, "less" → "fewer", "datastructures" → "data structures"
+- [x] **#122** Dropped misnomer "cube width $k$" → just "$k$" (since $k$ is a parameter, not the width itself; the actual width is $k^3$)
+- [x] **#123** Pluralized "our algorithm" → "our algorithms"
+- [x] **#124** Standardized to "(resp.\ \parentalgo) achieves" matching the random-benchmarks paragraph
+- [x] **#125** Dropped misleading "only"
+- [x] **#126** Tightened opener; reused "These benchmarks" referring back to the section intro
+- [x] **#127** Skipped — the SAT-solving literature uniformly says "a SAT solver" (pronouncing "SAT" as "sat", not "S-A-T")
+- [x] **#128** Kept as-is per user (two short sentences read fine)
+- [x] **#129** Resolved: 10 IWLS + 12 HWMCC'12 = 22 total. Updated intro to say "10 hand-curated miters" instead of "five"
+- [x] **#130** Switched to `\autoref` for consistency
+- [x] **#131** Replaced "the entire term set" with "all live terms" (matches "live terms" usage earlier in the paragraph)
 
 ### Round 2 — sections/5-discussion.tex
 
-- [ ] **#132** [L9] RQ1 answer: "Our parallel congruence closure **algorithm achieves**" — singular; should be plural
-- [ ] **#133** [L13] "begin to plateau" — singular subject "We" wants "begin"; OK. But this sentence is now somewhat clumsy; the parenthetical "(\filteralgo on \texttt{32xl} ... baseline)" is a lot to read mid-sentence
-- [ ] **#134** [L17] RQ2: "More rounds of congruence closure **does** not have" — subject "more rounds" is plural; "do not have"
-- [ ] **#135** [L18] RQ3: "Our **algorithm provides**" — singular; should be plural
+- [x] **#132** Pluralized RQ1 throughout
+- [x] **#133** Sentence still has the long parenthetical but is grammatically fine; leaving the structure
+- [x] **#134** Fixed "does not" → "do not" (subject is "More rounds")
+- [x] **#135** Pluralized RQ3 throughout
 - [ ] **#136** [L56-57] Backtracking section still has `\as{}` TODO — deferred per earlier decision (already tracked as #63)
-- [ ] **#137** [L59] "produce \emph{proofs}(i.e." — missing space between `\emph{proofs}` and `(i.e.`
-- [ ] **#138** [L62-63] "it is necessary to justify correctness and it is used to produce conflict clauses in SMT solvers" — two clauses using "it" with different referents; restructure
+- [x] **#137** Added missing space; also added `\` after "i.e." for proper interword spacing
+- [x] **#138** Made the antecedent explicit ("Proof production is important for two reasons: it is necessary for justifying correctness, and it is used...")
 
 ### Round 2 — sections/6-conclusion.tex
 
-- [ ] **#139** [L5] "two parallel congruence closure algorithms built on a bulk-synchronous design over a lock-free concurrent union-find" — "built ... over" reads oddly; "built on a bulk-synchronous design **that operates over** a lock-free concurrent union-find" reads better
+- [x] **#139** "built on" → "based on" to remove the awkward "built ... over" pairing
 
 ### Round 2 — sections/7-acks.tex
 

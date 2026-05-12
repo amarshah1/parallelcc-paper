@@ -15,6 +15,8 @@
 \usepackage{xspace}
 \usepackage{float}
 \usepackage{dblfloatfix}
+\usepackage{flushend}
+\usepackage{balance}
 \usepackage{subcaption}
 \usepackage{textcomp}
 \usepackage{xcolor}
@@ -22,6 +24,7 @@
 \usepackage{amsthm}
 \usepackage[square,comma,numbers,sort&compress]{natbib}      % Offers more control over citation appearance and bib spacing
 \usepackage{algpseudocodex}
+\hypersetup{hidelinks}
 
 
 \theoremstyle{definition}
@@ -139,6 +142,8 @@
 
 \input{sections/7-acks}
 
+\balance
+\newpage
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}

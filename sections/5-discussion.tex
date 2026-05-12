@@ -6,21 +6,23 @@
 We answer the research questions as follows:
 
 \begin{itemize}
-  \item \textbf{RQ1:} Our parallel congruence closure algorithm achieves a
-  meaningful speedup on random benchmarks, a synthetic benchmark suite designed
-  to stress test our algorithm, and a set of circuit equivalence benchmarks.
-  We scale well up to 32 cores (\filteralgo on \texttt{32xl} achieves
-  $27\times$ self-speedup at $T{=}32$ relative to its $T{=}1$ baseline), but
-  begin to plateau beyond that, especially on smaller benchmarks.
-  \item \textbf{RQ2:} Our algorithm tends to perform better on benchmarks with a
-  large number of merges per round. More rounds of congruence closure does not
-  have a major effect on parallel speedup.
-  \item \textbf{RQ3:} Our algorithm provides a meaningful speedup over a
+  \item \textbf{RQ1:} Our parallel congruence closure algorithms achieve
+  meaningful speedups on random benchmarks, a synthetic benchmark suite
+  designed to stress-test our algorithms, and a set of circuit equivalence
+  benchmarks. We scale well up to 32 cores (\filteralgo on \texttt{32xl}
+  achieves $27\times$ self-speedup at $T{=}32$ relative to its $T{=}1$
+  baseline), but begin to plateau beyond that, especially on smaller
+  benchmarks.
+  \item \textbf{RQ2:} Our algorithms tend to perform better on benchmarks
+  with a large number of merges per round. More rounds of congruence closure
+  do not have a major effect on parallel speedup.
+  \item \textbf{RQ3:} Our algorithms provide a meaningful speedup over a
   sequential implementation on the circuit equivalence benchmarks. It is
-  difficult to evaluate our algorithm on SMT or equality saturation benchmarks,
-  as congruence closure is part of a larger tool and thus difficult to isolate.
-  We leave it to future work to integrate our algorithm into a state-of-the-art
-  SMT solver or equality saturation engine.
+  difficult to evaluate our algorithms on SMT or equality saturation
+  benchmarks, as congruence closure is part of a larger tool and thus
+  difficult to isolate. We leave it to future work to integrate our
+  algorithms into a state-of-the-art SMT solver or equality saturation
+  engine.
 \end{itemize}
 
 \subsection{Algorithm Modifications and Future Work}~\label{sec:disc:limit-alg}
@@ -56,12 +58,12 @@ $x \equiv y$, $f(x) \equiv f(y)$, $f(f(x)) \equiv f(f(y))$, etc.
 % \textbf{Backtracking.} 
 % \as{Zak can you fill in how we could make our implementation backtrackable}
 
-\textbf{Proof Production.} Our implementation does not produce \emph{proofs}(i.e.
+\textbf{Proof Production.} Our implementation does not produce \emph{proofs} (i.e.\
 \emph{witnesses}) of the equalities it discovers. For instance if our algorithm
 discovers that $x = y$, it cannot replay the chain of equalities and congruences
-that led to this conclusion. This is important for a number of reasons: it is
-necessary to justify correctness and it is used to produce conflict clauses in
-SMT solvers. Our implementation could be extended to support proof
+that led to this conclusion. Proof production is important for two reasons: it is necessary for
+justifying correctness, and it is used to produce conflict clauses in SMT
+solvers. Our implementation could be extended to support proof
 production by avoiding path compression in the union-find data structure.
 % This is complicated in the context of concurrency, however; it is not straightforward
 % to recover the path within the union-find in the presence of concurrent updates. This

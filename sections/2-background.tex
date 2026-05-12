@@ -75,9 +75,9 @@ To make the structure concrete, consider the following formula given to an
 SMT solver:
 %
 \begin{equation}\label{ex:formula}
-\begin{aligned}
-& \;\;\;\;\;\; a_0 = b_0 \land\; a_1 = b_1 \land\;g(f(a_0), f(a_1)) \neq g(f(b_0), f(b_1))
-\end{aligned}
+% \begin{aligned}
+a_0 = b_0 \land\; a_1 = b_1 \land\;g(f(a_0), f(a_1)) \neq g(f(b_0), f(b_1))
+% \end{aligned}
 \end{equation}
 %
 
@@ -143,23 +143,24 @@ $W/S$, its \emph{parallelism}, is large compared to the available cores.
 
 
 However, congruence closure is known to be
-\textsc{P}-complete~\cite{unification}:
+\textsc{P}-complete~\cite{unification}, i.e. it can be solved in polynomial time (\textsc{P})
+and every problem in \textsc{P} can be reduced to it using a logarithmic-space reduction.
 
-\begin{definition}[P-completeness]
-    A problem is \textsc{P}-complete~\cite{p-complete} if
+% \begin{definition}[P-completeness]
+%     A problem is \textsc{P}-complete~\cite{p-complete} if
     
-    \begin{enumerate}
-        \item It can be solved in polynomial time, i.e. there is an algorithm
-        that solves it in $O(n^k)$ time for some constant $k$ where $n$ is the
-        size of the input, and
-        \item Every problem in \textsc{P} can be reduced to it using a
-        logarithmic-space reduction, i.e. for every problem $A$ in \textsc{P},
-        there is a function $f$ that maps instances of $A$ to instances of the
-        problem such that $f$ can be computed using only $O(\log n)$ space and
-        such that the answer to the instance of $A$ is the same as the answer to
-        the corresponding instance of the problem.
-    \end{enumerate}
-\end{definition}
+%     \begin{enumerate}
+%         \item It can be solved in polynomial time, i.e. there is an algorithm
+%         that solves it in $O(n^k)$ time for some constant $k$ where $n$ is the
+%         size of the input, and
+%         \item Every problem in \textsc{P} can be reduced to it using a
+%         logarithmic-space reduction, i.e. for every problem $A$ in \textsc{P},
+%         there is a function $f$ that maps instances of $A$ to instances of the
+%         problem such that $f$ can be computed using only $O(\log n)$ space and
+%         such that the answer to the instance of $A$ is the same as the answer to
+%         the corresponding instance of the problem.
+%     \end{enumerate}
+% \end{definition}
 
 
 \textsc{P}-complete problems are widely believed not to be solvable in

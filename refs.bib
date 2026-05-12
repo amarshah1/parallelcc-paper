@@ -14,8 +14,6 @@
   title     = {{Z3}: An Efficient {SMT} Solver},
   booktitle = {Tools and Algorithms for the Construction and Analysis of Systems (TACAS)},
   year      = {2008},
-  pages     = {337--340},
-  publisher = {Springer},
   doi       = {10.1007/978-3-540-78800-3_24},
 }
 
@@ -23,17 +21,8 @@
 author = {Blelloch, Guy E. and Wei, Yuanhao},
 title = {VERLIB: Concurrent Versioned Pointers},
 year = {2024},
-isbn = {9798400704352},
-publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/3627535.3638501},
 doi = {10.1145/3627535.3638501},
-abstract = {Recent work has shown how to augment any CAS-based concurrent data structure to support taking a snapshot of the current memory state. Taking the snapshot, as well as loads and CAS (Compare and Swap) operations, take constant time. Importantly, such snapshotting can be used to easily implement linearizable queries, such as range queries, over any part of a data structure.In this paper, we make two significant improvements over this approach. The first improvement removes a subtle and hard to reason about restriction that was needed to avoid a level of indirection on pointers. We introduce an approach, which we refer to as indirection-on-need, that removes the restriction, but yet almost always avoids indirection. The second improvement is to efficiently support snapshotting with lock-free locks. This requires supporting an idempotent CAS. We show a particularly simple solution to the problem that leverages the data structures used for snapshotting.Based on these ideas we implemented an easy-to-use C++ library, verlib, centered around a versioned pointer type. The library works with lock (standard or lock-free) and CAS based algorithms, or any combination. Converting existing concurrent data-structures to use the library takes minimal effort. We present results for experiments that use verlib to convert state-of-the-art data structures for ordered maps (a B-tree), radix-ordered maps (an ART-tree), and unordered maps (an optimized hash table) to be snapshottable. The snapshottable versions perform almost as well as the original versions and far outperform any previous implementations that support atomic range queries.},
-booktitle = {Proceedings of the 29th ACM SIGPLAN Annual Symposium on Principles and Practice of Parallel Programming},
-pages = {200–214},
-numpages = {15},
-keywords = {multiversioning, concurrent data structures, snapshots, lock-based, lock-free},
-location = {Edinburgh, United Kingdom},
+booktitle = {Principles and Practice of Parallel Programming},
 series = {PPoPP '24}
 }
 
@@ -42,8 +31,6 @@ series = {PPoPP '24}
   title     = {{cvc5}: A Versatile and Industrial-Strength {SMT} Solver},
   booktitle = {Tools and Algorithms for the Construction and Analysis of Systems (TACAS)},
   year      = {2022},
-  pages     = {415--442},
-  publisher = {Springer},
   doi       = {10.1007/978-3-030-99524-9_24},
 }
 
@@ -126,8 +113,6 @@ series = {PPoPP '24}
   title     = {A Randomized Concurrent Algorithm for Disjoint Set Union},
   booktitle = {ACM Symposium on Principles of Distributed Computing (PODC)},
   year      = {2016},
-  pages     = {75--82},
-  publisher = {ACM},
   doi       = {10.1145/2933057.2933108},
 }
 
@@ -136,8 +121,6 @@ series = {PPoPP '24}
   title     = {{ParlayLib} -- A Toolkit for Parallel Algorithms on Shared-Memory Multicore Machines},
   booktitle = {ACM Symposium on Parallelism in Algorithms and Architectures (SPAA)},
   year      = {2020},
-  pages     = {507--509},
-  publisher = {ACM},
   doi       = {10.1145/3350755.3400254},
 }
 
@@ -146,7 +129,7 @@ series = {PPoPP '24}
   title     = {Jemalloc},
   booktitle = {Proceedings of the 2006 BSDCan Conference},
   year      = {2006},
-  address   = {Ottawa, Canada},
+  address   = {Ottawa, Canada}, 
   month     = may,
   url       = {http://people.freebsd.org/~jasone/jemalloc/bsdcan2006/jemalloc.pdf},
   note      = {BSDCan'06}
@@ -157,7 +140,6 @@ series = {PPoPP '24}
   title     = {A Top-Down Parallel Semisort},
   booktitle = {ACM Symposium on Parallelism in Algorithms and Architectures (SPAA)},
   year      = {2015},
-  pages     = {24--34},
   publisher = {ACM},
   doi       = {10.1145/2755573.2755597},
 }
@@ -189,7 +171,6 @@ series = {PPoPP '24}
   title     = {Satisfiability Modulo Theories},
   booktitle = {Handbook of Satisfiability},
   editor    = {Biere, Armin and Heule, Marijn and van Maaren, Hans and Walsh, Toby},
-  series    = {Frontiers in Artificial Intelligence and Applications},
   volume    = {185},
   pages     = {825--885},
   publisher = {IOS Press},
@@ -201,20 +182,13 @@ series = {PPoPP '24}
   title     = {Equality Saturation: A New Approach to Optimization},
   booktitle = {Principles of Programming Languages (POPL)},
   year      = {2009},
-  pages     = {264--276},
-  publisher = {ACM},
-  doi       = {10.1145/1480881.1480915},
 }
 
 @article{egglog,
   author    = {Zhang, Yihong and Wang, Yisu Remy and Flatt, Oliver and Cao, David and Zucker, Philip and Rosenthal, Eli and Tatlock, Zachary and Willsey, Max},
   title     = {Better Together: Unifying {Datalog} and Equality Saturation},
-  journal   = {Proc. ACM Program. Lang.},
-  volume    = {7},
-  number    = {PLDI},
+  journal   = {PLDI.},
   year      = {2023},
-  articleno = {125},
-  doi       = {10.1145/3591239},
 }
 
 @phdthesis{egraphs,
@@ -264,41 +238,19 @@ series = {PPoPP '24}
   author       = {Dan Alistarh and
                   Alexander Fedorov and
                   Nikita Koval},
-  editor       = {Pascal Felber and
-                  Roy Friedman and
-                  Seth Gilbert and
-                  Avery Miller},
   title        = {In Search of the Fastest Concurrent Union-Find Algorithm},
   booktitle    = {23rd International Conference on Principles of Distributed Systems,
-                  {OPODIS} 2019, Neuch{\^{a}}tel, Switzerland, December 17-19, 2019},
-  series       = {LIPIcs},
-  pages        = {15:1--15:16},
-  publisher    = {Schloss Dagstuhl - Leibniz-Zentrum f{\"{u}}r Informatik},
+                  {OPODIS}},
   year         = {2019},
-  url          = {https://doi.org/10.4230/LIPIcs.OPODIS.2019.15},
   doi          = {10.4230/LIPICS.OPODIS.2019.15},
-  timestamp    = {Mon, 02 Mar 2026 08:38:57 +0100},
-  biburl       = {https://dblp.org/rec/conf/opodis/AlistarhFK19.bib},
-  bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
 
 @InProceedings{clausal-cc,
   author =	{Biere, Armin and Fazekas, Katalin and Fleury, Mathias and Froleyks, Nils},
   title =	{{Clausal Congruence Closure}},
-  booktitle =	{27th International Conference on Theory and Applications of Satisfiability Testing (SAT 2024)},
-  pages =	{6:1--6:25},
-  series =	{Leibniz International Proceedings in Informatics (LIPIcs)},
-  ISBN =	{978-3-95977-334-8},
-  ISSN =	{1868-8969},
+  booktitle =	{27th International Conference on Theory and Applications of Satisfiability Testing (SAT)},
   year =	{2024},
-  volume =	{305},
-  editor =	{Chakraborty, Supratik and Jiang, Jie-Hong Roland},
-  publisher =	{Schloss Dagstuhl -- Leibniz-Zentrum f{\"u}r Informatik},
-  address =	{Dagstuhl, Germany},
-  URL =		{https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SAT.2024.6},
-  URN =		{urn:nbn:de:0030-drops-205287},
   doi =		{10.4230/LIPIcs.SAT.2024.6},
-  annote =	{Keywords: Satisfiability Solving, Congruence Closure, Structural Hashing, SAT Sweeping, Conjunctive Normal Form, Combinational Equivalence Checking, Hardware Equivalence Checking}
 }
 
 @misc{parallel-algos,
@@ -314,8 +266,6 @@ series = {PPoPP '24}
   title     = {A Lock-Free Algorithm for Concurrent Bags},
   booktitle = {ACM Symposium on Parallelism in Algorithms and Architectures (SPAA)},
   year      = {2011},
-  pages     = {335--344},
-  publisher = {ACM},
   doi       = {10.1145/1989493.1989550},
 }
 
@@ -323,10 +273,6 @@ series = {PPoPP '24}
   author    = {Leino, K. Rustan M.},
   title     = {{Dafny}: An Automatic Program Verifier for Functional Correctness},
   booktitle = {Logic for Programming, Artificial Intelligence, and Reasoning (LPAR)},
-  series    = {Lecture Notes in Computer Science},
-  volume    = {6355},
-  pages     = {348--370},
-  publisher = {Springer},
   year      = {2010},
   doi       = {10.1007/978-3-642-17511-4_20},
 }
@@ -334,9 +280,7 @@ series = {PPoPP '24}
 @article{verus,
   author    = {Lattuada, Andrea and Hance, Travis and Cho, Chanhee and Brun, Matthias and Subasinghe, Isitha and Zhou, Yi and Howell, Jon and Parno, Bryan and Hawblitzel, Chris},
   title     = {{Verus}: Verifying {Rust} Programs Using Linear Ghost Types},
-  journal   = {Proc. ACM Program. Lang.},
-  volume    = {7},
-  number    = {OOPSLA1},
+  number    = {OOPSLA},
   pages     = {286--315},
   year      = {2023},
   doi       = {10.1145/3586037},
@@ -357,10 +301,6 @@ series = {PPoPP '24}
   author    = {Biere, Armin and Fazekas, Katalin and Fleury, Mathias and Heisinger, Maximilian},
   title     = {{CaDiCaL}, {Kissat}, {Paracooba}, {Plingeling} and {Treengeling} Entering the {SAT} Competition 2020},
   booktitle = {Proc. of SAT Competition 2020 -- Solver and Benchmark Descriptions},
-  series    = {Department of Computer Science Report Series B},
-  volume    = {B-2020-1},
-  pages     = {51--53},
-  publisher = {University of Helsinki},
   year      = {2020},
 }
 
@@ -457,7 +397,6 @@ series = {PPoPP '24}
   author    = {Mattarei, Cristian and Mann, Makai and Barrett, Clark and Daly, Ross G. and Huff, Dillon and Hanrahan, Pat},
   title     = {{CoSA}: Integrated Verification for Agile Hardware Design},
   booktitle = {Formal Methods in Computer Aided Design (FMCAD)},
-  pages     = {1--5},
   year      = {2018},
 }
 
@@ -466,7 +405,7 @@ series = {PPoPP '24}
   title        = {The {grind} Tactic},
   howpublished = {\url{https://lean-lang.org/doc/reference/latest/The--grind--tactic/}},
   year         = {2025},
-  note         = {Lean 4 Reference Manual; accessed 2026-05-01},
+  note         = {{Lean} 4 Reference Manual; accessed 2026-05-01},
 }
 
 @misc{smtcomp2025,

@@ -1,7 +1,7 @@
 \section{Evaluation}
 \label{sec:eval}
 
-In this section, we evaluate our parallel congruence closure algorithm on a
+In this section, we evaluate our parallel congruence closure algorithms on a
 number of benchmarks in order to answer the following research questions:
 
 \begin{itemize}
@@ -19,14 +19,13 @@ selection of benchmarks on various workloads. In \autoref{sec:eval:random}, we
 discuss a randomly generated benchmark suite. In \autoref{sec:eval:synthetic},
 we discuss a synthetic benchmark suite that allows us to dial up the depth and
 width of the benchmark to better understand how these parameters affect the
-performance of our algorithm. Finally, in \autoref{sec:eval:hardware}, we discuss
-a set of benchmarks on a set of circuit equivalence
-benchmarks~\cite{clausal-cc}.
+performance of our algorithms. Finally, in \autoref{sec:eval:circuit}, we
+discuss a set of circuit equivalence benchmarks~\cite{clausal-cc}.
 
-All experiments were run on a 96-core Amazon Web Service \texttt{c8i-metal}
-instance with Intel(R) Xeon(R) 6975P-C (3.9 GHz) and 384 GB memory. Each core is
-2-way hyperthreaded, giving 192 hyperthreads. The machine runs Ubuntu 26.04
-LTS, and the code was compiled using g++15.2.0 with -O3.
+All experiments were run on a 96-core Amazon Web Services \texttt{c8i-metal}
+instance with Intel(R) Xeon(R) 6975P-C (3.9 GHz) and 384 GB memory. Each core
+is 2-way hyperthreaded, giving 192 hyperthreads. The machine runs Ubuntu
+26.04 LTS, and the code was compiled using g++ 15.2.0 with -O3.
 
 For each benchmark, we perform 1 warmup run and 5 timed runs, and we report the
 geometric mean of the runtime across the 5 timed runs.
@@ -83,7 +82,7 @@ stratify our workloads into different size classes, which are shown in
 % \as{I think we should only report the deep versions of these benchmarks. I
 % update the table to rename things}
 
-\begin{table}[t]
+\begin{table}[!tb]
   \centering
   \begin{tabular}{l r r r r r}
     \toprule
@@ -104,13 +103,12 @@ stratify our workloads into different size classes, which are shown in
     \texttt{32xl} &  3\,200\,000 & 64\,000\,000 & 6\,400\,000 & 3 & 16 \\
     \bottomrule
   \end{tabular}
-  \caption{Synthetic workload parameters. We have $n_{\text{fns}}$ function
-  symbols, each of arity $2$. Each workload is a random binary-tree DAG
-  with $n_{\text{leaves}}$ \texttt{x}-leaves plus $n_{\text{leaves}}$
-  \texttt{y}-leaves at the base, $n_{\text{compound}}$ compound terms of
-  depth $d$ built from uniformly-chosen function symbols, and
-  $n_{\text{merges}}$ random initial equalities, each pairing one
-  \texttt{x}-leaf with one \texttt{y}-leaf.
+  \caption{Random workload parameters. We have $n_{\text{fns}}$ function
+  symbols, each of arity $2$. Each workload has $n_{\text{leaves}}$
+  \texttt{x}-leaves plus $n_{\text{leaves}}$ \texttt{y}-leaves at the base,
+  $n_{\text{compound}}$ compound terms of depth $d$ built from
+  uniformly-chosen function symbols, and $n_{\text{merges}}$ random initial
+  equalities, each pairing one \texttt{x}-leaf with one \texttt{y}-leaf.
   % All workloads use a fixed merge-density ratio $n_{\text{merges}} /
   % n_{\text{leaves}} = 2$ and a constant scaling $n_{\text{compound}} /
   % n_{\text{leaves}} = 20$.
@@ -129,20 +127,22 @@ achieves a speedup over sequential of $36.8\times$ ($23.4\times$) on 32
 threads, $51.9\times$ ($31.9\times$) on 64 threads, and $76.1\times$
 ($50.0\times$) on 192 threads.
 
-While both \parentalgo and \filteralgo achieve similar parallelization on larger
-workloads, \filteralgo starts from a much better baseline. This is because
-\parentalgo must maintain the parent lists for each term, which is expensive as
-it requires frequent allocations. Additionally, while the sequential algorithm
-must maintain parent lists as well, it is able to avoid duplicates.
+While both \parentalgo and \filteralgo achieve similar parallelization on
+larger workloads, \filteralgo's single-thread runtime is much better than
+\parentalgo's. This is because \parentalgo must maintain a parent list for
+each term, which is expensive due to the frequent allocations required.
+The sequential algorithm also maintains parent lists, but is able to avoid
+duplicates.
 
 
-Note that on sufficiently large workloads, we can achieve superlinear speedups.
-We believe that this is because the \filteralgo has less datastructures to
-maintain and thus on the larger workloads, the sequential version suffers more
-from cache misses and other overhead. In particular, maintaining parent lists
-within the sequential algorithm (and the parent-based parallel algorithm)
-has relatively poor spatial locality, as the children of a node may be scattered
-far away from the parent in memory.
+Note that on sufficiently large workloads we observe \emph{superlinear}
+speedups, e.g., \filteralgo on \texttt{32xl} reaches $36.8\times$ on 32
+threads. We believe this is because \filteralgo has fewer data structures
+to maintain, so on larger workloads the sequential version suffers more
+from cache misses and other memory overhead. In particular, maintaining
+parent lists in the sequential algorithm (and in \parentalgo) has poor
+spatial locality, since the children of a term may be scattered far from
+the parent in memory.
 
 % While varying the number of nodes, leads to better speedups, the results for
 % varying the depth is more complicated. For instance, while \texttt{deep-s} and
@@ -213,7 +213,7 @@ fan-in per $g$-node. We sweep $k \in \{30, 55, 80, 105, 130, 155, 180, 205\}$
 and $l \in \{2, 3, 4, 5\}$.
 
 We see that the width of the benchmark has a much larger impact on the speedup
-than the depth. Holding cube width $k$ and thread count $T$ fixed, the parallel
+than the depth. Holding $k$ and thread count $T$ fixed, the parallel
 speedup varies by only $\sim$20\% across the four tree depths we measured
 (median max/min over $l$ of $1.21\times$ for \filteralgo and $1.20\times$ for
 \parentalgo), demonstrating that depth has negligible impact on parallel
@@ -227,15 +227,16 @@ sharply with thread count: at $T{=}1$ it is $1.49\times$ for \filteralgo and
 $1.78\times$ for \parentalgo, but by $T{=}192$ it reaches $20.2\times$ and
 $23.2\times$ respectively.
 
-Similar to the random workloads, our algorithm achieves near-linear speedup over
-the sequential version up to a plateau between 32 and 64 threads. However, the
-single-core baseline is noticeably worse than the sequential algorithm: at
-$k{=}205$, $l{=}2$, \filteralgo at $T{=}1$ is $2.22\times$ slower than the
-sequential algorithm and \parentalgo at $T{=}1$ is $4.25\times$ slower. On the
-same workload, \filteralgo (and respectively \parentalgo) achieves a speedup
-over sequential of $6.79\times$ ($3.30\times$) on 16 threads, $12.3\times$
-($6.16\times$) on 32 threads, $17.0\times$ ($9.09\times$) on 64 threads, and
-only $26.4\times$ ($17.0\times$) on 192 threads.
+Similar to the random workloads, our algorithms achieve near-linear speedup
+over the sequential version up to a plateau between 32 and 64 threads.
+However, the single-core baseline is noticeably worse than the sequential
+algorithm: at $k{=}205$, $l{=}2$, \filteralgo at $T{=}1$ is $2.22\times$
+slower than the sequential algorithm and \parentalgo at $T{=}1$ is
+$4.25\times$ slower. On the same workload, \filteralgo (resp.\ \parentalgo)
+achieves a speedup over sequential of $6.79\times$ ($3.30\times$) on 16
+threads, $12.3\times$ ($6.16\times$) on 32 threads, $17.0\times$
+($9.09\times$) on 64 threads, and $26.4\times$ ($17.0\times$) on 192
+threads.
 
 
 
@@ -287,9 +288,9 @@ only $26.4\times$ ($17.0\times$) on 192 threads.
 % We modify the benchmarks slightly so that instead of treating negation as a
 % specific boolean connective, we treat it as a function symbol.
 
-In this section, we evaluate on a set of benchmarks checking the equivalence of
-two circuits. Circuit equivalence is checked using a construction called a
-\emph{miter}: given two circuits $C_1$ and $C_2$ with the same input and output
+These benchmarks check the equivalence of two circuits using a construction
+called a \emph{miter}: given two circuits $C_1$ and $C_2$ with the same
+input and output
 signatures, a miter $M$ feeds shared inputs to both, XORs each pair of
 corresponding outputs, and ORs all of the XORs together. If $M$ is
 unsatisfiable, i.e. the output on any set of inputs is always $0$, then $C_1$
@@ -303,11 +304,12 @@ equivalent subcircuits whose equivalence can be discovered structurally. They
 showed that recovering the gates from the CNF and running congruence closure
 on them can drastically simplify (and often immediately decide) the resulting
 formula.
-They implemented their algorithm as a preprocessing pass in Kissat~\cite{kissat}
-and evaluated on two benchmark sets: five hand-curated miters from the IWLS'22
-paper~\cite{iwls}, considered hard for monolithic CNF-level SAT sweeping, and a
-derivative of the 2012 Hardware Model Checking Competition~\cite{hwmcc} that
-compares each And-Inverter Graph against an optimized variant.
+They implemented their algorithm as a preprocessing pass in
+Kissat~\cite{kissat} and evaluated on two benchmark sets: 10 hand-curated
+miters from the IWLS'22 paper~\cite{iwls}, considered hard for monolithic
+CNF-level SAT sweeping, and a derivative of the 2012 Hardware Model
+Checking Competition~\cite{hwmcc} that compares each And-Inverter Graph
+against an optimized variant.
 
 For our evaluation we use the same circuit sources, but rather than running
 congruence closure as a preprocessing pass within Kissat we extract its
@@ -351,7 +353,14 @@ measured, \filteralgo at $T{=}1$ ranges from $0.71\times$ slower than sequential
 \texttt{6s104-xits-opt.gates}; \parentalgo, by contrast, is consistently
 $\sim$$4\times$ slower at number of threads $T{=}1$ regardless of file.
 
-Figure~\ref{fig:gates_vs_min_dirty_fraction} explains this spread by plotting
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{figs/gates_speedup_vs_min_dirty_fraction.png}
+  \caption{Slowdown of \filteralgo compared to sequential baseline vs.\ the smallest fraction of dirty terms across rounds.}
+  \label{fig:gates_vs_min_dirty_fraction}
+\end{figure}
+
+\autoref{fig:gates_vs_min_dirty_fraction} explains this spread by plotting
 the speedup of \filteralgo against the \emph{minimum per-round dirty term
 fraction}: for each round $r$ of the algorithm we record
 $\mathrm{dirty}[r]/\mathrm{live}[r]$, where $\mathrm{dirty}[r]$ is the number of
@@ -361,7 +370,7 @@ unions; we then take the minimum over all rounds the closure executes. A small
 minimum is bad for \filteralgo because every round, regardless of how few terms
 are actually dirty, pays the full $O(\mathrm{live})$ cost of scanning all live
 terms to filter out the dirty ones --- so a workload with even one near-empty
-round wastes work proportional to the entire term set for very few useful unions.
+round wastes work proportional to all live terms for very few useful unions.
 % The figure shows a strong positive correlation (Spearman $\rho{\approx}{+}0.79$)
 % between the minimum dirty fraction and the per-file speedup, and exactly the
 % files with very low minimum fractions — \texttt{6s104-ands/xits-opt},
@@ -376,13 +385,6 @@ round wastes work proportional to the entire term set for very few useful unions
 % achieves a speedup over sequential of $9.33\times$ ($2.94\times$) on 16 threads,
 % $17.4\times$ ($5.56\times$) on 32 threads, $22.4\times$ ($8.20\times$) on 64
 % threads, and $38.4\times$ ($17.3\times$) on 192 threads.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\linewidth]{figs/gates_speedup_vs_min_dirty_fraction.png}
-  \caption{Slowdown of \filteralgo compared to sequential baseline vs.\ the smallest fraction of dirty terms across rounds.}
-  \label{fig:gates_vs_min_dirty_fraction}
-\end{figure}
 
 
 

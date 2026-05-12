@@ -82,7 +82,7 @@ are not already present. This is implemented in \autoref{alg:seq}.
 We tested a number of other sequential algorithms and found this one to be the
 most efficient. The other sequential algorithms we tested are included below.
 
-\subsubsection{Other Sequential Algorithms} One approach is to topologically sort the
+\subsubsection{Topological Sort} One approach is to topologically sort the
 terms, i.e. sort them in an order where each child must come before its parents.
 Then you can add each term to a signature table one at a time. If a term is
 already equal to a term in the signature table, you can union their equivalence
@@ -93,7 +93,7 @@ be possible. This
 approach is sometimes efficient, but breaks down when many iterations must be
 done.
 
-We also implemented a practical version of the Downey-Sethi-Tarjan (DST)
+\subsubsection{DST}We also implemented a practical version of the Downey-Sethi-Tarjan (DST)
 algorithm~\cite{downey-sethi-tarjan} that achieves $O(n \log n)$ work. We made some changes, including
 eliminating the outdegree-2 transformation that curries each term into a binary
 term by representing an $n$-ary term as a tree of binary terms. Additionally,
@@ -269,7 +269,7 @@ workloads. \autoref{alg:dirty-children} gives the pseudocode.
         \EndParFor
         \State $\mathit{Frontier} \gets \text{terms appearing in } \mathit{Eq}$
         \While{$\mathit{Frontier}$ is not empty}
-          \State $\rhd$ Dirty flags
+          \State $\rhd$ Dirty flags, indexed by term id (one per term, $n$ total)
           \State $\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < n]$
           \State $\mathit{groups} \gets \Call{GroupBy}{\textsc{Congruent}, \mathit{Frontier}}$
           \ParFor{$g \in \mathit{groups}$}
@@ -277,7 +277,7 @@ workloads. \autoref{alg:dirty-children} gives the pseudocode.
             \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{g}$
             \State $\mathit{dirty}[\mathit{rep}] \gets \textbf{true}$
           \EndParFor
-          \State $\mathit{Frontier} \gets \{u \mid \mathit{dirty}[u]\}$
+          \State $\mathit{Frontier} \gets \{g(\ldots u \ldots) \mid \mathit{dirty}[u]\}$
         \EndWhile
     \EndFunction
 \end{algorithmic}
@@ -298,7 +298,7 @@ encounter in our workloads.
 
 Several implementation choices also had significant impact on the performance
 of the sequential algorithm. Firstly, we maintain different signature tables
-for terms of arities 1,2,3 and 4. Terms of greater arities fall into the
+for terms of arities 1, 2, 3, and 4. Terms of greater arities fall into the
 general signature table. Heterogeneous signature tables require storing terms
 of different arities (and hence size), and require dynamic allocations for
 each canonical signature placed into the table. Thus for the common case
