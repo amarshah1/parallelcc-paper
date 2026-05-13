@@ -20,10 +20,12 @@ parent terms.
 % ``theories'' such as uninterpreted functions, linear arithmetic, bit-vectors,
 % and many others.
 
-Both equality saturation engines like egg~\cite{egg} and egglog~\cite{egglog}
-and SMT solvers like Z3~\cite{z3} and cvc5~\cite{cvc5} are widely used in a
-variety of applications, including software verification~\cite{dafny,verus},
-hardware design~\cite{hardware}, and mathematical theorem proving~\cite{lean-grind}.
+Congruence closure is a component of SAT solvers like Kissat~\cite{kissat};
+equality saturation engines like egg~\cite{egg} and egglog~\cite{egglog}; and
+SMT solvers like Z3~\cite{z3} and cvc5~\cite{cvc5}. These tools are used in a
+variety of applications, including circuit equivalence
+checking~\cite{clausal-cc}, software verification~\cite{dafny,verus}, hardware
+design~\cite{hardware}, and mathematical theorem proving~\cite{lean-grind}.
 Hence, their performance is critical, and much work has gone into improving
 their efficiency. One promising avenue for improving the performance is
 \emph{parallelization}: utilizing multiple processors to solve the problem
@@ -76,6 +78,6 @@ In summary, this paper makes the following contributions:
     designed to stress-test our algorithm, and a set of circuit equivalence
     benchmarks~\cite{clausal-cc}.
 \end{itemize}
-We additionally discuss what would be required to integrate our algorithms
-into an existing SMT solver or equality saturation engine.
+% We additionally discuss what would be required to integrate our algorithms
+% into an existing SMT solver or equality saturation engine.
 

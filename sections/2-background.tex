@@ -45,57 +45,108 @@ and conversely that $f(x)$ is a \emph{parent} of $x$.
 \end{definition}
 
 
-SMT solvers determine the satisfiability of a first-order logic formula by using
-a Boolean Satisfiability (SAT) solver to search for a satisfying assignment to
-the propositional skeleton of the formula and then using a theory solver to
-check if the assignment is consistent with the theory. Congruence closure is
-useful in practice when dealing with the theory of uninterpreted functions (UF).
-Given a formula $\phi = a_1 = b_1 \land \ldots \land a_n = b_n \land s \neq t$,
-an SMT solver will run congruence closure on the equalities $E = \{a_i =
-b_i\}_{i=1}^n$ to obtain the congruence closure $\equiv$ of $E$. Then, it will
-check if $s$ and $t$ are in the same equivalence class under $\equiv$. If they
-are, then we know that $s \neq t$ cannot be true and thus the formula $\phi$ is
-unsatisfiable.
+% SMT solvers determine the satisfiability of a first-order logic formula by using
+% a Boolean Satisfiability (SAT) solver to search for a satisfying assignment to
+% the propositional skeleton of the formula and then using a theory solver to
+% check if the assignment is consistent with the theory. Congruence closure is
+% useful in practice when dealing with the theory of uninterpreted functions (UF).
+% Given a formula $\phi = a_1 = b_1 \land \ldots \land a_n = b_n \land s \neq t$,
+% an SMT solver will run congruence closure on the equalities $E = \{a_i =
+% b_i\}_{i=1}^n$ to obtain the congruence closure $\equiv$ of $E$. Then, it will
+% check if $s$ and $t$ are in the same equivalence class under $\equiv$. If they
+% are, then we know that $s \neq t$ cannot be true and thus the formula $\phi$ is
+% unsatisfiable.
 
 
-Equality saturation, on the other hand, asks: given a program $P$ and a set of
-rewrite rules $R$, what is the ``best'' program equivalent to $P$ under $R$?
-This can be treated as a congruence closure problem. We repeatedly
-apply the rewrite rules $R$ to $P$, and use congruence closure to maintain the
-equivalence class of programs equivalent to $P$. After congruence closure
-reaches saturation or times out, a cost function is used to select the best
-program $Q$ from $P$'s equivalence class.
+% Equality saturation, on the other hand, asks: given a program $P$ and a set of
+% rewrite rules $R$, what is the ``best'' program equivalent to $P$ under $R$?
+% This can be treated as a congruence closure problem. We repeatedly
+% apply the rewrite rules $R$ to $P$, and use congruence closure to maintain the
+% equivalence class of programs equivalent to $P$. After congruence closure
+% reaches saturation or times out, a cost function is used to select the best
+% program $Q$ from $P$'s equivalence class.
 
 
 
 \subsection{Motivating Example}
 \label{sec:bg:motivating}
 
-To make the structure concrete, consider the following formula given to an
-SMT solver:
+To make the structure concrete, we work through a small instance of a
+problem where congruence closure shines: \emph{combinational equivalence
+checking} for hardware circuits~\cite{clausal-cc}. Given two circuits
+$C_1$ and $C_2$ with the same inputs and outputs, one can check their 
+equivalence using a construction know as a \emph{miter}: a single
+circuit that feeds the shared inputs to both copies, XORs their
+corresponding outputs, and ORs the results. The miter outputs $1$ on some
+input iff $C_1$ and $C_2$ disagree on that input, so $C_1$ and $C_2$ are
+equivalent iff the formula ``the miter outputs $1$'' is unsatisfiable.
+
+\autoref{fig:miter} shows a simple miter, adapted from the running
+example of Biere et al.~\cite{clausal-cc}, with two copies of the same
+three-gate circuit. Each side $i \in \{1, 2\}$ computes
 %
-\begin{equation}\label{ex:formula}
-% \begin{aligned}
-a_0 = b_0 \land\; a_1 = b_1 \land\;g(f(a_0), f(a_1)) \neq g(f(b_0), f(b_1))
-% \end{aligned}
-\end{equation}
+\begin{equation*}\label{ex:formula}
+\begin{aligned}
+a_i &= \mathrm{AND}(r, s), \\
+x_i &= \mathrm{XOR}(u, v), \\
+m_i &= \mathrm{ITE}(c,\; a_i,\; x_i),
+\end{aligned}
+\end{equation*}
 %
+where $r, s, u, v, c$ are shared inputs but the two sides use
+\emph{distinct} gate instances ($a_1, a_2$ are different gate-IDs, even
+though both compute $\mathrm{AND}(r,s)$, and similarly for $x_i$ and
+$m_i$). The two outputs $m_1, m_2$ are combined by a top-level
+$\mathrm{XOR}(m_1, m_2)$, and the miter asserts $p = m_1 \oplus m_2 = 1$.
 
-This formula consists of two equalities $a_0 = b_0$ and $a_1 = b_1$, and a
-single disequality between two terms built from $f$ and $g$. The disequality
-compares two applications of $g$, whose arguments are the $f$-terms.
+Miters are typically encoded into conjunctive normal form (CNF) and handed
+to a SAT solver, but these formulas are large and the CNF encoding
+destroys the gate-level structure that makes equivalence apparent. Biere
+et al.~\cite{clausal-cc} observed that miters generated from real designs
+often contain many syntactically distinct gates that compute the same
+function, so running congruence closure over the recovered gates can
+drastically simplify (and often immediately decide) the resulting formula.
 
-Congruence closure proceeds as follows. After applying the two asserted unions,
-the union-find places $a_0 \equiv b_0$ and $a_1 \equiv b_1$. Then by congruence
-we have that $f(a_0) \equiv f(b_0)$ and $f(a_1) \equiv f(b_1)$.
+\begin{figure}[t]
+\centering
+\input{figs/miter}
+\caption{Miter for combinational equivalence checking, adapted from
+Biere et al.~\cite{clausal-cc}. Two structurally identical sub-circuits
+$C_1$ and $C_2$ (dotted boxes) share inputs $r, s, u, v, c$. Each side
+computes $a_i = \mathrm{AND}(r, s)$, $x_i = \mathrm{XOR}(u, v)$, and
+$m_i = \mathrm{ITE}(c, a_i, x_i)$. The top XOR asserts $p = m_1 \oplus
+m_2 = 1$; the two sub-circuits are equivalent iff this formula is
+unsatisfiable.}
+\label{fig:miter}
+\end{figure}
 
-Once these equalities fire, the $g$-terms become congruent $g(f(a_0), f(a_1))
-\equiv g(f(b_0), f(b_1))$. Thus, the SMT solver knows that these two terms must
-be equal and thus the given formula is false.
+On this miter, congruence closure proves equivalence in three rounds,
+each of which discovers \emph{multiple} new congruences in parallel:
 
-Notice that this propagates in rounds: the initial equalities are added to the
-union-find, then the two $f$-term equalities are added, and finally the
-$g$-term equality is added.
+\begin{enumerate}
+\item \textbf{Round 1 (leaf gates).} Both AND-gates have the same function
+symbol and the same children $(r, s)$, so $a_1 \equiv a_2$ by congruence.
+Likewise both XOR-gates compute over $(u, v)$, giving $x_1 \equiv x_2$.
+\item \textbf{Round 2 (ITE gates).} With $a_1 \equiv a_2$ and $x_1 \equiv
+x_2$ established, the two ITE-gates now have pointwise-congruent children
+$(c, a_i, x_i)$, so $m_1 \equiv m_2$.
+\item \textbf{Round 3 (top XOR).} The top XOR's two children are now in
+the same equivalence class, so by congruence its output equals
+$\mathrm{XOR}(m_1, m_1)$. If this formula is given to a SAT solver, 
+can immediately determine that the output is $0$ and thus the two 
+circuits are equivalent. 
+\end{enumerate}
+
+Two features of this trace are important for our work. First, the
+congruences at each round are \emph{mutually independent}: $a_1 \equiv
+a_2$ and $x_1 \equiv x_2$ do not depend on each other and could be
+discovered concurrently, as could the merges at each subsequent level.
+This is exactly the parallelism our algorithms exploit. Second, the trace
+naturally separates into \emph{depth} (the number of rounds) and
+\emph{width} (the number of new congruences per round). In this tiny
+example both are small, but in real benchmarks the width can grow
+to thousands or millions of independent merges per round. We formalize
+these notions next.
 
 \begin{definition}[Congruence Depth]
     We say that two terms are $k$-step congruent if they are congruent after
@@ -191,7 +242,7 @@ independent tasks. It is easy to see how this could have been implemented using
 % \textbf{parfor} in pseudocode whenever the iterations are mutually independent.
 
 Concurrent updates to shared state are mediated by atomic primitives. We rely on
-\emph{compare-and-swap} (\texttt{CAS}): $\Call{CAS}{addr, old, new}$ atomically
+\emph{compare-and-swap} (\texttt{CAS}): $\Call{\texttt{CAS}}{addr, old, new}$ atomically
 writes $new$ to $addr$ if its current value is $old$, and returns whether it
 succeeded. \texttt{CAS} is the building block for the lock-free union-find we
 use in \autoref{subsec:uf}. Contention, where two threads attempt to update the same location

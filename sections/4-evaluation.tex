@@ -180,10 +180,8 @@ of congruence closure) and the width (i.e. number of merges per round) of the
 benchmark and the performance of our algorithm, we design a synthetic benchmark
 suite that allows us to dial up these parameters.
 
-Our benchmark suite generalizes the structure of the example in
-\autoref{ex:formula} to arbitrary widths and depths. Each benchmark is
-parameterized by a width $k$ and a $g$-tree fan-in $l$, and is constructed
-in three layers:
+Our benchmark suite is parameterized by a width $k$ and a $g$-tree fan-in
+$l$, and is constructed in three layers:
 
 \begin{itemize}
   \item \textbf{Leaves.} $2k$ leaf constants $a_1, \ldots, a_k$ and $b_1,
@@ -288,36 +286,24 @@ threads.
 % We modify the benchmarks slightly so that instead of treating negation as a
 % specific boolean connective, we treat it as a function symbol.
 
-These benchmarks check the equivalence of two circuits using a construction
-called a \emph{miter}: given two circuits $C_1$ and $C_2$ with the same
-input and output
-signatures, a miter $M$ feeds shared inputs to both, XORs each pair of
-corresponding outputs, and ORs all of the XORs together. If $M$ is
-unsatisfiable, i.e. the output on any set of inputs is always $0$, then $C_1$
-and $C_2$ are equivalent.
+These benchmarks come from the clausal congruence closure work of Biere
+et al.~\cite{clausal-cc}, which (as discussed in
+\autoref{sec:bg:motivating}) uses congruence closure over recovered gates to simplify
+miters before SAT solving. They implemented their algorithm as a
+preprocessing pass in Kissat~\cite{kissat} and evaluated on two benchmark
+sets: 10 hand-curated miters from the IWLS'22 paper~\cite{iwls},
+considered hard for monolithic CNF-level SAT sweeping, and a derivative
+of the 2012 Hardware Model Checking Competition~\cite{hwmcc} that
+compares each And-Inverter Graph against an optimized variant.
 
-Miters are typically encoded into conjunctive normal form (CNF) and given to a
-SAT solver, but these formulas are large and the encoding destroys the
-gate-level structure that makes equivalence apparent. Biere et
-al.~\cite{clausal-cc} observed that the two sides of a miter often share
-equivalent subcircuits whose equivalence can be discovered structurally. They
-showed that recovering the gates from the CNF and running congruence closure
-on them can drastically simplify (and often immediately decide) the resulting
-formula.
-They implemented their algorithm as a preprocessing pass in
-Kissat~\cite{kissat} and evaluated on two benchmark sets: 10 hand-curated
-miters from the IWLS'22 paper~\cite{iwls}, considered hard for monolithic
-CNF-level SAT sweeping, and a derivative of the 2012 Hardware Model
-Checking Competition~\cite{hwmcc} that compares each And-Inverter Graph
-against an optimized variant.
-
-For our evaluation we use the same circuit sources, but rather than running
-congruence closure as a preprocessing pass within Kissat we extract its
-intermediate gate set and run our parallel congruence closure implementations on
-it directly. Concretely, we instrument Kissat's gate extractor to dump every
-candidate gate (AND/XOR/ITE). We evaluate our congruence closure implementations
-on these gates. From the HWMCC'12 set we pick the twelve hardest instances by
-sequential congruence closure time.
+For our evaluation we use the same circuit sources, but rather than
+running congruence closure as a preprocessing pass within Kissat we
+extract its intermediate gate set and run our parallel congruence closure
+implementations on it directly. Concretely, we instrument Kissat's gate
+extractor to dump every candidate gate (AND/XOR/ITE) and run our
+congruence closure implementations on these gates. From the HWMCC'12 set
+we pick the twelve hardest instances by sequential congruence closure
+time.
 
 \begin{figure*}[!tb]
   \centering

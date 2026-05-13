@@ -24,6 +24,8 @@
 \usepackage{amsthm}
 \usepackage[square,comma,numbers,sort&compress]{natbib}      % Offers more control over citation appearance and bib spacing
 \usepackage{algpseudocodex}
+\usepackage[american]{circuitikz}
+\usetikzlibrary{positioning, fit, calc}
 \hypersetup{hidelinks}
 
 
@@ -104,26 +106,25 @@
 \begin{abstract}
   Given a set of ground equalities over terms with uninterpreted function
   symbols, congruence closure computes the smallest equivalence relation
-  containing these equalities that respects functional congruence. While congruence closure
-  is a performance-critical component of satisfiability modulo theories (SMT)
-  solvers and equality saturation engines, all existing implementations are
-  sequential. In this work, we provide the first parallel algorithm for
-  congruence closure. 
+  containing these equalities that respects functional congruence. While
+  congruence closure is a performance-critical component of SAT solvers,
+  satisfiability modulo theories (SMT) solvers, and equality saturation engines,
+  all existing implementations are sequential. In this work, we provide the
+  first parallel algorithm for congruence closure. 
   
   We build on two ideas from the parallel algorithms literature: a union-find
   data structure that supports concurrent union operations and a semisort
-  (group-by) algorithm that allows us to discover new congruences in
-  parallel. We present two algorithms that replace the classic sequential
-  worklist with a bulk-synchronous closure loop: each round processes all
-  pending unions in parallel, detects new congruences, and repeats until a
-  fixpoint. The two algorithms differ in how they identify which terms to
-  re-examine in each round.
-
-  We evaluate both these algorithms against a sequential baseline on a number of
-  benchmarks and show near-linear speedup on up to 32 cores. Both of our
-  algorithms can be extended to support backtracking, proof production, and
-  dynamic term insertion. These algorithms are compatible with modern SMT solvers
-  and equality saturation architectures.
+  (group-by) algorithm that allows us to discover new congruences in parallel.
+  We present two algorithms that replace the classic sequential worklist with a
+  bulk-synchronous closure loop: each round processes all pending unions in
+  parallel, detects new congruences, and repeats until a fixpoint. The two
+  algorithms differ in how they identify which terms to re-examine in each
+  round. We evaluate both these algorithms against a sequential baseline on a
+  number of benchmarks and show near-linear speedup on up to 32 cores. 
+  % Both of our
+  % algorithms can be extended to support backtracking, proof production, and
+  % dynamic term insertion. These algorithms are compatible with modern SMT solvers
+  % and equality saturation architectures.
 \end{abstract}
 
 \input{sections/1-intro}
