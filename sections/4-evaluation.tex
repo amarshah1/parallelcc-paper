@@ -28,7 +28,9 @@ is 2-way hyperthreaded, giving 192 hyperthreads. The machine runs Ubuntu
 26.04 LTS, and the code was compiled using g++ 15.2.0 with -O3.
 
 For each benchmark, we perform 1 warmup run and 5 timed runs, and we report the
-geometric mean of the runtime across the 5 timed runs.
+geometric mean of the runtime across the 5 timed runs. Throughout this section
+we write $T$ for the number of software threads used; in particular, $T{=}1$
+denotes the single-threaded configuration of a parallel algorithm.
 
 
 \subsection{Random Benchmarks}~\label{sec:eval:random}
@@ -53,7 +55,7 @@ geometric mean of the runtime across the 5 timed runs.
 
 Our first set of benchmarks are randomly generated based on several
 parameters. We first define a set of function symbols $F$, which has
-$n_{\text{fns}}$ total functions. Then we have a set of terms $T$ that
+$n_{\text{fns}}$ total functions. Then we have a set of terms $\mathcal{T}$ that
 contains $n_{\text{leaves}}$ \texttt{x}-leaves and $n_{\text{leaves}}$
 \texttt{y}-leaves, plus $n_{\text{compound}}$ compound terms of \emph{depth}
 $d$ (i.e.\ with $d$ nested function applications). We initially start with
@@ -210,6 +212,8 @@ larger $l$ produces a shallower closure (fewer rounds) at the cost of wider
 fan-in per $g$-node. We sweep $k \in \{30, 55, 80, 105, 130, 155, 180, 205\}$
 and $l \in \{2, 3, 4, 5\}$.
 
+\autoref{fig:synthetic} reports the speedup of both algorithms over the
+sequential baseline across this sweep.
 We see that the width of the benchmark has a much larger impact on the speedup
 than the depth. Holding $k$ and thread count $T$ fixed, the parallel
 speedup varies by only $\sim$20\% across the four tree depths we measured
@@ -330,14 +334,17 @@ time.
 % sequential implementation was much faster compare to the numbers reported in the
 % paper~\cite{clausal-cc}.
 
+\autoref{fig:circuit} reports the speedup of both algorithms over the
+sequential baseline on these benchmarks as the thread count $T$ is varied.
 On the circuit-equivalence benchmarks, \filteralgo and \parentalgo achieve
 near-linear speedup up to a plateau between 32 and 64 threads on most
-workloads. However, unlike on the random and cube benchmarks, the single-core
-baseline of \filteralgo varies dramatically across files: on the 22 files we
-measured, \filteralgo at $T{=}1$ ranges from $0.71\times$ slower than sequential
-(i.e.\ actually faster) on \texttt{h5m-n04-ands.gates} to $32.3\times$ slower on
-\texttt{6s104-xits-opt.gates}; \parentalgo, by contrast, is consistently
-$\sim$$4\times$ slower at number of threads $T{=}1$ regardless of file.
+workloads. However, unlike on the random and cube benchmarks, the single-thread
+runtime of \filteralgo varies dramatically across files. On the 22 files we
+measured, its runtime at $T{=}1$ ranges from $0.71\times$ the sequential runtime
+on \texttt{h5m-n04-ands.gates}---the one file where \filteralgo outperforms
+sequential even on a single thread---up to $32.3\times$ the sequential runtime on
+\texttt{6s104-xits-opt.gates}. \parentalgo, by contrast, is consistently
+$\sim$$4\times$ slower than sequential at $T{=}1$ regardless of file.
 
 \begin{figure}[H]
   \centering

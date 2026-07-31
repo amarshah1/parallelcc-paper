@@ -4,7 +4,8 @@
 
 \subsection{Sequential Baseline}~\label{sec:algorithm:no}
 
-Our baseline is a simple yet efficient worklist algorithm based on one developed
+Our baseline (\autoref{alg:seq}) is a simple yet efficient worklist algorithm
+based on one developed
 by Nieuwenhuis and Oliveras~\cite{nieuwenhuis-oliveras-cc}.
 
 We maintain a \emph{signature table} that maps every term to the representative
@@ -145,7 +146,8 @@ immediately. Otherwise, it compares the ranks of $u$ and $v$. If one rank is
 strictly greater than the other, then the algorithm attempts to set the parent
 of the lower-rank node to the greater-rank node with a \texttt{CAS}. This may
 fail if the parent of the lower-rank node has been updated in the meantime, in
-which case the operation retries.
+which case the \textsc{Union} restarts, recomputing the roots and ranks with a
+fresh \textsc{Find} before retrying.
 
 If both ranks are equal, then it selects one node arbitrarily to be the parent
 and attempts to update the child's parent pointer via a \texttt{CAS}, again
@@ -191,10 +193,14 @@ that class. This mapping must be updated every round; if two congruence classes
 are merged, then their parents must be merged as well. These rounds
 continue until there is no longer any work to do.
 
-\autoref{alg:bsp} gives the pseudocode, decomposed into three functions.
-The function \textsc{Congruent} checks whether two terms are congruent based
-on the equivalence classes in the union-find. Two terms are congruent if
-they have the same function symbol and each of their children is congruent.
+We call this algorithm \parentalgo, since it maintains an explicit parent list
+(the \textit{pred} mapping) for each congruence class.
+\autoref{alg:bsp} gives its pseudocode, decomposed into two functions.
+Both functions rely on the predicate \textsc{Congruent}, which checks whether
+two terms are congruent based on the equivalence classes in the union-find:
+two terms are congruent if they have the same function symbol and, under the
+current union-find, each of their children has the same representative (as
+defined in \autoref{alg:seq}).
 
 The \textsc{MergeCongruenceClass} function is used to merge the equivalence
 classes of different terms. Specifically, given a sequence $S$ of terms, it will
@@ -204,11 +210,6 @@ approach; we merge the left and right halves (in parallel), and then
 
 \begin{algorithm}
 \begin{algorithmic}[1]
-    \Function{Congruent}{X, Y} \If{$X = f(M_1,\ldots,M_n)$ and $Y =
-      f(N_1,\ldots,N_n)$} \State \Return $\Call{Find}{M_i} = \Call{Find}{N_i}$
-      for all $i = 1,\ldots,n$ \Else \State \Return \textbf{false} \EndIf
-      \EndFunction
-
     \Function{MergeCongruenceClass}{\textit{Class}} \If{$\mathit{Class} =
       \{e\}$} \State \Return{$e$} \Comment{Singleton class, return
       representative} \EndIf \State $n \gets |\textit{Class}|$ \State $L \gets

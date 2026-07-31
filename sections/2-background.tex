@@ -18,21 +18,26 @@ while maintaining congruence.
 
 
 \begin{definition}[Terms]
-    We define $T$ to be a set of \emph{terms} over function symbols $F$, where
-    each $t\in T$ is either a \emph{leaf term}, for example $x, y, z$ or a
+    We define $\mathcal{T}$ to be a set of \emph{terms} over function symbols
+    $F$, where
+    each $t\in \mathcal{T}$ is either a \emph{leaf term}, for example $x, y, z$
+    or a
     \emph{compound term} of the form $f(t_1, \ldots, t_k)$, where $f \in F$
-    with $\text{arity}(f) = k$ and $t_1, \ldots, t_k \in T$.
+    with $\text{arity}(f) = k$ and $t_1, \ldots, t_k \in \mathcal{T}$.
 \end{definition}
 
 For a compound term $f(x)$, we say that $x$ is a \emph{child} of $f(x)$,
 and conversely that $f(x)$ is a \emph{parent} of $x$.
 
 \begin{definition}[Congruence Closure]
-    Given $(F, T, E)$ where $F$ is a list of function symbols, $T$ is a set of
+    Given $(F, \mathcal{T}, E)$ where $F$ is a list of function symbols,
+    $\mathcal{T}$ is a set of
     terms over $F$, and $E = \{a_1 = b_1, \ldots, a_n = b_n\}$ is a set of
-    equalities between terms in $T$ where $a_1, \ldots, a_n, b_1, \ldots, b_n
-    \in T$, the congruence closure ($\equiv$) of $(F, T, E)$ is the smallest
-    equivalence closure of $=$ over $T$ that respects congruence. More
+    equalities between terms in $\mathcal{T}$ where $a_1, \ldots, a_n, b_1,
+    \ldots, b_n
+    \in \mathcal{T}$, the congruence closure ($\equiv$) of $(F, \mathcal{T}, E)$
+    is the smallest
+    equivalence closure of $=$ over $\mathcal{T}$ that respects congruence. More
     specifically:
     \begin{enumerate}
         \item $a_i \equiv b_i$ for every $i$ (input equalities $=$).
@@ -188,7 +193,8 @@ We describe our algorithms in the standard \emph{work--span} model of
 shared-memory parallelism~\cite{parallel-algos}. The \emph{work} $W$ of a
 computation is the total number of operations it performs; the \emph{span} (or
 depth) $S$ is the length of its longest sequential dependency chain. A famous
-result states that on $p$ processors with a greedy scheduler, the running time
+result~\cite{brent1974,graham1969} states that on $p$ processors with a greedy
+scheduler, the running time
 is bounded by $O(\max(W/p, S))$, so an algorithm exposes useful parallelism when
 $W/S$, its \emph{parallelism}, is large compared to the available cores.
 
