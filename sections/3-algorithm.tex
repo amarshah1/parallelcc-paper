@@ -11,7 +11,7 @@ by Nieuwenhuis and Oliveras~\cite{nieuwenhuis-oliveras-cc}.
 We maintain a \emph{signature table} that maps every term to the representative
 of its equivalence class. It is implemented via a hashtable, where hashing a
 term entails hashing its function symbol and the equivalence-class identifiers
-of its children. The
+of its immediate children. The
 signature table admits operations $\textsc{Lookup}(e)$, which finds the
 representative of term $e$ (if any), and $\textsc{Enter}(e)$, which enters term
 $e$ into the signature table.
@@ -229,7 +229,8 @@ approach; we merge the left and right halves (in parallel), and then
         \ParFor{$(u = v) \in \mathit{Eq}$}
           \State $\Call{Union}{u, v}$
         \EndParFor
-        \State $\mathit{Work} \gets \text{terms appearing in } \mathit{Eq}$
+        \State $\rhd$ Initialize $\mathit{Work}$ with terms appearing in equalities
+        \State $\mathit{Work} \gets \{e_1, e_1', \ldots, e_w, e_w'\}$
         \While{$\mathit{Work}$ is not empty}
           \State $\rhd$ Fold parent lists of merged classes into their new root
           \ParFor{$c \in \mathit{Work}$ with $c \neq \Call{Find}{c}$} \Comment{$c$ is not the representative of its class}
@@ -241,7 +242,8 @@ approach; we merge the left and right halves (in parallel), and then
           \ParFor{$g \in \mathit{groups}$ spanning more than one class}
             \State $\rhd$ Merge every term within congruence class
             \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{g}$
-            \State $\mathit{Work} \gets \mathit{Work} \cup \{\text{pre-merge roots of } g\text{'s classes}\} \setminus \{\mathit{rep}\}$
+            \State \mbox{$\mathit{Work} \gets \mathit{Work} \; \cup$}
+            \Statex \hspace{\algorithmicindent}$\{\text{pre-merge roots of } g\text{'s classes}\}\setminus\{\mathit{rep}\}$
           \EndParFor
         \EndWhile
     \EndFunction
@@ -347,13 +349,13 @@ parent lists, so every term whose signature may have changed is re-examined.
 \subsection{Implementation Details}
 
 We have found that several implementation details significantly improve the
-performance of both algorithms. Firstly, we do not actually perform the
-semisort as implemented by \textsc{ParlayLib}. Instead, we use an integer sort
-to group the nodes by hash and then \emph{sequentially} bucket the resulting
-array manually---this requires detecting hash collisions. This is more
-performant for small buckets. \textsc{ParlayLib} buckets in parallel, which
-is advantageous for large buckets, but not the small ones we typically
-encounter in our workloads.
+performance of both algorithms. Although we use \textsc{ParlayLib}'s scheduler
+and parallel primitives throughout, we do not use its semisort implementation
+directly. Instead, we use \textsc{ParlayLib}'s integer sort to group the nodes
+by hash and then \emph{sequentially} bucket the resulting array manually---this
+requires detecting hash collisions. This is more performant for small buckets.
+\textsc{ParlayLib}'s semisort buckets in parallel, which is advantageous for
+large buckets, but not the small ones we typically encounter in our workloads.
 
 Several implementation choices also had significant impact on the performance
 of the sequential algorithm. Firstly, we maintain different signature tables
