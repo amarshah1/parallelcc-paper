@@ -1,7 +1,14 @@
+\begin{filecontents*}{\jobname.xmpdata}
+\Title{Parallelizing Congruence Closure}
+\Author{Zachary Kent\sep Amar Shah}
+\Publisher{TU Wien Academic Press}
+\end{filecontents*}
+
 \documentclass[
-  % doi=10.XXXX/XXXXXX,   % Uncomment and fill in for the camera-ready version.
-  startpage=1,           % Uncomment and set first page number for the camera-ready version.
+  % doi=10.XXXX/XXXXXX,   % Filled in by the proceedings editors.
+  % startpage=1,          % Leave commented: page numbers are inserted by the editors.
   year=26,                 % Two-digit year (FMCAD 20YY).
+  pdfa,                    % Generate PDF/A-1b (metadata from \jobname.xmpdata above).
 ]{fmcad}
 
 \usepackage[T1]{fontenc}
@@ -58,8 +65,8 @@
 % --- todo notes ---
 % Comment out the next line (or pass [disable]) before camera-ready
 % to suppress every \todo / \zk / \as marker in one go.
-\usepackage[colorinlistoftodos,prependcaption,textsize=small]{todonotes}
-% \usepackage[disable]{todonotes}
+% \usepackage[colorinlistoftodos,prependcaption,textsize=small]{todonotes}
+\usepackage[disable]{todonotes}   % Camera-ready: suppress all \todo/\zk/\as markers.
 
 % Per-author inline todo macros. Usage: \zk{rephrase this} or \as{cite?}.
 \newcommand{\zk}[1]{\todo[inline,color=blue!20,size=\small]{\textbf{ZK:} #1}}

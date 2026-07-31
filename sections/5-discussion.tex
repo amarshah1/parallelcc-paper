@@ -10,7 +10,8 @@ We answer the research questions as follows:
   meaningful speedups on random benchmarks, a synthetic benchmark suite designed
   to stress-test our algorithms, and a set of circuit equivalence benchmarks. We
   scale well up to 32 cores (\filteralgo on \texttt{32xl} achieves $27\times$
-  self-speedup at $T{=}32$ relative to its $T{=}1$ baseline), but begin to
+  self-speedup at $T{=}32$ relative to its $T{=}1$ baseline, $36.8\times$ over
+  the sequential baseline), but begin to
   plateau beyond that, especially on smaller benchmarks.
   \item \textbf{RQ2:} Our algorithms tend to perform better on benchmarks with a
   large number of merges per round. Within our synthetic benchmark family, width
@@ -19,8 +20,7 @@ We answer the research questions as follows:
   sequential implementation on the circuit equivalence benchmarks. It is
   difficult to evaluate our algorithms on SMT or equality saturation benchmarks,
   as congruence closure is part of a larger tool and thus difficult to isolate.
-  We leave it to future work to integrate our algorithms into a state-of-the-art
-  SMT solver or equality saturation engine.
+  We discuss integration prospects in \autoref{sec:disc:future}.
 \end{itemize}
 
 \subsection{Future Work}~\label{sec:disc:future}

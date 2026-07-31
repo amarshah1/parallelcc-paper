@@ -170,31 +170,26 @@ permutes the array so that all pairs sharing the same hash are adjacent,
 without imposing a total order across distinct hashes. This relaxation lets
 semisort run in $O(n)$ work and $O(\log n)$ span on average, strictly
 better than a comparison sort. We use it to gather congruence classes at
-each round. In our pseudocode we expose two views of this primitive:
-$\Call{GroupBy}{\sim, A}$ partitions $A$ into equivalence classes under a
-relation $\sim$, while $\Call{GroupByKey}{P}$ takes a sequence of
-(key, value) pairs and groups the values by key.
+each round. In our pseudocode we write $\Call{GroupBy}{\sim, A}$ for the
+operation that partitions $A$ into groups under an equivalence relation
+$\sim$ on $A$.
 
 \subsection{Rounds-Based Congruence Closure}
 \label{subsec:rounds}
 
-At each round, we maintain a set of terms whose congruence classes may need to
-be updated. Initially, this comprises all terms appearing in base equalities. We
-then group congruent terms based on the equalities currently discovered, and
-merge the congruence classes of each group in the union-find. Grouping is
-accomplished via semisort (the \texttt{group\_by} operation in
-\textsc{ParlayLib}) and merging congruence classes is accomplished through
-taking the union of the corresponding equality classes in the union-find.
-
-We then propagate terms whose congruence classes may have changed to the next
-round. These are exactly the \emph{parents} of nodes whose congruence
-classes have changed that round. Specifically, if the congruence class of term
-$e$ has changed, then the congruence class of $f(e)$ may have changed as well.
-This requires maintaining the parents of every congruence class; specifically a
-mapping $\mathit{Parents}$ between class identifiers and identifiers of parents
-of that class. This mapping must be updated every round; if two congruence
-classes are merged, then their parents must be merged as well. These rounds
-continue until there is no longer any work to do.
+At each round, we maintain a set $\mathit{Work}$ of the representatives
+dethroned by the previous round's merges (initially, the terms appearing in
+base equalities). A round begins by folding the parent lists of these
+dethroned roots into their new representatives, maintaining a mapping
+$\mathit{Parents}$ from each class to the parents of its members:
+if the congruence class of a term $e$ has changed, then the congruence class
+of $f(e)$ may change as well. The \emph{frontier} of the round---the parents
+of the classes in $\mathit{Work}$---is then grouped into congruent terms via
+semisort (the \texttt{group\_by} operation in \textsc{ParlayLib}). Each group
+\emph{spanning} more than one class (i.e., whose members do not all share one
+representative) is merged in the union-find, and its classes' dethroned
+pre-merge roots form the next round's $\mathit{Work}$. These rounds continue
+until there is no longer any work to do.
 
 We call this algorithm \parentalgo, since it maintains an explicit parent list
 (the $\mathit{Parents}$ mapping) for each congruence class.
@@ -302,11 +297,11 @@ the parents associated with each congruence class, which is expensive due
 to frequent allocations. We now present an algorithm that achieves the same
 effect without keeping these parent lists.
 
-Instead of explicitly maintaining lists, we instead maintain which nodes are
-``dirty'' at a given round---i.e., the representative of their congruence
-class has changed since the prior round due to some merge. We then filter all
-terms to retain those whose children are marked dirty, and propagate these
-terms to the next round to be semisorted and recanonicalized. This avoids the
+Instead of explicitly maintaining lists, we instead maintain which classes
+are ``dirty'' at a given round---i.e., were involved in a merge during the
+prior round. We then filter all terms to retain those with a child in a dirty
+class, and propagate these terms to the next round to be semisorted and
+recanonicalized. This avoids the
 cost of maintaining parent lists, but also requires scanning all nodes every
 round. We have found that this tradeoff is generally worthwhile on most
 workloads. \autoref{alg:dirty-children} gives the pseudocode.

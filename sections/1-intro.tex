@@ -54,10 +54,11 @@ when no round discovers a new merge, exactly mirroring the fixed point of
 the sequential procedure.
 
 The two algorithms differ in how they detect new congruences. The algorithm
-\parentalgo maintains a parent list for each term, and when a term is involved
-in a union, it adds all of its parents to a worklist. The second algorithm
-\filteralgo marks terms as dirty when they are involved in a union and then
-filters all terms to find those whose children are dirty.
+\parentalgo maintains a parent list for each congruence class, and when
+classes are merged, the parents of the merged classes are re-examined in the
+next round. The second algorithm \filteralgo marks a class as dirty when it
+is merged and then filters all terms to find those with a child in a dirty
+class.
 
  
 In summary, this paper makes the following contributions:
@@ -69,13 +70,13 @@ In summary, this paper makes the following contributions:
     primitives over a lock-free concurrent union-find.
     \item We characterize when our algorithms achieve good speedup using the
     notions of congruence \emph{depth} and \emph{width}, and show empirically
-    that width is the dominant factor.
+    that, on our benchmarks, width is the dominant factor.
     \item Despite congruence closure being \textsc{P}-complete (i.e. believed to not
     have a theoretically efficient parallel
     algorithm)~\cite{unification}, we demonstrate near-linear speedups up to
     32 cores over an efficient
     sequential baseline on random benchmarks, a synthetic benchmark suite
-    designed to stress-test our algorithm, and a set of circuit equivalence
+    designed to stress-test our algorithms, and a set of circuit equivalence
     benchmarks~\cite{clausal-cc}.
     \item We open source our code and benchmarks\footnote{Our code is available at \url{https://github.com/amarshah10/ParallelEgraph}}.
 \end{itemize}

@@ -179,7 +179,7 @@ the parent in memory.
 
 To better understand the relationship between the depth (i.e. number of rounds
 of congruence closure) and the width (i.e. number of merges per round) of the
-benchmark and the performance of our algorithm, we design a synthetic benchmark
+benchmark and the performance of our algorithms, we design a synthetic benchmark
 suite that allows us to dial up these parameters.
 
 Our benchmark suite is parameterized by a width parameter $k$ and a $g$-tree fan-in
@@ -341,8 +341,8 @@ near-linear speedup up to a plateau between 32 and 64 threads on most
 workloads. However, unlike on the random and synthetic benchmarks, the single-thread
 runtime of \filteralgo varies dramatically across files. On the 22 files we
 measured, its runtime at $T{=}1$ ranges from $0.71\times$ the sequential runtime
-on \texttt{h5m-n04-ands.gates}---the one file where \filteralgo outperforms
-sequential even on a single thread---up to $32.3\times$ the sequential runtime on
+on \texttt{h5m-n04-ands.gates}---the file with the largest single-thread
+advantage over sequential---up to $32.3\times$ the sequential runtime on
 \texttt{6s104-xits-opt.gates}. \parentalgo, by contrast, is consistently
 $\sim 4\times$ slower than sequential at $T{=}1$ regardless of file.
 
