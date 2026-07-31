@@ -62,9 +62,9 @@ $d$ (i.e.\ with $d$ nested function applications). We initially start with
 the equalities $E = \{x_{i_1} = y_{i_1}, \ldots, x_{i_{n_{\text{merges}}}} =
 y_{i_{n_{\text{merges}}}}\}$, i.e.\ $n_{\text{merges}}$ random equalities
 where each pair contains one \texttt{x}-leaf and one \texttt{y}-leaf.
-Essentially, this setup divides the set of leaves into two halves. We
-stratify our workloads into different size classes, which are shown in
-\autoref{tab:workloads}.
+Essentially, this setup divides the set of leaves into two groups and merges a
+random subset of them across the groups. We stratify our workloads into
+different size classes, which are shown in \autoref{tab:workloads}.
 
 
 % Our first set of benchmarks is parameterized by several parameters. $l$
@@ -182,7 +182,7 @@ of congruence closure) and the width (i.e. number of merges per round) of the
 benchmark and the performance of our algorithm, we design a synthetic benchmark
 suite that allows us to dial up these parameters.
 
-Our benchmark suite is parameterized by a width $k$ and a $g$-tree fan-in
+Our benchmark suite is parameterized by a width parameter $k$ and a $g$-tree fan-in
 $l$, and is constructed in three layers:
 
 \begin{itemize}
@@ -203,7 +203,7 @@ congruence closure has propagated these unions through the $f$-layer there are
 $k^3$ congruences of the form $f(a_i, a_j, a_m) \equiv f(b_i, b_j, b_m)$, which
 must in turn propagate up the two $g$-trees until the two roots become equal.
 
-The width $k$ controls how many merges occur at the first congruence-closure
+The width parameter $k$ controls how many merges occur at the first congruence-closure
 round above the leaves: a larger $k$ means a much larger frontier ($k^3$
 merges) of mutually-independent $f$-equalities, all of which can be discharged
 in parallel. The fan-in $l$ controls the height of the $g$-tree above the
@@ -219,7 +219,7 @@ than the depth. Holding $k$ and thread count $T$ fixed, the parallel
 speedup varies by only $\sim$20\% across the four tree depths we measured
 (median max/min over $l$ of $1.21\times$ for \filteralgo and $1.20\times$ for
 \parentalgo), demonstrating that depth has negligible impact on parallel
-performance. This ratio is roughly constant across thread counts, ranging from
+performance within this benchmark family. This ratio is roughly constant across thread counts, ranging from
 $1.15\times$ at $T{=}8$ to $1.31\times$ at $T{=}128$ for \filteralgo, and from
 $1.13\times$ at $T{=}4$ to $1.29\times$ at $T{=}192$ for \parentalgo. Holding
 $l$ and thread count fixed, on the other hand, varying $k$ produces a much wider
@@ -305,9 +305,9 @@ running congruence closure as a preprocessing pass within Kissat we
 extract its intermediate gate set and run our parallel congruence closure
 implementations on it directly. Concretely, we instrument Kissat's gate
 extractor to dump every candidate gate (AND/XOR/ITE) and run our
-congruence closure implementations on these gates. From the HWMCC'12 set
-we pick the twelve hardest instances by sequential congruence closure
-time.
+congruence closure implementations on these gates. We use all 10 IWLS'22
+miters, and from the HWMCC'12 set we pick the twelve hardest instances by
+sequential congruence closure time, giving 22 files in total.
 
 \begin{figure*}[!tb]
   \centering
@@ -338,18 +338,18 @@ time.
 sequential baseline on these benchmarks as the thread count $T$ is varied.
 On the circuit-equivalence benchmarks, \filteralgo and \parentalgo achieve
 near-linear speedup up to a plateau between 32 and 64 threads on most
-workloads. However, unlike on the random and cube benchmarks, the single-thread
+workloads. However, unlike on the random and synthetic benchmarks, the single-thread
 runtime of \filteralgo varies dramatically across files. On the 22 files we
 measured, its runtime at $T{=}1$ ranges from $0.71\times$ the sequential runtime
 on \texttt{h5m-n04-ands.gates}---the one file where \filteralgo outperforms
 sequential even on a single thread---up to $32.3\times$ the sequential runtime on
 \texttt{6s104-xits-opt.gates}. \parentalgo, by contrast, is consistently
-$\sim$$4\times$ slower than sequential at $T{=}1$ regardless of file.
+$\sim 4\times$ slower than sequential at $T{=}1$ regardless of file.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{figs/gates_speedup_vs_min_dirty_fraction.png}
-  \caption{Slowdown of \filteralgo compared to sequential baseline vs.\ the smallest fraction of dirty terms across rounds.}
+  \caption{Ratio of sequential baseline to \filteralgo runtime at $T{=}1$ vs.\ the smallest fraction of dirty terms across rounds.}
   \label{fig:gates_vs_min_dirty_fraction}
 \end{figure}
 
@@ -405,7 +405,6 @@ round wastes work proportional to all live terms for very few useful unions.
 % solver ~\cite{sundance}, every time Sundance-SMT found a conflict in its
 % congruence closure solver, we extracted the set of equalities into an SMT-LIB
 % file.
-
 
 
 

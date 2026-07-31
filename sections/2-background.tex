@@ -81,7 +81,7 @@ To make the structure concrete, we work through a small instance of a
 problem where congruence closure shines: \emph{combinational equivalence
 checking} for hardware circuits~\cite{clausal-cc}. Given two circuits
 $C_1$ and $C_2$ with the same inputs and outputs, one can check their 
-equivalence using a construction know as a \emph{miter}: a single
+equivalence using a construction known as a \emph{miter}: a single
 circuit that feeds the shared inputs to both copies, XORs their
 corresponding outputs, and ORs the results. The miter outputs $1$ on some
 input iff $C_1$ and $C_2$ disagree on that input, so $C_1$ and $C_2$ are
@@ -139,7 +139,7 @@ $(c, a_i, x_i)$, so $m_1 \equiv m_2$.
 \item \textbf{Round 3 (top XOR).} The top XOR's two children are now in
 the same equivalence class, so by congruence its output equals
 $\mathrm{XOR}(m_1, m_1)$. If this formula is given to a SAT solver, 
-can immediately determine that the output is $0$ and thus the two 
+the solver can immediately determine that the output is $0$ and thus the two 
 circuits are equivalent. 
 \end{enumerate}
 

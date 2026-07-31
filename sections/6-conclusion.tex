@@ -6,8 +6,8 @@ algorithms based on a bulk-synchronous design over a lock-free concurrent
 union-find. Despite congruence closure being P-complete, both
 algorithms achieve near-linear speedup up to 32 cores on random, synthetic,
 and circuit-equivalence benchmarks. We characterized the workload properties
-that govern parallel scaling: congruence \emph{width} dominates, while
-\emph{depth} has negligible impact.
+that govern parallel scaling: within our synthetic benchmark family, congruence 
+\emph{width} has a much larger impact on parallel scaling than \emph{depth}.
 %  We identified the extensions
 % (backtracking, proof production, incremental update) required to integrate
 % our algorithms into modern SMT solvers and equality saturation engines.
