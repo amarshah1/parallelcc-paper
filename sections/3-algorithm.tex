@@ -136,7 +136,8 @@ and its rank. It first checks whether $\mathit{UF}[u]$ is a rank; if so, it
 returns a pair comprising $u$ and that rank. Otherwise, $\mathit{UF}[u]$ is its
 parent, and it invokes \textsc{Find} on the parent. It then attempts to path
 compress via a \texttt{CAS}, which may fail if the path has already been
-compressed.
+compressed. In pseudocode we write $\Call{Find}{u}$ for the root alone; the
+rank is used only internally by \textsc{Union}.
 
 \textbf{Union.} A $\Call{Union}{u, v}$ operation unions the equivalence classes
 of $u$ and $v$. It first computes the roots and ranks of $u$ and $v$ via
@@ -231,7 +232,7 @@ approach; we merge the left and right halves (in parallel), and then
         \State $\mathit{Work} \gets \text{terms appearing in } \mathit{Eq}$
         \While{$\mathit{Work}$ is not empty}
           \State $\rhd$ Fold parent lists of merged classes into their new root
-          \ParFor{$c \in \mathit{Work}$ with $c \neq \Call{Find}{c}$}
+          \ParFor{$c \in \mathit{Work}$ with $c \neq \Call{Find}{c}$} \Comment{$c$ is not the representative of its class}
             \State $\mathit{Parents}[\Call{Find}{c}] \gets \mathit{Parents}[\Call{Find}{c}] \cup \mathit{Parents}[c]$
           \EndParFor
           \State $\mathit{Frontier} \gets \bigcup_{c \in \mathit{Work}} \mathit{Parents}[\Call{Find}{c}]$
@@ -324,11 +325,11 @@ parent lists, so every term whose signature may have changed is re-examined.
         \ParFor{$(u = v) \in \mathit{Eq}$}
           \State $\Call{Union}{u, v}$
         \EndParFor
-        \State $\rhd$ Dirty flags, indexed by term id (one per term, $n$ total)
+        \State $\rhd$ Dirty flags, indexed by term id (one per term)
         \State $\mathit{dirty}[\Call{Find}{u}] \gets \textbf{true}$ for each $u$ appearing in $\mathit{Eq}$
         \State $\mathit{Frontier} \gets \{g(\ldots u \ldots) \mid \mathit{dirty}[\Call{Find}{u}]\}$
         \While{$\mathit{Frontier}$ is not empty}
-          \State $\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < n]$
+          \State $\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < |\mathcal{T}|]$
           \State $\mathit{groups} \gets \Call{GroupBy}{\textsc{Congruent}, \mathit{Frontier}}$
           \ParFor{$g \in \mathit{groups}$ spanning more than one class}
             \State $\rhd$ Merge every term within congruence class
