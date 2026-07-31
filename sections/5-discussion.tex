@@ -25,8 +25,8 @@ We answer the research questions as follows:
 
 \subsection{Future Work}~\label{sec:disc:future}
 
-In the future, we would like to integrate our algorithms into a state-of-the-art SMT 
-solver or equality saturation engine. This requires significant work. For instance, 
+In the future, we would like to integrate our algorithms into a state-of-the-art SMT
+solver or equality saturation engine. This requires significant work. For instance,
 implementing our algorithm in an SMT solver requires: (1) adapting the batch algorithm
 to an incremental setting with backtracking, and (2) managing interaction with other
 theory solvers that share the egraph. Even on pure equality with uninterpreted functions (EUF)
@@ -34,8 +34,8 @@ benchmarks, an end-to-end SMT runtime comparison would conflate congruence closu
 decisions, propagation, and conflict analysis.
 
 It is not clear what types
-of benchmarks would benefit from parallel congruence closure in an SMT solver or equality saturation engine. For instance, we would 
-expect that these benchmarks would have to have large enough congruence closure 
+of benchmarks would benefit from parallel congruence closure in an SMT solver or equality saturation engine. For instance, we would
+expect that these benchmarks would have to have large enough congruence closure
 problems to benefit from parallelization, and that the congruence closure problems would have to be sufficiently wide.
 A practical dispatcher could choose between the sequential and parallel implementations based on available cores,
 problem size, and estimated congruence width.
@@ -48,7 +48,8 @@ problem size, and estimated congruence width.
 % and union happened at the same time. Certain threads would semisort and discover
 % new congruences, which they would add to a concurrent bag data
 % structure~\cite{concurrentbag}. The threads that were unioning would then probe
-% this concurrent bag for new merges to perform.
+% this concurrent bag for new merges to perform. We found that this asynchronous
+% variant never outperformed the synchronous version in any regime we measured.
 
 % \subsection{Algorithm Modifications and Future
 % Work}~\label{sec:disc:limit-alg}

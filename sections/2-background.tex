@@ -30,6 +30,7 @@ For a compound term $f(x)$, we say that $x$ is a \emph{child} of $f(x)$,
 and conversely that $f(x)$ is a \emph{parent} of $x$.
 
 \begin{definition}[Congruence Closure]
+    \label{def:cc}
     Given $(F, \mathcal{T}, E)$ where $F$ is a list of function symbols,
     $\mathcal{T}$ is a set of
     terms over $F$, and $E = \{a_1 = b_1, \ldots, a_n = b_n\}$ is a set of
@@ -154,6 +155,7 @@ to thousands or millions of independent merges per round. We formalize
 these notions next.
 
 \begin{definition}[Congruence Depth]
+    \label{def:depth}
     We say that two terms are $k$-step congruent if they are congruent after
     $k$ rounds of congruence closure. The \emph{congruence depth} $D$ of a
     formula is the smallest $k$ such that every pair of congruent terms in
