@@ -275,19 +275,18 @@ The round's unions glue classes only along such grouped pairs, so by
 transitivity of $\equiv$ every resulting class remains within a class of
 $\equiv$.
 
-% \emph{Completeness.} Conversely, every pair $e \equiv e'$ shares a class on
-% termination. As $\equiv$ is the least relation satisfying \autoref{def:cc},
-% every fact $e \equiv e'$ has a finite derivation, so $e$ and $e'$ are $k$-step
-% congruent for some finite $k$ (\autoref{def:depth}). We induct on $k$. For $k = 0$, $e$ and $e'$ are joined by a chain of base
-% equalities, all merged by the initial \textsc{Union}s. For $k > 0$, since
-% union-find classes are transitively closed, it suffices to consider
-% $e = f(M_1,\ldots,M_n)$ and $e' = f(N_1,\ldots,N_n)$ with $M_i \equiv N_i$ at
-% depth ${<}\,k$. By induction each pair $M_i, N_i$ is eventually merged;
-% consider the round performing the last such merge (with the initial
-% \textsc{Union}s as round zero). Both $e$ and $e'$ are parents of the class
-% changed by that merge, so both join the next frontier, where they receive
-% identical signatures and are merged. Classes never shrink, so $e$ and $e'$
-% remain merged at termination.
+\emph{Completeness.} Conversely, every pair related by $\equiv$ shares a class
+on termination. Let $\sim$ be the relation ``shares a union-find class on
+termination.'' Then $\sim$ is an equivalence relation, and the initial
+\textsc{Union}s ensure $E \subseteq {\sim}$, so it suffices to show that
+$\sim$ is closed under congruence: $\equiv$, the \emph{smallest} such relation
+(\autoref{def:cc}), is then contained in $\sim$. Suppose
+$e = f(M_1,\ldots,M_n)$ and $e' = f(N_1,\ldots,N_n)$ with $M_i \sim N_i$ for
+every $i$. Each pair $M_i, N_i$ is merged at some round; consider the round
+performing the last such merge (counting the initial \textsc{Union}s as round
+zero). Both $e$ and $e'$ are parents of the class changed by that merge, so
+both join the next frontier, where they receive identical signatures and are
+merged. Classes never shrink, so $e \sim e'$.
 
 
 \subsection{Filtering-Based Algorithm (\filteralgo)}
