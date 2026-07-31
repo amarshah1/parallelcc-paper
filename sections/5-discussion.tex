@@ -13,8 +13,8 @@ We answer the research questions as follows:
   self-speedup at $T{=}32$ relative to its $T{=}1$ baseline), but begin to
   plateau beyond that, especially on smaller benchmarks.
   \item \textbf{RQ2:} Our algorithms tend to perform better on benchmarks with a
-  large number of merges per round. More rounds of congruence closure do not
-  have a major effect on parallel speedup.
+  large number of merges per round. Within our synthetic benchmark family, width
+  has a much larger effect on parallel speedup than depth.
   \item \textbf{RQ3:} Our algorithms provide a meaningful speedup over a
   sequential implementation on the circuit equivalence benchmarks. It is
   difficult to evaluate our algorithms on SMT or equality saturation benchmarks,
@@ -25,13 +25,20 @@ We answer the research questions as follows:
 
 \subsection{Future Work}~\label{sec:disc:future}
 
-In the future, we would like to integrate our algorithms into a state-of-the-art SMT solver or equality saturation engine. This requires significant work. For instance, implementing our algorithm in an SMT solver requires: (1) adapting the batch algorithm to an incremental setting with backtracking, and (2) managing interaction with other theory solvers that share the egraph.
+In the future, we would like to integrate our algorithms into a state-of-the-art SMT 
+solver or equality saturation engine. This requires significant work. For instance, 
+implementing our algorithm in an SMT solver requires: (1) adapting the batch algorithm
+to an incremental setting with backtracking, and (2) managing interaction with other
+theory solvers that share the egraph. Even on pure equality with uninterpreted functions (EUF)
+benchmarks, an end-to-end SMT runtime comparison would conflate congruence closure with SAT
+decisions, propagation, and conflict analysis.
 
-It is not clear what types of benchmarks would benefit from parallel congruence closure in an SMT solver or equality saturation engine. For instance, we would 
+It is not clear what types
+of benchmarks would benefit from parallel congruence closure in an SMT solver or equality saturation engine. For instance, we would 
 expect that these benchmarks would have to have large enough congruence closure 
-problems to benefit from parallelization, and that the congruence closure problems would have to be sufficiently wide. We imagine one could have a dispatch engine that 
-chooses between the sequential and parallel implementations. We leave it to future work to identify such benchmarks.
-
+problems to benefit from parallelization, and that the congruence closure problems would have to be sufficiently wide.
+A practical dispatcher could choose between the sequential and parallel implementations based on available cores,
+problem size, and estimated congruence width.
 % \subsection{Synchronous Round Structure}
 
 % Our synchronous round structure could be limited in terms of parallel scaling.
