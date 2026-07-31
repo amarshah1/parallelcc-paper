@@ -32,7 +32,8 @@ speedup. We implemented an asynchronous version of \filteralgo, where semisort
 and union happened at the same time. Certain threads would semisort and discover
 new congruences, which they would add to a concurrent bag data
 structure~\cite{concurrentbag}. The threads that were unioning would then probe
-this concurrent bag for new merges to perform.
+this concurrent bag for new merges to perform. We found that this asynchronous
+variant never outperformed the synchronous version in any regime we measured.
 
 % \subsection{Algorithm Modifications and Future
 % Work}~\label{sec:disc:limit-alg}

@@ -30,6 +30,7 @@ For a compound term $f(x)$, we say that $x$ is a \emph{child} of $f(x)$,
 and conversely that $f(x)$ is a \emph{parent} of $x$.
 
 \begin{definition}[Congruence Closure]
+    \label{def:cc}
     Given $(F, \mathcal{T}, E)$ where $F$ is a list of function symbols,
     $\mathcal{T}$ is a set of
     terms over $F$, and $E = \{a_1 = b_1, \ldots, a_n = b_n\}$ is a set of
@@ -154,10 +155,14 @@ to thousands or millions of independent merges per round. We formalize
 these notions next.
 
 \begin{definition}[Congruence Depth]
-    We say that two terms are $k$-step congruent if they are congruent after
-    $k$ rounds of congruence closure. The \emph{congruence depth} $D$ of a
-    formula is the smallest $k$ such that every pair of congruent terms in
-    the formula is $k$-step congruent.
+    \label{def:depth}
+    Let $\equiv_0$ be the equivalence closure of the input equalities $E$,
+    and let $\equiv_{k+1}$ be the equivalence closure of $\equiv_k$ together
+    with all pairs $f(s_1, \ldots, s_n) \equiv f(t_1, \ldots, t_n)$ such that
+    $s_i \equiv_k t_i$ for every $i$. Two terms are \emph{$k$-step congruent}
+    if they are related by $\equiv_k$. The \emph{congruence depth} $D$ of a
+    problem is the smallest $k$ such that every pair of congruent terms is
+    $k$-step congruent.
 \end{definition}
 
 \begin{definition}[Congruence Width]
