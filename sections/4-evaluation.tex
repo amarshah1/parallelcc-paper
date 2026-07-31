@@ -62,9 +62,9 @@ $d$ (i.e.\ with $d$ nested function applications). We initially start with
 the equalities $E = \{x_{i_1} = y_{i_1}, \ldots, x_{i_{n_{\text{merges}}}} =
 y_{i_{n_{\text{merges}}}}\}$, i.e.\ $n_{\text{merges}}$ random equalities
 where each pair contains one \texttt{x}-leaf and one \texttt{y}-leaf.
-Essentially, this setup divides the set of leaves into two We
-stratify our workloads into different size classes, which are shown in
-\autoref{tab:workloads}.
+Essentially, this setup divides the set of leaves into two groups and merges a
+random subset of them across the groups. We stratify our workloads into
+different size classes, which are shown in \autoref{tab:workloads}.
 
 
 % Our first set of benchmarks is parameterized by several parameters. $l$
@@ -305,9 +305,9 @@ running congruence closure as a preprocessing pass within Kissat we
 extract its intermediate gate set and run our parallel congruence closure
 implementations on it directly. Concretely, we instrument Kissat's gate
 extractor to dump every candidate gate (AND/XOR/ITE) and run our
-congruence closure implementations on these gates. From the HWMCC'12 set
-we pick the twelve hardest instances by sequential congruence closure
-time.
+congruence closure implementations on these gates. We use all 10 IWLS'22
+miters, and from the HWMCC'12 set we pick the twelve hardest instances by
+sequential congruence closure time, giving 22 files in total.
 
 \begin{figure*}[!tb]
   \centering

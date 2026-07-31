@@ -23,16 +23,16 @@ We answer the research questions as follows:
   SMT solver or equality saturation engine.
 \end{itemize}
 
-\subsection{Synchronous Round Structure}
+% \subsection{Synchronous Round Structure}
 
-Our synchronous round structure could be limited in terms of parallel scaling.
-In particular, if we have congruence closure problems with large \emph{depth},
-but small \emph{width}, our parallelization strategy cannot achieve a good
-speedup. We implemented an asynchronous version of \filteralgo, where semisort
-and union happened at the same time. Certain threads would semisort and discover
-new congruences, which they would add to a concurrent bag data
-structure~\cite{concurrentbag}. The threads that were unioning would then probe
-this concurrent bag for new merges to perform.
+% Our synchronous round structure could be limited in terms of parallel scaling.
+% In particular, if we have congruence closure problems with large \emph{depth},
+% but small \emph{width}, our parallelization strategy cannot achieve a good
+% speedup. We implemented an asynchronous version of \filteralgo, where semisort
+% and union happened at the same time. Certain threads would semisort and discover
+% new congruences, which they would add to a concurrent bag data
+% structure~\cite{concurrentbag}. The threads that were unioning would then probe
+% this concurrent bag for new merges to perform.
 
 % \subsection{Algorithm Modifications and Future
 % Work}~\label{sec:disc:limit-alg}
