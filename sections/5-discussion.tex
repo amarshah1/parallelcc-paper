@@ -23,6 +23,15 @@ We answer the research questions as follows:
   SMT solver or equality saturation engine.
 \end{itemize}
 
+\subsection{Future Work}~\label{sec:disc:future}
+
+In the future, we would like to integrate our algorithms into a state-of-the-art SMT solver or equality saturation engine. This requires significant work. For instance, implementing our algorithm in an SMT solver requires: (1) adapting the batch algorithm to an incremental setting with backtracking, and (2) managing interaction with other theory solvers that share the egraph.
+
+It is not clear what types of benchmarks would benefit from parallel congruence closure in an SMT solver or equality saturation engine. For instance, we would 
+expect that these benchmarks would have to have large enough congruence closure 
+problems to benefit from parallelization, and that the congruence closure problems would have to be sufficiently wide. We imagine one could have a dispatch engine that 
+chooses between the sequential and parallel implementations. We leave it to future work to identify such benchmarks.
+
 % \subsection{Synchronous Round Structure}
 
 % Our synchronous round structure could be limited in terms of parallel scaling.
