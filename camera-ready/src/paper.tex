@@ -1,0 +1,160 @@
+\begin{filecontents*}{\jobname.xmpdata}
+\Title{Parallelizing Congruence Closure}
+\Author{Zachary Kent\sep Amar Shah}
+\Publisher{TU Wien Academic Press}
+\end{filecontents*}
+
+\documentclass[
+  % doi=10.XXXX/XXXXXX,   % Filled in by the proceedings editors.
+  % startpage=1,          % Leave commented: page numbers are inserted by the editors.
+  year=26,                 % Two-digit year (FMCAD 20YY).
+  pdfa,                    % Generate PDF/A-1b (metadata from \jobname.xmpdata above).
+]{fmcad}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithm}
+\providecommand{\algorithmautorefname}{Algorithm}
+\providecommand{\definitionautorefname}{Definition}
+\usepackage{graphicx}
+\usepackage{xspace}
+\usepackage{float}
+\usepackage{dblfloatfix}
+\usepackage{flushend}
+\usepackage{balance}
+\usepackage{subcaption}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{amsthm}
+\usepackage[square,comma,numbers,sort&compress]{natbib}      % Offers more control over citation appearance and bib spacing
+\usepackage{algpseudocodex}
+\usepackage[american]{circuitikz}
+\usetikzlibrary{positioning, fit, calc}
+\hypersetup{hidelinks}
+
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}[definition]{Example}
+
+\theoremstyle{plain}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{lemma}[definition]{Lemma}
+\newtheorem{corollary}[definition]{Corollary}
+\newtheorem{proposition}[definition]{Proposition}
+
+\theoremstyle{remark}
+\newtheorem{remark}[definition]{Remark}
+
+% Relax float-placement parameters so figures don't get pushed to the end.
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\bottomfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.7}
+\renewcommand{\dbltopfraction}{0.95}
+\renewcommand{\dblfloatpagefraction}{0.7}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{3}
+\setcounter{totalnumber}{6}
+\setcounter{dbltopnumber}{3}
+
+% --- todo notes ---
+% Comment out the next line (or pass [disable]) before camera-ready
+% to suppress every \todo / \zk / \as marker in one go.
+% \usepackage[colorinlistoftodos,prependcaption,textsize=small]{todonotes}
+\usepackage[disable]{todonotes}   % Camera-ready: suppress all \todo/\zk/\as markers.
+
+% Per-author inline todo macros. Usage: \zk{rephrase this} or \as{cite?}.
+\newcommand{\zk}[1]{\todo[inline,color=blue!20,size=\small]{\textbf{ZK:} #1}}
+\newcommand{\as}[1]{\todo[inline,color=green!20,size=\small]{\textbf{AS:} #1}}
+% Margin variants (shorter notes that don't break the paragraph).
+\newcommand{\zkm}[1]{\todo[color=blue!20,size=\scriptsize]{ZK: #1}}
+\newcommand{\asm}[1]{\todo[color=green!20,size=\scriptsize]{AS: #1}}
+
+\algnewcommand\algorithmicparfor{\textbf{parfor}}
+\algnewcommand\algorithmicendparfor{\textbf{end parfor}}
+\makeatletter
+\algdef{SE}[PARFOR]{ParFor}{EndParFor}[1]{%
+    \algpx@startCodeCommand\algpx@startIndent\algorithmicparfor\ #1\ \algorithmicdo%
+}{%
+    \algpx@startEndBlockCommand\algpx@endIndent\algorithmicendparfor%
+}
+\pretocmd{\ParFor}{\algpx@endCodeCommand}{}{}
+\ifbool{algpx@noEnd}{%
+    \algtext*{EndParFor}%
+    \pretocmd{\EndParFor}{\algpx@endIndent}{}{}%
+    \pretocmd{\EndParFor}{\algpx@endCodeCommand[1]}{}{}%
+}{%
+    \pretocmd{\EndParFor}{\algpx@endCodeCommand[0]}{}{}%
+}
+\makeatother
+
+\newcommand{\parentalgo}{\textsc{ParentCC}\xspace}
+\newcommand{\filteralgo}{\textsc{FilterCC}\xspace}
+
+
+\begin{document}
+
+\title{Parallelizing Congruence Closure}
+
+\IEEEoverridecommandlockouts
+\author{
+  \IEEEauthorblockN{Zachary Kent\textsuperscript{*},
+                    Amar Shah\textsuperscript{*}\thanks{\textsuperscript{*}Both authors contributed equally to this research.}}
+  \IEEEauthorblockA{Carnegie Mellon University, Pittsburgh, PA, USA \\
+                    \texttt{\{zkent, amarshah\}@cs.cmu.edu}}
+}
+
+\maketitle
+
+\begin{abstract}
+  Given a set of ground equalities over terms with uninterpreted function
+  symbols, congruence closure computes the smallest equivalence relation
+  containing these equalities that respects functional congruence. While
+  congruence closure is a performance-critical component of SAT solvers,
+  satisfiability modulo theories (SMT) solvers, and equality saturation engines,
+  all existing implementations are sequential. In this work, we provide the
+  first parallel algorithms for congruence closure. 
+  
+  We build on two ideas from the parallel algorithms literature: a union-find
+  data structure that supports concurrent union operations and a semisort
+  (group-by) algorithm that allows us to discover new congruences in parallel.
+  We present two algorithms that replace the classic sequential worklist with a
+  bulk-synchronous closure loop: each round processes all pending unions in
+  parallel, detects new congruences, and repeats until a fixpoint. The two
+  algorithms differ in how they identify which terms to re-examine in each
+  round. We evaluate both these algorithms against a sequential baseline on a
+  number of benchmarks and show near-linear speedup on up to 32 cores. 
+  % Both of our
+  % algorithms can be extended to support backtracking, proof production, and
+  % dynamic term insertion. These algorithms are compatible with modern SMT solvers
+  % and equality saturation architectures.
+\end{abstract}
+
+\input{sections/1-intro}
+
+\input{sections/2-background}
+
+\input{sections/3-algorithm}
+
+
+\input{sections/4-evaluation}
+
+\input{sections/5-discussion}
+
+\input{sections/6-conclusion}
+
+
+\input{sections/7-acks}
+
+\balance
+\newpage
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

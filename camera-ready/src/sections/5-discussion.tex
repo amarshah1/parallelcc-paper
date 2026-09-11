@@ -1,0 +1,98 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Answer to Research Questions}~\label{sec:disc:rq}
+
+We answer the research questions as follows:
+
+\begin{itemize}
+  \item \textbf{RQ1:} Our parallel congruence closure algorithms achieve
+  meaningful speedups on random benchmarks, a synthetic benchmark suite designed
+  to stress-test our algorithms, and a set of circuit equivalence benchmarks. We
+  scale well up to 32 cores (\filteralgo on \texttt{32xl} achieves $27\times$
+  self-speedup at $T{=}32$ relative to its $T{=}1$ baseline, $36.8\times$ over
+  the sequential baseline), but begin to
+  plateau beyond that, especially on smaller benchmarks.
+  \item \textbf{RQ2:} Our algorithms tend to perform better on benchmarks with a
+  large number of merges per round. Within our synthetic benchmark family, width
+  has a much larger effect on parallel speedup than depth.
+  \item \textbf{RQ3:} Our algorithms provide a meaningful speedup over a
+  sequential implementation on the circuit equivalence benchmarks. It is
+  difficult to evaluate our algorithms on SMT or equality saturation benchmarks,
+  as congruence closure is part of a larger tool and thus difficult to isolate.
+  We discuss integration prospects in \autoref{sec:disc:future}.
+\end{itemize}
+
+\subsection{Future Work}~\label{sec:disc:future}
+
+In the future, we would like to integrate our algorithms into a state-of-the-art SMT
+solver or equality saturation engine. This requires significant work. For instance,
+implementing our algorithm in an SMT solver requires: (1) adapting the batch algorithm
+to an incremental setting with backtracking, and (2) managing interaction with other
+theory solvers that share the e-graph. Even on pure equality with uninterpreted functions (EUF)
+benchmarks, an end-to-end SMT runtime comparison would conflate congruence closure with SAT
+decisions, propagation, and conflict analysis.
+
+It is not clear what types
+of benchmarks would benefit from parallel congruence closure in an SMT solver or equality saturation engine. For instance, we would
+expect that these benchmarks would have to have large enough congruence closure
+problems to benefit from parallelization, and that the congruence closure problems would have to be sufficiently wide.
+A practical dispatcher could choose between the sequential and parallel implementations based on available cores,
+problem size, and estimated congruence width.
+% \subsection{Synchronous Round Structure}
+
+% Our synchronous round structure could be limited in terms of parallel scaling.
+% In particular, if we have congruence closure problems with large \emph{depth},
+% but small \emph{width}, our parallelization strategy cannot achieve a good
+% speedup. We implemented an asynchronous version of \filteralgo, where semisort
+% and union happened at the same time. Certain threads would semisort and discover
+% new congruences, which they would add to a concurrent bag data
+% structure~\cite{concurrentbag}. The threads that were unioning would then probe
+% this concurrent bag for new merges to perform. We found that this asynchronous
+% variant never outperformed the synchronous version in any regime we measured.
+
+% \subsection{Algorithm Modifications and Future
+% Work}~\label{sec:disc:limit-alg}
+
+% There are several extensions to the algorithm as presented to be addressed in
+% future work.
+
+% \textbf{Synchronous Round Structure.} Our synchronous round structure could be
+% limited in terms of parallel scaling. In particular, if we have congruence
+% closure problems with large \emph{depth}, but small \emph{width}, our
+% parallelization strategy cannot achieve a good speedup. We implemented an
+% asynchronous version of \filteralgo, where semisort and union happened at the
+% same time. Certain threads would semisort and discover new congruences, which
+% they would add to a concurrent bag data structure~\cite{concurrentbag}. The
+% threads that were unioning would then probe this concurrent bag for new merges
+% to perform.
+
+% We found that this was slower than the synchronous version. A challenge to
+% address is that even this asynchronous algorithm cannot efficiently
+% parallelize a chain of congruences, i.e.\ where you have to add the merges $x
+% \equiv y$, $f(x) \equiv f(y)$, $f(f(x)) \equiv f(f(y))$, etc.
+
+
+% \textbf{Proof Production.} Our implementation does not produce \emph{proofs}
+% (i.e.\
+% \emph{witnesses}) of the equalities it discovers. For instance if our
+% algorithm discovers that $x = y$, it cannot replay the chain of equalities and
+% congruences that led to this conclusion. Proof production is important for two
+% reasons: it is necessary for justifying correctness, and it is used to produce
+% conflict clauses in SMT solvers. Our implementation could be extended to
+% support proof production by avoiding path compression in the union-find data
+% structure. Another option is to maintain two union-find data structures: one
+% for the actual congruence closure algorithm, and another that maintains the
+% proof forest, as the Z3 SMT solver does~\cite{z3-internals}.
+
+% \textbf{Backtracking.} This can be done by taking a snapshot of the union-find
+% data structure at each decision point, and then reverting to this snapshot
+% when backtracking. However, this is complicated by concurrency; we would need
+% to ensure that all threads have a consistent view of the union-find when
+% taking a snapshot and when reverting to a snapshot. This could be achieved
+% using a linearizable snapshot algorithm~\cite{verlib}.
+
+% \textbf{Incremental Update.} Our algorithms could be extended to support
+% incremental updates, where equalities and new terms arrive dynamically. This
+% is important for both equality saturation and SMT solvers, where new
+% equalities may be discovered for example via quantifier instantiation.

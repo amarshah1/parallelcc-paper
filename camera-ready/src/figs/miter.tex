@@ -1,0 +1,125 @@
+% Miter circuit diagram for the motivating example in §2.
+% Adapted from Biere et al., "Clausal Congruence Closure" (SAT 2024).
+\begin{circuitikz}[
+    every path/.style={line width=0.9pt, line cap=round},
+    ite/.style={draw, line width=0.9pt, rectangle, fill=white,
+                minimum height=7mm, minimum width=14mm, font=\small},
+    junction/.style={circle, fill=black, inner sep=0pt, minimum size=4pt},
+    every node/.style={font=\small},
+    x=12mm, y=10mm,
+  ]
+
+  % --- Tunables ---------------------------------------------------------
+  \def\IteDx{0.30}     % half-distance between m's two south-input ports
+
+  % --- x-coords --------------------------------------------------------
+  \def\xAi{0.0}        % a1 center
+  \def\xXi{1.6}        % x1 center
+  \def\xAii{4.0}       % a2 center
+  \def\xXii{5.6}       % x2 center
+  \def\xMi{0.8}        % m1 center  (= midpoint of a1, x1)
+  \def\xMii{4.8}       % m2 center  (= midpoint of a2, x2)
+  \def\xTop{2.8}       % top XOR center
+  \def\xC{2.9}         % c selector input
+
+  % --- y-coords --------------------------------------------------------
+  \def\yIn{-1.4}       % bottom row of input labels (extra space)
+  \def\yBus{-0.6}      % horizontal fan-out bus for r,s,u,v
+  \def\yBu2s{-0.4}     % horizontal fan-out bus for r,s,u,v
+  \def\yGate{1.5}      % AND/XOR row
+  \def\yMid{3.2}       % horizontal jog row between AND/XOR and ITE
+  \def\yIte{3.5}       % ITE row (center of ITE box)
+  \def\yCBus{3.5}      % horizontal bus carrying c into both ITEs
+  \def\yTop{7.0}       % top XOR row
+
+  % ---- Gates first (so we can use their actual pin coordinates) ----
+  \node[american and port, rotate=90, scale=1.00] (a1)  at (\xAi,  \yGate) {};
+  \node[american xor port, rotate=90, scale=1.00] (x1)  at (\xXi,  \yGate) {};
+  \node[american and port, rotate=90, scale=1.00] (a2)  at (\xAii, \yGate) {};
+  \node[american xor port, rotate=90, scale=1.00] (x2)  at (\xXii, \yGate) {};
+  \node[american xor port, rotate=90, scale=1.00] (top) at (\xTop, \yTop)  {};
+  \node[right=1mm of a1]  {$a_1$};
+  \node[right=1mm of x1] {$x_1$};
+  \node[right=1mm of a2]  {$a_2$};
+  \node[right=1mm of x2] {$x_2$};
+
+  % Gate-type text labels rendered inside each gate body (upright, same size as ITE).
+  % The gates' bounding-box centers are at the output tip; shift labels down into the body.
+  \node[font=\small, yshift=-6.5mm] at (a1)  {AND};
+  \node[font=\small, yshift=-6.5mm] at (x1)  {XOR};
+  \node[font=\small, yshift=-6.5mm] at (a2)  {AND};
+  \node[font=\small, yshift=-6.5mm] at (x2)  {XOR};
+  \node[font=\small, yshift=-6.5mm] at (top) {XOR};
+
+  \node[ite] (m1) at (\xMi,  \yIte) {ITE};
+  \node[ite] (m2) at (\xMii, \yIte) {ITE};
+  \node[above=1mm of m1] {$m_1$};
+  \node[above=1mm of m2] {$m_2$};
+
+  % Dotted boxes around each sub-circuit (AND + XOR + ITE), labeled C1 / C2.
+  \node[draw=blue!60, dotted, line width=0.9pt, rounded corners=2pt,
+        inner sep=2mm, fit=(a1) (x1) (m1),
+        label={[blue!60, font=\large]above left:$C_1$}] {};
+  \node[draw=blue!60, dotted, line width=0.9pt, rounded corners=2pt,
+        inner sep=2mm, fit=(a2) (x2) (m2),
+        label={[blue!60, font=\large]above right:$C_2$}] {};
+
+  \node[above=2mm of top.out, font=\small] (pout) {$p$};
+
+  % ---- Bottom row: input labels positioned directly under each gate input pin ----
+  \node (r) at (a1.in 1 |- 0,\yIn) {$r$};
+  \node (s) at (a1.in 2 |- 0,\yIn) {$s$};
+  \node (u) at (x1.in 1 |- 0,\yIn) {$u$};
+  \node (v) at (x1.in 2 |- 0,\yIn) {$v$};
+  \node (c) at (\xC,      \yIn)    {$c$};
+
+  % ============================================================
+  % WIRES — all axis-aligned (vertical or horizontal only)
+  % ============================================================
+
+  % ---- Inputs: straight vertical from label up into left-circuit gate inputs ----
+  \draw (r) -- (a1.in 1);
+  \draw (s) -- (a1.in 2);
+  \draw (u) -- (x1.in 1);
+  \draw (v) -- (x1.in 2);
+
+  % ---- Horizontal fan-out bus at \yBus for the right circuit ----
+  \coordinate (rTap) at (a1.in 1 |- 0,-0.2);
+  \coordinate (sTap) at (a1.in 2 |- 0,-0.4);
+  \coordinate (uTap) at (x1.in 1 |- 0,-0.6);
+  \coordinate (vTap) at (x1.in 2 |- 0,-0.8);
+
+  \draw (rTap) -- (a2.in 1 |- 0,-0.2) -- (a2.in 1);
+  \draw (sTap) -- (a2.in 2 |- 0,-0.4) -- (a2.in 2);
+  \draw (uTap) -- (x2.in 1 |- 0,-0.6) -- (x2.in 1);
+  \draw (vTap) -- (x2.in 2 |- 0,-0.8) -- (x2.in 2);
+
+  % Fanout dots where right-circuit taps branch off the input wires
+  \node[junction] at (rTap) {};
+  \node[junction] at (sTap) {};
+  \node[junction] at (uTap) {};
+  \node[junction] at (vTap) {};
+
+  % ---- AND/XOR outputs into ITE south edge via single slanted segments ----
+  % Endpoints are on the m.south edge, offset ±IteDx from center.
+  \draw (a1.out) -- ($(m1.south) + (-\IteDx, 0)$);
+  \draw (x1.out) -- ($(m1.south) + ( \IteDx, 0)$);
+  \draw (a2.out) -- ($(m2.south) + (-\IteDx, 0)$);
+  \draw (x2.out) -- ($(m2.south) + ( \IteDx, 0)$);
+
+  % ---- c selector to both ITEs ----
+  % Vertical riser from c, then split at \yIte into two horizontals:
+  %   - left horizontal ends at m1.east (entering m1 from the right)
+  %   - right horizontal ends at m2.west (entering m2 from the left)
+  \draw (c) -- (\xC, \yIte);                   % vertical riser to ITE row
+  \draw (\xC, \yIte) -- (m1.east);             % horizontal left into m1.east
+  \draw (\xC, \yIte) -- (m2.west);             % horizontal right into m2.west
+  \node[junction] at (\xC, \yIte) {};          % T-junction dot at the split
+
+  % ---- ITE outputs into top XOR via single slanted segments ----
+  \draw (m1.north) -- (top.in 1);
+  \draw (m2.north) -- (top.in 2);
+
+  % ---- Top XOR output ----
+  \draw (top.out) -- (pout);
+\end{circuitikz}

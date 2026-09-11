@@ -1,0 +1,418 @@
+% --- SMT solvers cited in the introduction ---
+
+@inproceedings{z3,
+  author    = {de Moura, Leonardo and Bj{\o}rner, Nikolaj},
+  title     = {{Z3}: An Efficient {SMT} Solver},
+  booktitle = {Tools and Algorithms for the Construction and Analysis of Systems (TACAS)},
+  year      = {2008},
+  doi       = {10.1007/978-3-540-78800-3_24},
+}
+
+@inproceedings{verlib,
+author = {Blelloch, Guy E. and Wei, Yuanhao},
+title = {VERLIB: Concurrent Versioned Pointers},
+year = {2024},
+doi = {10.1145/3627535.3638501},
+booktitle = {Principles and Practice of Parallel Programming},
+series = {PPoPP '24}
+}
+
+@inproceedings{cvc5,
+  author    = {Barbosa, Haniel and Barrett, Clark and Brain, Martin and Kremer, Gereon and Lachnitt, Hanna and Mann, Makai and Mohamed, Abdalrhman and Mohamed, Mudathir and Niemetz, Aina and N{\"o}tzli, Andres and Ozdemir, Alex and Preiner, Mathias and Reynolds, Andrew and Sheng, Ying and Tinelli, Cesare and Zohar, Yoni},
+  title     = {{cvc5}: A Versatile and Industrial-Strength {SMT} Solver},
+  booktitle = {Tools and Algorithms for the Construction and Analysis of Systems (TACAS)},
+  year      = {2022},
+  doi       = {10.1007/978-3-030-99524-9_24},
+}
+
+% --- Portfolio approaches ---
+
+@inproceedings{wintersteiger09,
+  author    = {Wintersteiger, Christoph M. and Hamadi, Youssef and de Moura, Leonardo},
+  title     = {A Concurrent Portfolio Approach to {SMT} Solving},
+  booktitle = {Computer Aided Verification (CAV)},
+  year      = {2009},
+  pages     = {715--720},
+  publisher = {Springer},
+  doi       = {10.1007/978-3-642-02658-4_60},
+}
+
+@inproceedings{smtd,
+  author    = {Barrett, Clark and Chen, Pei-Wei and Cook, Byron and Dutertre, Bruno and Jones, Robert B. and Le, Nham and Reynolds, Andrew and Sheth, Kunal and Stephens, Christopher and Whalen, Michael W.},
+  title     = {{SMT-D}: New Strategies for Portfolio-Based {SMT} Solving},
+  booktitle = {Formal Methods in Computer-Aided Design (FMCAD)},
+  year      = {2024},
+}
+
+% --- Search-space partitioning ---
+
+@inproceedings{cube-and-conquer,
+  author    = {Heule, Marijn J. H. and Kullmann, Oliver and Wieringa, Siert and Biere, Armin},
+  title     = {Cube and Conquer: Guiding {CDCL} {SAT} Solvers by Lookaheads},
+  booktitle = {Hardware and Software: Verification and Testing (HVC)},
+  year      = {2011},
+  pages     = {50--65},
+  publisher = {Springer},
+  doi       = {10.1007/978-3-642-34188-5_8},
+}
+
+@inproceedings{cvc5-partition,
+  author    = {Wilson, Amalee and N{\"o}tzli, Andres and Reynolds, Andrew and Cook, Byron and Tinelli, Cesare and Barrett, Clark},
+  title     = {Partitioning Strategies for Distributed {SMT} Solving},
+  booktitle = {Formal Methods in Computer-Aided Design (FMCAD)},
+  year      = {2023},
+  pages     = {199--208},
+}
+
+@inproceedings{kolarik26,
+  author    = {Kol{\'a}rik, Tom{\'a}{\v{s}} and Hyv{\"a}rinen, Antti E. J. and Asadzadeh, Seyedmasoud and Sharygina, Natasha},
+  title     = {Parallel {SMT} Solving via Iterative Tree Partitioning},
+  booktitle = {Tools and Algorithms for the Construction and Analysis of Systems (TACAS)},
+  year      = {2026},
+  publisher = {Springer},
+  doi       = {10.1007/978-3-032-22752-2_7},
+}
+
+% --- Theory-aware decomposition (around the theory solver) ---
+
+@article{cheng18,
+  author  = {Cheng, Xi and Zhou, Min and Song, Xiaoyu and Gu, Ming and Sun, Jiaguang},
+  title   = {Parallelizing {SMT} Solving: Lazy Decomposition and Conciliation},
+  journal = {Artificial Intelligence},
+  volume  = {257},
+  pages   = {127--157},
+  year    = {2018},
+  doi     = {10.1016/j.artint.2018.01.001},
+}
+
+% --- Inside-the-theory-solver parallelism ---
+
+@article{bankovic17,
+  author  = {Bankovi{\'c}, Milan},
+  title   = {Parallelizing Simplex within {SMT} Solvers},
+  journal = {Artificial Intelligence Review},
+  volume  = {48},
+  pages   = {83--112},
+  year    = {2017},
+  doi     = {10.1007/s10462-016-9495-5},
+}
+
+% --- Building blocks for our algorithm ---
+
+@inproceedings{jayanti16,
+  author    = {Jayanti, Siddhartha V. and Tarjan, Robert E.},
+  title     = {A Randomized Concurrent Algorithm for Disjoint Set Union},
+  booktitle = {ACM Symposium on Principles of Distributed Computing (PODC)},
+  year      = {2016},
+  doi       = {10.1145/2933057.2933108},
+}
+
+@inproceedings{parlaylib,
+  author    = {Blelloch, Guy E. and Anderson, Daniel and Dhulipala, Laxman},
+  title     = {{ParlayLib} -- A Toolkit for Parallel Algorithms on Shared-Memory Multicore Machines},
+  booktitle = {ACM Symposium on Parallelism in Algorithms and Architectures (SPAA)},
+  year      = {2020},
+  doi       = {10.1145/3350755.3400254},
+}
+
+@inproceedings{semisort,
+  author    = {Gu, Yan and Shun, Julian and Sun, Yihan and Blelloch, Guy E.},
+  title     = {A Top-Down Parallel Semisort},
+  booktitle = {ACM Symposium on Parallelism in Algorithms and Architectures (SPAA)},
+  year      = {2015},
+  publisher = {ACM},
+  doi       = {10.1145/2755573.2755597},
+}
+
+@article{nelson-oppen-cc,
+  author  = {Nelson, Greg and Oppen, Derek C.},
+  title   = {Fast Decision Procedures Based on Congruence Closure},
+  journal = {Journal of the ACM},
+  volume  = {27},
+  number  = {2},
+  year    = {1980},
+  pages   = {356--364},
+  doi     = {10.1145/322186.322198},
+}
+
+@inproceedings{egg,
+  author    = {Willsey, Max and Nandi, Chandrakana and Wang, Yisu Remy and Flatt, Oliver and Tatlock, Zachary and Panchekha, Pavel},
+  title     = {{egg}: Fast and Extensible Equality Saturation},
+  booktitle = {Principles of Programming Languages (POPL)},
+  year      = {2021},
+  doi       = {10.1145/3434304},
+}
+
+
+% --- Newly added references ---
+
+@incollection{smt,
+  author    = {Barrett, Clark and Sebastiani, Roberto and Seshia, Sanjit A. and Tinelli, Cesare},
+  title     = {Satisfiability Modulo Theories},
+  booktitle = {Handbook of Satisfiability},
+  editor    = {Biere, Armin and Heule, Marijn and van Maaren, Hans and Walsh, Toby},
+  volume    = {185},
+  pages     = {825--885},
+  publisher = {IOS Press},
+  year      = {2009},
+}
+
+@inproceedings{eqsat,
+  author    = {Tate, Ross and Stepp, Michael and Tatlock, Zachary and Lerner, Sorin},
+  title     = {Equality Saturation: A New Approach to Optimization},
+  booktitle = {Principles of Programming Languages (POPL)},
+  year      = {2009},
+}
+
+@article{egglog,
+  author    = {Zhang, Yihong and Wang, Yisu Remy and Flatt, Oliver and Cao, David and Zucker, Philip and Rosenthal, Eli and Tatlock, Zachary and Willsey, Max},
+  title     = {Better Together: Unifying {Datalog} and Equality Saturation},
+  journal   = {Proc. ACM Program. Lang. (PLDI)},
+  year      = {2023},
+}
+
+@phdthesis{egraphs,
+  author = {Nelson, Charles Gregory},
+  title  = {Techniques for Program Verification},
+  school = {Stanford University},
+  year   = {1980},
+}
+
+@inproceedings{herbie,
+  author    = {Panchekha, Pavel and Sanchez-Stern, Alex and Wilcox, James R. and Tatlock, Zachary},
+  title     = {Automatically Improving Accuracy for Floating Point Expressions},
+  booktitle = {Programming Language Design and Implementation (PLDI)},
+  year      = {2015},
+  pages     = {1--11},
+  publisher = {ACM},
+  doi       = {10.1145/2737924.2737959},
+}
+
+@inproceedings{bridges,
+  author    = {Brown, Shawn T. and Buitrago, Paola and Hanna, Edward and Sanielevici, Sergiu and Scibek, Robin and Nystrom, Nicholas A.},
+  title     = {{Bridges-2}: A Platform for Rapidly-Evolving and Data Intensive Research},
+  booktitle = {Practice and Experience in Advanced Research Computing (PEARC)},
+  year      = {2021},
+  publisher = {ACM},
+  doi       = {10.1145/3437359.3465593},
+}
+
+@inproceedings{shortproofs,
+  author    = {Flatt, Oliver and Coward, Samuel and Willsey, Max and Tatlock, Zachary and Panchekha, Pavel},
+  title     = {Small Proofs from Congruence Closure},
+  booktitle = {Formal Methods in Computer-Aided Design (FMCAD)},
+  year      = {2022},
+  pages     = {75--83},
+  publisher = {TU Wien Academic Press},
+}
+
+@misc{eggcc,
+  author       = {{egraphs-good}},
+  title        = {{eggcc}: An experimental optimizing compiler for {Bril}},
+  howpublished = {\url{https://github.com/egraphs-good/eggcc}},
+  year         = {2024},
+  note         = {Accessed: 2026-05-01},
+}
+
+@inproceedings{uf,
+  author       = {Dan Alistarh and
+                  Alexander Fedorov and
+                  Nikita Koval},
+  title        = {In Search of the Fastest Concurrent Union-Find Algorithm},
+  booktitle    = {23rd International Conference on Principles of Distributed Systems,
+                  {OPODIS}},
+  year         = {2019},
+  doi          = {10.4230/LIPICS.OPODIS.2019.15},
+}
+
+@InProceedings{clausal-cc,
+  author =	{Biere, Armin and Fazekas, Katalin and Fleury, Mathias and Froleyks, Nils},
+  title =	{{Clausal Congruence Closure}},
+  booktitle =	{27th International Conference on Theory and Applications of Satisfiability Testing (SAT)},
+  year =	{2024},
+  doi =		{10.4230/LIPIcs.SAT.2024.6},
+}
+
+@misc{parallel-algos,
+  author       = {Blelloch, Guy E. and Dhulipala, Laxman and Sun, Yihan},
+  title        = {Introduction to Parallel Algorithms (Draft)},
+  year         = {2026},
+  howpublished = {\url{https://www.cs.cmu.edu/~guyb/paralg/paralg/parallel.pdf}},
+  note         = {Lecture notes, Carnegie Mellon University},
+}
+
+@article{brent1974,
+  author  = {Brent, Richard P.},
+  title   = {The Parallel Evaluation of General Arithmetic Expressions},
+  journal = {Journal of the ACM},
+  volume  = {21},
+  number  = {2},
+  pages   = {201--206},
+  year    = {1974},
+}
+
+@article{graham1969,
+  author  = {Graham, Ronald L.},
+  title   = {Bounds on Multiprocessing Timing Anomalies},
+  journal = {SIAM Journal on Applied Mathematics},
+  volume  = {17},
+  number  = {2},
+  pages   = {416--429},
+  year    = {1969},
+}
+
+@inproceedings{concurrentbag,
+  author    = {Sundell, H{\aa}kan and Gidenstam, Anders and Papatriantafilou, Marina and Tsigas, Philippas},
+  title     = {A Lock-Free Algorithm for Concurrent Bags},
+  booktitle = {ACM Symposium on Parallelism in Algorithms and Architectures (SPAA)},
+  year      = {2011},
+  doi       = {10.1145/1989493.1989550},
+}
+
+@inproceedings{dafny,
+  author    = {Leino, K. Rustan M.},
+  title     = {{Dafny}: An Automatic Program Verifier for Functional Correctness},
+  booktitle = {Logic for Programming, Artificial Intelligence, and Reasoning (LPAR)},
+  year      = {2010},
+  doi       = {10.1007/978-3-642-17511-4_20},
+}
+
+@article{verus,
+  author    = {Lattuada, Andrea and Hance, Travis and Cho, Chanhee and Brun, Matthias and Subasinghe, Isitha and Zhou, Yi and Howell, Jon and Parno, Bryan and Hawblitzel, Chris},
+  title     = {{Verus}: Verifying {Rust} Programs Using Linear Ghost Types},
+  journal   = {Proc. ACM Program. Lang.},
+  number    = {OOPSLA},
+  pages     = {286--315},
+  year      = {2023},
+  doi       = {10.1145/3586037},
+}
+
+@article{valiant-bsp,
+  author  = {Valiant, Leslie G.},
+  title   = {A Bridging Model for Parallel Computation},
+  journal = {Communications of the ACM},
+  volume  = {33},
+  number  = {8},
+  pages   = {103--111},
+  year    = {1990},
+  doi     = {10.1145/79173.79181},
+}
+
+@inproceedings{kissat,
+  author    = {Biere, Armin and Fazekas, Katalin and Fleury, Mathias and Heisinger, Maximilian},
+  title     = {{CaDiCaL}, {Kissat}, {Paracooba}, {Plingeling} and {Treengeling} Entering the {SAT} Competition 2020},
+  booktitle = {Proc. of SAT Competition 2020 -- Solver and Benchmark Descriptions},
+  year      = {2020},
+}
+
+@inproceedings{nieuwenhuis-oliveras-cc,
+  author    = {Nieuwenhuis, Robert and Oliveras, Albert},
+  title     = {Proof-Producing Congruence Closure},
+  booktitle = {Term Rewriting and Applications (RTA)},
+  editor    = {Giesl, J{\"u}rgen},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {3467},
+  pages     = {453--468},
+  publisher = {Springer},
+  year      = {2005},
+  doi       = {10.1007/978-3-540-32033-3_33},
+}
+
+@article{unionfindtarjan,
+  author  = {Tarjan, Robert Endre},
+  title   = {Efficiency of a Good but Not Linear Set Union Algorithm},
+  journal = {Journal of the ACM},
+  volume  = {22},
+  number  = {2},
+  pages   = {215--225},
+  year    = {1975},
+  doi     = {10.1145/321879.321884},
+}
+
+@inproceedings{jemalloc,
+  author    = {Evans, Jason},
+  title     = {A Scalable Concurrent malloc(3) Implementation for {FreeBSD}},
+  booktitle = {Proceedings of BSDCan},
+  year      = {2006},
+  url       = {https://papers.freebsd.org/2006/bsdcan/evans-jemalloc/},
+}
+
+@book{p-complete,
+  author    = {Greenlaw, Raymond and Hoover, H. James and Ruzzo, Walter L.},
+  title     = {Limits to Parallel Computation: {P}-Completeness Theory},
+  publisher = {Oxford University Press},
+  address   = {New York},
+  year      = {1995},
+  isbn      = {9780195085914},
+}
+
+@article{downey-sethi-tarjan,
+  author  = {Downey, Peter J. and Sethi, Ravi and Tarjan, Robert Endre},
+  title   = {Variations on the Common Subexpression Problem},
+  journal = {Journal of the ACM},
+  volume  = {27},
+  number  = {4},
+  pages   = {758--771},
+  year    = {1980},
+  doi     = {10.1145/322217.322228},
+}
+
+@article{unification,
+  author  = {Kanellakis, Paris C. and Revesz, Peter Z.},
+  title   = {On the Relationship of Congruence Closure and Unification},
+  journal = {Journal of Symbolic Computation},
+  volume  = {7},
+  number  = {3--4},
+  pages   = {427--444},
+  year    = {1989},
+  doi     = {10.1016/S0747-7171(89)80020-7},
+}
+
+@misc{z3-internals,
+  author       = {Bj{\o}rner, Nikolaj and Eisenhofer, Clemens and Gurfinkel, Arie and Lopes, Nuno P. and de Moura, Leonardo and Nachmanson, Lev and Wintersteiger, Christoph},
+  title        = {{Z3} Internals (Draft)},
+  howpublished = {\url{https://z3prover.github.io/papers/z3internals.html}},
+  note         = {Accessed: 2026-05-01},
+}
+
+@inproceedings{hwmcc,
+  author    = {Biere, Armin and Heule, Marijn and J{\"a}rvisalo, Matti and Manthey, Norbert},
+  title     = {Equivalence Checking of {HWMCC} 2012 Circuits},
+  booktitle = {Proc. of SAT Competition 2013 -- Solver and Benchmark Descriptions},
+  editor    = {Balint, Adrian and Belov, Anton and Heule, Marijn and J{\"a}rvisalo, Matti},
+  series    = {Department of Computer Science Series of Publications B},
+  volume    = {B-2013-1},
+  pages     = {104},
+  publisher = {University of Helsinki},
+  year      = {2013},
+}
+
+@inproceedings{iwls,
+  author    = {Zhang, He-Teng and Jiang, Jie-Hong R. and Mishchenko, Alan and Amar{\`u}, Luca G.},
+  title     = {Improved Large-Scale {SAT} Sweeping},
+  booktitle = {Proc. 31st International Workshop on Logic \& Synthesis (IWLS)},
+  year      = {2022},
+}
+
+@inproceedings{hardware,
+  author    = {Mattarei, Cristian and Mann, Makai and Barrett, Clark and Daly, Ross G. and Huff, Dillon and Hanrahan, Pat},
+  title     = {{CoSA}: Integrated Verification for Agile Hardware Design},
+  booktitle = {Formal Methods in Computer Aided Design (FMCAD)},
+  year      = {2018},
+}
+
+@misc{lean-grind,
+  author       = {{Lean Prover Community}},
+  title        = {The {grind} Tactic},
+  howpublished = {\url{https://lean-lang.org/doc/reference/latest/The--grind--tactic/}},
+  year         = {2025},
+  note         = {{Lean} 4 Reference Manual; accessed 2026-05-01},
+}
+
+@misc{smtcomp2025,
+  author       = {{SMT-COMP Organizing Committee}},
+  title        = {{SMT-COMP} 2025: The 20th International Satisfiability Modulo Theories Competition},
+  year         = {2025},
+  howpublished = {\url{https://smt-comp.github.io/2025/}},
+  note         = {Accessed: 2026-05-01},
+}
