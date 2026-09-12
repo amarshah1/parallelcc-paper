@@ -193,19 +193,33 @@ def new_slide(title=None, notes=None, number=True):
 
 # ---------------------------------------------------------------- e-graph diagram
 LEAF, GATE, ITE = 4.05, 2.3, 0.55
-NW, NH = 0.66, 0.5
-NODES = {  # id: (label, symbol, cx, cy) in diagram-local inches
-    'r':  ('r',  None, 0.63, LEAF), 'rp': ('r′', None, 1.37, LEAF),
-    's':  ('s',  None, 2.23, LEAF), 'sp': ('s′', None, 2.97, LEAF),
-    'c':  ('c',  None, 3.83, LEAF), 'cp': ('c′', None, 4.57, LEAF),
-    'u':  ('u',  None, 5.43, LEAF), 'up': ('u′', None, 6.17, LEAF),
-    'v':  ('v',  None, 7.03, LEAF), 'vp': ('v′', None, 7.77, LEAF),
-    'a1': ('a₁', 'AND', 1.20, GATE), 'a2': ('a₂', 'AND', 2.30, GATE),
-    'x1': ('x₁', 'XOR', 6.00, GATE), 'x2': ('x₂', 'XOR', 7.10, GATE),
-    'm1': ('m₁', 'ITE', 3.70, ITE),  'm2': ('m₂', 'ITE', 4.70, ITE),
+LW, LH = 0.60, 0.46      # leaf node: name only
+GW, GH = 0.88, 0.62      # gate node: operator (large) + label
+NODES = {  # id: (label, operator, cx, cy) in diagram-local inches
+    'r':  ('r',  None, 0.66, LEAF), 'rp': ('r\u2032', None, 1.34, LEAF),
+    's':  ('s',  None, 2.30, LEAF), 'sp': ('s\u2032', None, 2.98, LEAF),
+    'c':  ('c',  None, 3.94, LEAF), 'cp': ('c\u2032', None, 4.62, LEAF),
+    'u':  ('u',  None, 5.58, LEAF), 'up': ('u\u2032', None, 6.26, LEAF),
+    'v':  ('v',  None, 7.22, LEAF), 'vp': ('v\u2032', None, 7.90, LEAF),
+    'a1': ('a\u2081', 'AND', 1.25, GATE), 'a2': ('a\u2082', 'AND', 2.45, GATE),
+    'x1': ('x\u2081', 'XOR', 6.10, GATE), 'x2': ('x\u2082', 'XOR', 7.30, GATE),
+    'm1': ('m\u2081', 'ITE', 3.70, ITE),  'm2': ('m\u2082', 'ITE', 5.15, ITE),
 }
 EDGES = {'a1': ['r', 's'], 'a2': ['rp', 'sp'], 'x1': ['u', 'v'], 'x2': ['up', 'vp'],
          'm1': ['c', 'a1', 'x1'], 'm2': ['cp', 'a2', 'x2']}
+OX, OY = 0.45, 1.55      # default diagram origin
+
+def nsize(nid):
+    return (GW, GH) if NODES[nid][1] else (LW, LH)
+
+LAB_UP, LAB_RT = 0.30, 0.37   # room the outside label needs
+
+def lpos(nid):
+    """Where the term name sits relative to its node."""
+    sym = NODES[nid][1]
+    if sym is None:
+        return None            # leaves carry their name inside
+    return 'right' if sym == 'ITE' else 'above'
 
 LEAF_CLASSES = [(['r', 'rp'], 'leaf'), (['s', 'sp'], 'leaf'), (['c', 'cp'], 'leaf'),
                 (['u', 'up'], 'leaf'), (['v', 'vp'], 'leaf')]
@@ -214,17 +228,22 @@ X_CLASS = (['x1', 'x2'], 'x')
 M_CLASS = (['m1', 'm2'], 'm')
 
 def _bbox(ids, pad):
-    xs = [NODES[i][2] for i in ids]
-    ys = [NODES[i][3] for i in ids]
-    return (min(xs) - NW / 2 - pad, min(ys) - NH / 2 - pad,
-            max(xs) - min(xs) + NW + 2 * pad, max(ys) - min(ys) + NH + 2 * pad)
+    x0 = min(NODES[i][2] - nsize(i)[0] / 2 for i in ids)
+    x1 = max(NODES[i][2] + nsize(i)[0] / 2 + (LAB_RT if lpos(i) == 'right' else 0)
+             for i in ids)
+    y0 = min(NODES[i][3] - nsize(i)[1] / 2 - (LAB_UP if lpos(i) == 'above' else 0)
+             for i in ids)
+    y1 = max(NODES[i][3] + nsize(i)[1] / 2 for i in ids)
+    return (x0 - pad, y0 - pad, x1 - x0 + 2 * pad, y1 - y0 + 2 * pad)
 
-def draw_egraph(slide, ox=0.55, oy=1.55, classes=(), highlight=(), groups=(),
-                dirty=(), labels=None, dim=()):
+def draw_egraph(slide, ox=OX, oy=OY, classes=(), highlight=(), groups=(),
+                dirty=(), labels=None, dim=(), edge_hl=()):
     """classes: list of (member ids, style key); highlight: node ids with amber
     outline; groups: list of id-lists drawn as dotted purple outlines; dirty:
-    indices into classes that get a 'dirty' tag; labels: {class index: text}."""
+    indices into classes that get a 'dirty' tag; labels: {class index: text};
+    edge_hl: (parent, child) pairs drawn as orange arrows."""
     labels = labels or {}
+    edge_hl = set(edge_hl)
     # class boxes
     for ci, (members, key) in enumerate(classes):
         fill, line = CLASS_STYLE[key]
@@ -244,30 +263,43 @@ def draw_egraph(slide, ox=0.55, oy=1.55, classes=(), highlight=(), groups=(),
         bx, by, bw, bh = _bbox(members, 0.06)
         add_rect(slide, ox + bx, oy + by, bw, bh, fill=None, line=PURPLE, width=1.75,
                  dash=MSO_LINE.ROUND_DOT, radius=0.3)
-    # edges
-    for parent, kids in EDGES.items():
-        px, py = NODES[parent][2], NODES[parent][3]
-        for k in kids:
-            kx, ky = NODES[k][2], NODES[k][3]
-            col = LIGHT if (parent in dim or k in dim) else EDGE
-            add_line(slide, ox + px, oy + py + NH / 2, ox + kx, oy + ky - NH / 2, color=col)
+    # edges: plain first, highlighted on top
+    for wanted in (False, True):
+        for parent, kids in EDGES.items():
+            px, py = NODES[parent][2], NODES[parent][3]
+            ph = nsize(parent)[1]
+            for k in kids:
+                if ((parent, k) in edge_hl) != wanted:
+                    continue
+                kx, ky = NODES[k][2], NODES[k][3]
+                kh = nsize(k)[1]
+                # stop above an outside label so the line never crosses the name
+                ktop = ky - kh / 2 - (LAB_UP + 0.01 if lpos(k) == 'above' else 0)
+                col = ORANGE if wanted else (LIGHT if (parent in dim or k in dim) else EDGE)
+                add_line(slide, ox + px, oy + py + ph / 2, ox + kx, oy + ktop,
+                         color=col, width=2.5 if wanted else 1.25, arrow=wanted)
     # nodes
     for nid, (lab, sym, cx, cy) in NODES.items():
+        w, h = nsize(nid)
         hl = nid in highlight
-        s = add_rect(slide, ox + cx - NW / 2, oy + cy - NH / 2, NW, NH,
-                     fill=(AMBER_FILL if hl else WHITE),
-                     line=(AMBER if hl else RGBColor(0x4A, 0x4F, 0x57)),
-                     width=(2.75 if hl else 1.0), radius=0.2)
-        tf = s.text_frame
+        shp = add_rect(slide, ox + cx - w / 2, oy + cy - h / 2, w, h,
+                       fill=(AMBER_FILL if hl else WHITE),
+                       line=(AMBER if hl else RGBColor(0x4A, 0x4F, 0x57)),
+                       width=(2.75 if hl else 1.0), radius=0.2)
+        tf = shp.text_frame
         tf.margin_top = tf.margin_bottom = Inches(0.0)
+        txtcol = LIGHT if nid in dim else INK
         p = tf.paragraphs[0]
         p.alignment = PP_ALIGN.CENTER
-        txtcol = LIGHT if nid in dim else INK
-        add_runs(p, lab, 13 if sym is None else 12, color=txtcol, bold=True)
-        if sym:
-            p2 = tf.add_paragraph()
-            p2.alignment = PP_ALIGN.CENTER
-            add_runs(p2, sym, 9, color=(LIGHT if nid in dim else GRAY))
+        add_runs(p, sym if sym else lab, 16 if sym else 14, color=txtcol, bold=True)
+        where = lpos(nid)
+        if where == 'above':
+            add_text(slide, lab, ox + cx - 0.45, oy + cy - h / 2 - LAB_UP + 0.01, 0.9, 0.28,
+                     size=13, bold=True, color=txtcol, align=PP_ALIGN.CENTER,
+                     anchor=MSO_ANCHOR.MIDDLE)
+        elif where == 'right':
+            add_text(slide, lab, ox + cx + w / 2 + 0.02, oy + cy - 0.15, 0.35, 0.3,
+                     size=13, bold=True, color=txtcol, anchor=MSO_ANCHOR.MIDDLE)
 
 def side_panel(slide, heading, items, x=8.95, y=1.5, w=4.05, size=16):
     add_text(slide, heading, x, y, w, 0.45, size=18, bold=True, color=NAVY)
@@ -403,7 +435,14 @@ s = new_slide('Running example: circuit equivalence checking', notes=(
     'a three-gate circuit. Each copy has its own input wires; the equalities tie them '
     'together. Assert the outputs differ. Unsat means the circuits are equivalent. In the '
     'diagram, nodes are terms (gates), edges point to children.'))
-draw_egraph(s)
+draw_egraph(s, highlight=['m2'], edge_hl=[('m2', 'cp'), ('m2', 'a2'), ('m2', 'x2')])
+add_rect(s, 6.55, 1.28, 2.3, 0.74, fill=AMBER_FILL, line=AMBER, width=1.5)
+add_text(s, 'm\u2082 = ITE(c\u2032, a\u2082, x\u2082)', 6.58, 1.33, 2.24, 0.32, size=14.5,
+         bold=True, align=PP_ALIGN.CENTER)
+add_text(s, 'orange arrows: its 3 children', 6.58, 1.65, 2.24, 0.3, size=11.5, color=GRAY,
+         align=PP_ALIGN.CENTER)
+add_line(s, 6.55, 1.62, OX + 5.15 + 0.20, OY + ITE - GH / 2 - 0.02, color=AMBER, width=2.25,
+         arrow=True)
 side_panel(s, 'Miter of two copies of a circuit', [
     'a₁ = AND(r, s)    x₁ = XOR(u, v)',
     'm₁ = ITE(c, a₁, x₁)',
@@ -414,7 +453,8 @@ side_panel(s, 'Miter of two copies of a circuit', [
     'm₁ ≠ m₂  (outputs differ)',
     'unsatisfiable  ⟺  circuits equivalent',
 ], size=16)
-add_text(s, 'nodes: terms (gates)     edges: parent → child', 0.6, 6.45, 8, 0.35, size=12, color=GRAY)
+add_text(s, 'node: one term   ·   operator inside, term name alongside   ·   edge: parent → child',
+         0.5, 6.45, 8.3, 0.35, size=12, color=GRAY)
 
 # 7-10 ---- sequential walkthrough
 s = new_slide('Congruence closure by hand: step 0', notes=(
@@ -490,7 +530,7 @@ s = new_slide('Observation: independent merges form rounds', notes=(
     'and that is the parallelism we exploit.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS],
             labels={5: 'round 1', 6: 'round 1', 7: 'round 2'})
-add_text(s, 'round 0: input equalities', 0.55, 1.55 + LEAF + NH / 2 + 0.16, 8.4, 0.35, size=12,
+add_text(s, 'round 0: input equalities', 0.45, OY + LEAF + LH / 2 + 0.32, 8.55, 0.35, size=12,
          bold=True, color=GRAY, align=PP_ALIGN.CENTER)
 side_panel(s, 'Depth and width', [
     'steps 1 and 2 are independent: one round',
