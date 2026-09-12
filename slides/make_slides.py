@@ -697,7 +697,7 @@ s = new_slide('ParentCC: a bulk-synchronous closure loop', notes=(
     'frontier, group the frontier by signature with semisort, merge every group that spans '
     'more than one class, and the dethroned roots form the next Work. Stop when Work is empty.'))
 add_rect(s, 0.6, 1.45, 12.1, 0.7, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None,
-         text='Round 0:  parfor (u = v) ∈ E: Union(u, v)        Work ← terms of E', size=18,
+         text='Round 0:  parfor (u = v) ∈ E: Union(u, v)        seed Frontier ← all compound terms', size=18,
          color=INK)
 BW, BH = 3.7, 1.35
 bx1, bx2 = 1.2, 8.4
@@ -705,7 +705,7 @@ by1, by2 = 2.55, 4.95
 b1 = add_rect(s, bx1, by1, BW, BH, fill=RGBColor(0xDC, 0xEA, 0xF8), line=RGBColor(0x2E, 0x6F, 0xB0),
               width=1.5, text='**Work**\nrepresentatives dethroned\nby the previous round', size=16)
 b2 = add_rect(s, bx2, by1, BW, BH, fill=RGBColor(0xDC, 0xEA, 0xF8), line=RGBColor(0x2E, 0x6F, 0xB0),
-              width=1.5, text='**Frontier**\nfold parent lists into new roots;\nparents of the changed classes', size=16)
+              width=1.5, text='**Frontier**\nseed round: all compound terms\nlater: parents of the changed classes', size=16)
 b3 = add_rect(s, bx2, by2, BW, BH, fill=RGBColor(0xEA, 0xE2, 0xF5), line=PURPLE,
               width=1.5, text='**GroupBy signature**\nsemisort the frontier by\n(symbol, Find(children))', size=16)
 b4 = add_rect(s, bx1, by2, BW, BH, fill=RGBColor(0xFB, 0xE4, 0xD3), line=ORANGE,
@@ -742,7 +742,7 @@ draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1,
 side_panel(s, 'Round 1: frontier and groups', [
     'fold: Parents[r] ∪= Parents[r′] = {a₁, a₂}, …',
     'Frontier = {a₁, a₂, x₁, x₂, m₁, m₂}',
-    (1, 'parents of the changed classes'),
+    (1, 'seed round: every compound term'),
     'GroupBy(Congruent, Frontier):',
     (1, '{a₁, a₂}   AND over classes (r, s)'),
     (1, '{x₁, x₂}   XOR over classes (u, v)'),
@@ -814,8 +814,9 @@ code = [
     ('while Work ≠ ∅:', 1),
     ('parfor c ∈ Work with c ≠ Find(c):                 ▹ fold parent lists', 2),
     ('Parents[Find(c)] ← Parents[Find(c)] ∪ Parents[c]', 3),
-    ('Frontier ← ⋃ Parents[Find(c)] for c ∈ Work', 2),
-    ('groups ← GroupBy(Congruent, Frontier)             ▹ semisort on signatures', 2),
+    ('Frontier ← all compound terms          on round 0   ▹ seed round', 2),
+    ('Frontier ← ⋃ Parents[Find(c)] for c ∈ Work   otherwise', 2),
+    ('groups ← GroupBy(Congruent, Frontier)          ▹ semisort on sigs', 2),
     ('Work ← ∅', 2),
     ('parfor g ∈ groups spanning > 1 class:', 2),
     ('rep ← MergeCongruenceClass(g)                    ▹ parallel unions', 3),
@@ -843,6 +844,8 @@ for i, (line, ind) in enumerate(code):
 add_bullets(s, [
     '**barrier** between fold, group, and merge phases',
     'signatures use a union-find no thread is modifying',
+    '**round 0** examines every compound term',
+    (1, 'terms can be congruent before any union'),
     '**Congruent(X, Y)**: same symbol, Find(Mᵢ) = Find(Nᵢ) for all i',
     'implemented with ParlayLib parfor, group_by, filter',
 ], 9.7, 1.5, 3.4, 5, size=15, gap=8)
@@ -867,6 +870,7 @@ blocks = [
     ('Completeness',
      ['let Mᵢ ~ Nᵢ for all children; take the round of the last such merge',
       'its losers enter Work, so both parents are in the next frontier',
+      'no such merge exists when the children coincide: the seed round covers that case',
       'equal signatures there ⇒ merged; classes never shrink']),
 ]
 x = 0.6
@@ -885,6 +889,7 @@ s = new_slide('FilterCC: drop the parent lists', notes=(
 add_bullets(s, [
     '**ParentCC cost**: folding parent lists means frequent allocation and list appends',
     '**FilterCC idea**: one dirty bit per class, set on merge',
+    '**round 0**: every compound term dirty, as in ParentCC',
     '**Frontier** = parallel filter over all terms: keep t if some child sits in a dirty class',
     'same frontier as ParentCC, computed without parent lists',
 ], 0.6, 1.45, 12.1, 2.6, size=19, gap=8)
@@ -919,8 +924,8 @@ s = new_slide('FilterCC on the example: round 1', notes=(
 draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1, dirty=[0, 1, 2, 3, 4],
             groups=[['a1', 'a2'], ['x1', 'x2'], ['m1'], ['m2']])
 side_panel(s, 'Round 1', [
-    'dirty ← classes merged in round 0',
-    '**filter all 16 terms**: keep t with a child in a dirty class',
+    'seed round: **every compound term is dirty**',
+    'later rounds filter for a child in a dirty class',
     'Frontier = {a₁, a₂, x₁, x₂, m₁, m₂}',
     'GroupBy, merge spanning groups as before',
     'clear dirty; set dirty[rep] for merged groups',
