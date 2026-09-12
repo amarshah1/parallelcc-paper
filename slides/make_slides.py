@@ -435,14 +435,7 @@ s = new_slide('Running example: circuit equivalence checking', notes=(
     'a three-gate circuit. Each copy has its own input wires; the equalities tie them '
     'together. Assert the outputs differ. Unsat means the circuits are equivalent. In the '
     'diagram, nodes are terms (gates), edges point to children.'))
-draw_egraph(s, highlight=['m2'], edge_hl=[('m2', 'cp'), ('m2', 'a2'), ('m2', 'x2')])
-add_rect(s, 6.55, 1.28, 2.3, 0.74, fill=AMBER_FILL, line=AMBER, width=1.5)
-add_text(s, 'm\u2082 = ITE(c\u2032, a\u2082, x\u2082)', 6.58, 1.33, 2.24, 0.32, size=14.5,
-         bold=True, align=PP_ALIGN.CENTER)
-add_text(s, 'orange arrows: its 3 children', 6.58, 1.65, 2.24, 0.3, size=11.5, color=GRAY,
-         align=PP_ALIGN.CENTER)
-add_line(s, 6.55, 1.62, OX + 5.15 + 0.20, OY + ITE - GH / 2 - 0.02, color=AMBER, width=2.25,
-         arrow=True)
+draw_egraph(s)
 side_panel(s, 'Miter of two copies of a circuit', [
     'a₁ = AND(r, s)    x₁ = XOR(u, v)',
     'm₁ = ITE(c, a₁, x₁)',
@@ -453,10 +446,76 @@ side_panel(s, 'Miter of two copies of a circuit', [
     'm₁ ≠ m₂  (outputs differ)',
     'unsatisfiable  ⟺  circuits equivalent',
 ], size=16)
-add_text(s, 'node: one term   ·   operator inside, term name alongside   ·   edge: parent → child',
-         0.5, 6.45, 8.3, 0.35, size=12, color=GRAY)
+add_text(s, 'nodes: terms (gates)   ·   edges: parent → child', 0.5, 6.45, 8.3, 0.35,
+         size=12, color=GRAY)
 
-# 7-10 ---- sequential walkthrough
+# 7 ---- reading the diagram: one node, one term
+FOCUS = ['m2', 'cp', 'a2', 'x2']
+s = new_slide('Reading the diagram: one node, one term', notes=(
+    'Focus on a single node before the trace starts. The box carries the operator, the name '
+    'sits alongside, and the outgoing edges are its children in argument order. Everything '
+    'else on the slide is greyed out so only this term and its three children are in view.'))
+draw_egraph(s, highlight=['m2'], edge_hl=[('m2', 'cp'), ('m2', 'a2'), ('m2', 'x2')],
+            dim=[n for n in NODES if n not in FOCUS])
+add_rect(s, 6.55, 1.28, 2.3, 0.74, fill=AMBER_FILL, line=AMBER, width=1.5)
+add_text(s, 'm\u2082 = ITE(c\u2032, a\u2082, x\u2082)', 6.58, 1.33, 2.24, 0.32, size=14.5,
+         bold=True, align=PP_ALIGN.CENTER)
+add_text(s, 'orange arrows: its 3 children', 6.58, 1.65, 2.24, 0.3, size=11.5, color=GRAY,
+         align=PP_ALIGN.CENTER)
+add_line(s, 6.55, 1.62, OX + 5.15 + 0.20, OY + ITE - GH / 2 - 0.02, color=AMBER, width=2.25,
+         arrow=True)
+side_panel(s, 'Notation', [
+    '**operator** inside the node',
+    '**term name** alongside it',
+    '**one edge per child**, in argument order',
+    'leaves: circuit inputs, no children',
+    '#Same term, three ways',
+    'gate m\u2082 in the circuit',
+    'term ITE(c\u2032, a\u2082, x\u2082)',
+    'node with 3 outgoing edges',
+])
+
+# 8 ---- what the hand trace is doing
+s = new_slide('What we do by hand', notes=(
+    'Before the trace, state the procedure. Put every input equality into the union-find, '
+    'then repeatedly look for two terms with the same operator whose children are pairwise '
+    'in the same class, merge them, and re-examine the parents of whatever just merged. '
+    'Stop when no pair matches. That fixpoint is the congruence closure. The next four '
+    'slides run exactly this loop on the miter, one merge per slide.'))
+steps = [
+    ('1', 'Union every input equality',
+     'r \u2261 r\u2032,  s \u2261 s\u2032,  u \u2261 u\u2032,  v \u2261 v\u2032,  c \u2261 c\u2032'),
+    ('2', 'Look for a congruent pair',
+     'same operator, children pairwise equivalent'),
+    ('3', 'Merge their two classes',
+     'one merge at a time, in whatever order we pick'),
+    ('4', 'Re-examine the parents of what just merged',
+     'a merge can make new pairs congruent'),
+    ('5', 'Stop when no pair matches',
+     'that fixpoint is the congruence closure'),
+]
+y = 1.55
+for num, head, sub in steps:
+    add_rect(s, 0.7, y + 0.02, 0.55, 0.55, fill=ORANGE, line=None, radius=0.5, text=num,
+             size=18, bold=True, color=WHITE)
+    add_text(s, head, 1.45, y - 0.04, 6.6, 0.5, size=19, bold=True, color=NAVY)
+    add_text(s, sub, 1.45, y + 0.38, 6.6, 0.4, size=15, color=GRAY)
+    y += 0.97
+add_rect(s, 8.35, 1.55, 4.35, 3.15, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
+add_text(s, 'Test in step 2', 8.55, 1.65, 4.0, 0.4, size=17, bold=True, color=NAVY)
+add_text(s, 'f(M\u2081, \u2026, M\u2099)   and   f(N\u2081, \u2026, N\u2099)', 8.5, 2.1, 4.05, 0.4,
+         size=16, align=PP_ALIGN.CENTER)
+add_text(s, 'congruent when', 8.5, 2.52, 4.05, 0.32, size=13, color=GRAY, align=PP_ALIGN.CENTER)
+add_text(s, 'Find(M\u1d62) = Find(N\u1d62)  for every i', 8.5, 2.86, 4.05, 0.4, size=16,
+         align=PP_ALIGN.CENTER)
+add_bullets(s, [
+    'classes live in a union-find',
+    'Find(t) = representative of t',
+], 8.45, 3.4, 4.15, 1.2, size=15, gap=6)
+add_rect(s, 8.35, 4.95, 4.35, 1.35, fill=NAVY, line=None,
+         text='Next: this loop on the miter,\none merge per slide', size=17, bold=True, color=WHITE)
+
+# 9-12 ---- sequential walkthrough
 s = new_slide('Congruence closure by hand: step 0', notes=(
     'First record the input equalities. The dashed boxes are equivalence classes.'))
 draw_egraph(s, classes=LEAF_CLASSES)
@@ -500,7 +559,7 @@ side_panel(s, 'Step 3: the ITE gates', [
 ])
 legend(s, [('hl', 'terms compared'), ('class', 'equivalence class')])
 
-# 11 ---- sequential baseline
+# 13 ---- sequential baseline
 s = new_slide('Sequential baseline: the worklist algorithm', notes=(
     'What we just did by hand is the classical worklist algorithm, in the variant of '
     'Nieuwenhuis and Oliveras. The signature table detects congruences in O(1). Each '
@@ -522,7 +581,7 @@ add_bullets(s, [
     '**Downey–Sethi–Tarjan**: O(n log n) work, hashtable instead of trie',
 ], 8.65, 2.15, 4.1, 4, size=15, gap=8)
 
-# 12 ---- observation: depth and width
+# 14 ---- observation: depth and width
 s = new_slide('Observation: independent merges form rounds', notes=(
     'Steps 1 and 2 did not depend on each other; they could be done concurrently, as one '
     'round. Step 3 forms a second round. Depth is the number of rounds; width is the max '
@@ -544,7 +603,7 @@ side_panel(s, 'Depth and width', [
     'each round: many independent unions',
 ])
 
-# 13 ---- building blocks
+# 15 ---- building blocks
 s = new_slide('Two building blocks from parallel algorithms', notes=(
     'Concurrent union-find from Alistarh et al.: simple CAS-based variant, since fancier '
     'ones did not perform better in their study. Semisort from Gu et al. groups by key '
@@ -574,7 +633,7 @@ add_text(s, 'Glue: ParlayLib (Blelloch, Anderson & Dhulipala 2020) for parfor, s
             'integer sort, filter.  Rounds are bulk-synchronous (Valiant 1990).',
          0.6, 6.5, 12.2, 0.5, size=14, color=GRAY)
 
-# 14 ---- ParentCC overview
+# 16 ---- ParentCC overview
 s = new_slide('ParentCC: a bulk-synchronous closure loop', notes=(
     'Replace the worklist with rounds. Work holds the representatives dethroned by the '
     'previous round. Fold their parent lists into the new roots, take the parents as the '
@@ -604,7 +663,7 @@ add_text(s, 'dethroned roots\n→ next Work', bx1 + BW / 2 + 0.12, 4.05, 2.2, 0.
 add_text(s, 'repeat until Work = ∅\nresult: union-find holds the congruence classes',
          5.25, 3.95, 3.2, 1.0, size=15, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
 
-# 15-20 ---- ParentCC on the example
+# 17-22 ---- ParentCC on the example
 FRONT1 = ['a1', 'a2', 'x1', 'x2', 'm1', 'm2']
 s = new_slide('ParentCC on the example: round 0', notes=(
     'All five input unions run in parallel. Work is seeded with the terms of the equalities.'))
@@ -686,7 +745,7 @@ side_panel(s, 'Round 3: done', [
 ])
 legend(s, [('class', 'class')])
 
-# 21 ---- pseudocode
+# 23 ---- pseudocode
 s = new_slide('ParentCC pseudocode', notes=(
     'The full loop. Phases are separated by barriers, so signatures are computed against a '
     'union-find that no thread is modifying. MergeCongruenceClass unions a group by '
@@ -731,7 +790,7 @@ add_bullets(s, [
     'implemented with ParlayLib parfor, group_by, filter',
 ], 9.7, 1.5, 3.4, 5, size=15, gap=8)
 
-# 22 ---- correctness
+# 24 ---- correctness
 s = new_slide('Why ParentCC is correct', notes=(
     'Four short arguments. Determinism per round follows from linearizability plus '
     'order-independence of the partition generated by a set of unions. Termination: each '
@@ -760,7 +819,7 @@ for head, items in blocks:
     add_bullets(s, items, x + 0.05, 2.15, 2.85, 4.2, size=14, gap=8)
     x += 3.08
 
-# 23 ---- FilterCC
+# 25 ---- FilterCC
 s = new_slide('FilterCC: drop the parent lists', notes=(
     'Parent lists cost allocations: every fold appends lists. FilterCC keeps one dirty bit '
     'per class instead and recomputes the frontier by filtering all terms for a dirty child. '
@@ -795,7 +854,7 @@ for row in rowsT:
         cx += w
     ry += 0.55
 
-# 24-25 ---- FilterCC on the example
+# 26-27 ---- FilterCC on the example
 s = new_slide('FilterCC on the example: round 1', notes=(
     'After the input unions the five leaf classes are dirty. Filter all 16 terms: keep those '
     'with a child in a dirty class. That is the same frontier ParentCC computed, found by a '
@@ -827,7 +886,7 @@ side_panel(s, 'Round 2', [
 ])
 legend(s, [('hl', 'passes filter'), ('group', 'signature group'), ('class', 'class')])
 
-# 26 ---- implementation details
+# 28 ---- implementation details
 s = new_slide('Implementation details that mattered', notes=(
     'Grouping: ParlayLib integer sort on the hashes followed by a sequential bucket pass '
     'per hash, which beats the library semisort on the small buckets we see. The sequential '
@@ -856,7 +915,7 @@ add_bullets(s, [
 add_text(s, 'C++, compiled with g++ -O3.  Code and benchmarks: github.com/amarshah10/ParallelEgraph',
          0.6, 6.5, 12.2, 0.4, size=14, color=GRAY)
 
-# 27 ---- handoff divider
+# 29 ---- handoff divider
 s = new_slide(number=False, notes='Hand off to Amar for the evaluation.')
 add_rect(s, 0, 0, 13.333, 7.5, fill=NAVY, line=None, rounded=False)
 add_line(s, 0.9, 3.55, 4.2, 3.55, color=ORANGE, width=3)
