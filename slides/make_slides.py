@@ -429,7 +429,64 @@ for num, head, sub in rows:
     add_text(s, sub, 1.55, y + 0.45, 11, 0.5, size=17, color=GRAY)
     y += 1.3
 
-# 6 ---- running example intro
+# 6 ---- setting: miters and the term grammar
+s = new_slide('Setting: combinational equivalence checking', notes=(
+    'Where the running example comes from. A miter feeds the same inputs to two circuits, '
+    'XORs the corresponding outputs, and asserts the result is 1. The circuits agree on '
+    'every input exactly when that assertion is unsatisfiable. Encoding a miter to CNF '
+    'destroys the gate structure, so Biere et al. recover the gates and close them under '
+    'congruence, which often decides the instance outright. Gates become terms under this '
+    'grammar: input wires are leaves, every gate is a function symbol applied to its inputs.'))
+# --- miter block diagram ---
+add_rect(s, 2.05, 5.72, 3.1, 0.45, fill=RGBColor(0xEE, 0xF0, 0xF3), line=RGBColor(0x9A, 0xA0, 0xA8),
+         width=1.25, text='shared inputs  r, s, u, v, c', size=13)
+CB = RGBColor(0xDC, 0xEA, 0xF8)
+add_rect(s, 1.55, 4.35, 1.7, 0.85, fill=CB, line=RGBColor(0x2E, 0x6F, 0xB0), width=1.5,
+         text='**C\u2081**', size=19, color=NAVY)
+add_rect(s, 3.95, 4.35, 1.7, 0.85, fill=CB, line=RGBColor(0x2E, 0x6F, 0xB0), width=1.5,
+         text='**C\u2082**', size=19, color=NAVY)
+add_line(s, 2.40, 5.72, 2.40, 5.20, arrow=True)
+add_line(s, 4.80, 5.72, 4.80, 5.20, arrow=True)
+add_rect(s, 2.80, 2.95, 1.6, 0.72, fill=RGBColor(0xFB, 0xE4, 0xD3), line=ORANGE, width=1.5,
+         text='**XOR**', size=17, color=NAVY)
+add_line(s, 2.40, 4.35, 3.20, 3.67, arrow=True)
+add_line(s, 4.80, 4.35, 4.00, 3.67, arrow=True)
+add_text(s, 'm\u2081', 2.38, 3.85, 0.5, 0.3, size=14, bold=True, color=GRAY)
+add_text(s, 'm\u2082', 4.52, 3.85, 0.5, 0.3, size=14, bold=True, color=GRAY)
+add_line(s, 3.60, 2.95, 3.60, 2.45, arrow=True)
+add_text(s, 'p', 3.30, 2.08, 0.5, 0.35, size=16, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+add_rect(s, 4.00, 2.05, 1.85, 0.42, fill=NAVY, line=None, text='assert p = 1', size=14,
+         bold=True, color=WHITE)
+# --- right column ---
+add_bullets(s, [
+    '#Miter',
+    'two circuits, same inputs',
+    'XOR the corresponding outputs',
+    'p = 1  \u27fa  the circuits disagree',
+    '**equivalent  \u27fa  p = 1 unsatisfiable**',
+], 6.25, 1.42, 6.5, 2.2, size=18, gap=5)
+add_rect(s, 6.35, 3.45, 6.35, 1.45, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
+add_text(s, 'Terms', 6.55, 3.52, 3, 0.35, size=15, bold=True, color=NAVY)
+gb = s.shapes.add_textbox(Inches(6.55), Inches(3.86), Inches(6.0), Inches(1.0))
+gtf = gb.text_frame
+gtf.word_wrap = False
+for i, (code_, note) in enumerate([
+        ('t  ::=  x', 'leaf: an input wire'),
+        ('   |   f(t\u2081, \u2026, t\u2096)', 'gate: f \u2208 F,  arity k'),
+        ('F = {AND, OR, XOR, ITE, \u2026}', '')]):
+    par = gtf.paragraphs[0] if i == 0 else gtf.add_paragraph()
+    par.space_after = Pt(2)
+    add_runs(par, code_.ljust(22), 14, font=MONO)
+    if note:
+        add_runs(par, note, 13, color=GRAY)
+add_bullets(s, [
+    '#Why congruence closure',
+    'real miters: many distinct gates, same function',
+    'CNF encoding discards that structure',
+    'Biere et al. 2024: recover gates, close under congruence',
+], 6.25, 5.0, 6.5, 1.6, size=17, gap=5)
+
+# 7 ---- running example intro
 s = new_slide('Running example: circuit equivalence checking', notes=(
     'Miter adapted from Biere et al., Clausal Congruence Closure, SAT 2024. Two copies of '
     'a three-gate circuit. Each copy has its own input wires; the equalities tie them '
@@ -449,7 +506,7 @@ side_panel(s, 'Miter of two copies of a circuit', [
 add_text(s, 'nodes: terms (gates)   ·   edges: parent → child', 0.5, 6.45, 8.3, 0.35,
          size=12, color=GRAY)
 
-# 7 ---- reading the diagram: one node, one term
+# 8 ---- reading the diagram: one node, one term
 FOCUS = ['m2', 'cp', 'a2', 'x2']
 s = new_slide('Reading the diagram: one node, one term', notes=(
     'Focus on a single node before the trace starts. The box carries the operator, the name '
@@ -475,7 +532,7 @@ side_panel(s, 'Notation', [
     'node with 3 outgoing edges',
 ])
 
-# 8 ---- what the hand trace is doing
+# 9 ---- what the hand trace is doing
 s = new_slide('What we do by hand', notes=(
     'Before the trace, state the procedure. Put every input equality into the union-find, '
     'then repeatedly look for two terms with the same operator whose children are pairwise '
@@ -515,7 +572,7 @@ add_bullets(s, [
 add_rect(s, 8.35, 4.95, 4.35, 1.35, fill=NAVY, line=None,
          text='Next: this loop on the miter,\none merge per slide', size=17, bold=True, color=WHITE)
 
-# 9-12 ---- sequential walkthrough
+# 10-13 ---- sequential walkthrough
 s = new_slide('Congruence closure by hand: step 0', notes=(
     'First record the input equalities. The dashed boxes are equivalence classes.'))
 draw_egraph(s, classes=LEAF_CLASSES)
@@ -559,7 +616,7 @@ side_panel(s, 'Step 3: the ITE gates', [
 ])
 legend(s, [('hl', 'terms compared'), ('class', 'equivalence class')])
 
-# 13 ---- sequential baseline
+# 14 ---- sequential baseline
 s = new_slide('Sequential baseline: the worklist algorithm', notes=(
     'What we just did by hand is the classical worklist algorithm, in the variant of '
     'Nieuwenhuis and Oliveras. The signature table detects congruences in O(1). Each '
@@ -581,7 +638,7 @@ add_bullets(s, [
     '**Downey–Sethi–Tarjan**: O(n log n) work, hashtable instead of trie',
 ], 8.65, 2.15, 4.1, 4, size=15, gap=8)
 
-# 14 ---- observation: depth and width
+# 15 ---- observation: depth and width
 s = new_slide('Observation: independent merges form rounds', notes=(
     'Steps 1 and 2 did not depend on each other; they could be done concurrently, as one '
     'round. Step 3 forms a second round. Depth is the number of rounds; width is the max '
@@ -603,7 +660,7 @@ side_panel(s, 'Depth and width', [
     'each round: many independent unions',
 ])
 
-# 15 ---- building blocks
+# 16 ---- building blocks
 s = new_slide('Two building blocks from parallel algorithms', notes=(
     'Concurrent union-find from Alistarh et al.: simple CAS-based variant, since fancier '
     'ones did not perform better in their study. Semisort from Gu et al. groups by key '
@@ -633,7 +690,7 @@ add_text(s, 'Glue: ParlayLib (Blelloch, Anderson & Dhulipala 2020) for parfor, s
             'integer sort, filter.  Rounds are bulk-synchronous (Valiant 1990).',
          0.6, 6.5, 12.2, 0.5, size=14, color=GRAY)
 
-# 16 ---- ParentCC overview
+# 17 ---- ParentCC overview
 s = new_slide('ParentCC: a bulk-synchronous closure loop', notes=(
     'Replace the worklist with rounds. Work holds the representatives dethroned by the '
     'previous round. Fold their parent lists into the new roots, take the parents as the '
@@ -663,7 +720,7 @@ add_text(s, 'dethroned roots\n→ next Work', bx1 + BW / 2 + 0.12, 4.05, 2.2, 0.
 add_text(s, 'repeat until Work = ∅\nresult: union-find holds the congruence classes',
          5.25, 3.95, 3.2, 1.0, size=15, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
 
-# 17-22 ---- ParentCC on the example
+# 18-23 ---- ParentCC on the example
 FRONT1 = ['a1', 'a2', 'x1', 'x2', 'm1', 'm2']
 s = new_slide('ParentCC on the example: round 0', notes=(
     'All five input unions run in parallel. Work is seeded with the terms of the equalities.'))
@@ -745,7 +802,7 @@ side_panel(s, 'Round 3: done', [
 ])
 legend(s, [('class', 'class')])
 
-# 23 ---- pseudocode
+# 24 ---- pseudocode
 s = new_slide('ParentCC pseudocode', notes=(
     'The full loop. Phases are separated by barriers, so signatures are computed against a '
     'union-find that no thread is modifying. MergeCongruenceClass unions a group by '
@@ -790,7 +847,7 @@ add_bullets(s, [
     'implemented with ParlayLib parfor, group_by, filter',
 ], 9.7, 1.5, 3.4, 5, size=15, gap=8)
 
-# 24 ---- correctness
+# 25 ---- correctness
 s = new_slide('Why ParentCC is correct', notes=(
     'Four short arguments. Determinism per round follows from linearizability plus '
     'order-independence of the partition generated by a set of unions. Termination: each '
@@ -819,7 +876,7 @@ for head, items in blocks:
     add_bullets(s, items, x + 0.05, 2.15, 2.85, 4.2, size=14, gap=8)
     x += 3.08
 
-# 25 ---- FilterCC
+# 26 ---- FilterCC
 s = new_slide('FilterCC: drop the parent lists', notes=(
     'Parent lists cost allocations: every fold appends lists. FilterCC keeps one dirty bit '
     'per class instead and recomputes the frontier by filtering all terms for a dirty child. '
@@ -854,7 +911,7 @@ for row in rowsT:
         cx += w
     ry += 0.55
 
-# 26-27 ---- FilterCC on the example
+# 27-28 ---- FilterCC on the example
 s = new_slide('FilterCC on the example: round 1', notes=(
     'After the input unions the five leaf classes are dirty. Filter all 16 terms: keep those '
     'with a child in a dirty class. That is the same frontier ParentCC computed, found by a '
@@ -886,7 +943,7 @@ side_panel(s, 'Round 2', [
 ])
 legend(s, [('hl', 'passes filter'), ('group', 'signature group'), ('class', 'class')])
 
-# 28 ---- implementation details
+# 29 ---- implementation details
 s = new_slide('Implementation details that mattered', notes=(
     'Grouping: ParlayLib integer sort on the hashes followed by a sequential bucket pass '
     'per hash, which beats the library semisort on the small buckets we see. The sequential '
@@ -915,7 +972,7 @@ add_bullets(s, [
 add_text(s, 'C++, compiled with g++ -O3.  Code and benchmarks: github.com/amarshah10/ParallelEgraph',
          0.6, 6.5, 12.2, 0.4, size=14, color=GRAY)
 
-# 29 ---- handoff divider
+# 30 ---- handoff divider
 s = new_slide(number=False, notes='Hand off to Amar for the evaluation.')
 add_rect(s, 0, 0, 13.333, 7.5, fill=NAVY, line=None, rounded=False)
 add_line(s, 0.9, 3.55, 4.2, 3.55, color=ORANGE, width=3)
