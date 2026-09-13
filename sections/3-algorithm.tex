@@ -177,19 +177,27 @@ $\sim$ on $A$.
 \subsection{Rounds-Based Congruence Closure}
 \label{subsec:rounds}
 
-At each round, we maintain a set $\mathit{Work}$ of the representatives
-dethroned by the previous round's merges (initially, the terms appearing in
-base equalities). A round begins by folding the parent lists of these
-dethroned roots into their new representatives, maintaining a mapping
-$\mathit{Parents}$ from each class to the parents of its members:
-if the congruence class of a term $e$ has changed, then the congruence class
-of $f(e)$ may change as well. The \emph{frontier} of the round---the parents
-of the classes in $\mathit{Work}$---is then grouped into congruent terms via
-semisort (the \texttt{group\_by} operation in \textsc{ParlayLib}). Each group
+At each round, we maintain a set $\mathit{Work}$ of the pre-merge
+representatives of the classes merged by the previous round (initially, the
+terms appearing in base equalities). A round begins by folding the parent
+lists of those roots that are no longer representatives into their new
+representatives, maintaining a mapping $\mathit{Parents}$ from each class to
+the parents of its members: if the congruence class of a term $e$ has
+changed, then the congruence class of $f(e)$ may change as well. The
+\emph{frontier} of the round is then grouped into congruent terms via
+semisort (the \texttt{group\_by} operation in \textsc{ParlayLib}). In
+round~0 the frontier is every compound term: the input term set need not be
+hash-consed, so two terms may be congruent before any union has taken place,
+and the first round canonicalizes all of them at once. In every later round
+the frontier is the parents of the classes in $\mathit{Work}$. Each group
 \emph{spanning} more than one class (i.e., whose members do not all share one
-representative) is merged in the union-find, and its classes' dethroned
-pre-merge roots form the next round's $\mathit{Work}$. These rounds continue
-until there is no longer any work to do.
+representative) is merged in the union-find, and \emph{all} of its classes'
+pre-merge roots form the next round's $\mathit{Work}$. The root that survives
+a group's merge is included too: another group in the same round may share
+one of its classes and merge it further, and the parent list of whichever
+root is ultimately deposed must still be folded into the final
+representative. These rounds continue until there is no longer any work to
+do.
 
 We call this algorithm \parentalgo, since it maintains an explicit parent list
 (the $\mathit{Parents}$ mapping) for each congruence class.
@@ -225,21 +233,25 @@ approach; we merge the left and right halves (in parallel), and then
           \State $\Call{Union}{u, v}$
         \EndParFor
         \State $\rhd$ Initialize $\mathit{Work}$ with terms appearing in equalities
-        \State $\mathit{Work} \gets \{e_1, e_1', \ldots, e_w, e_w'\}$
-        \While{$\mathit{Work}$ is not empty}
+        \State $\mathit{Work} \gets \{e_1, e_1', \ldots, e_w, e_w'\}$;\quad $r \gets 0$
+        \While{$r = 0$ or $\mathit{Work}$ is not empty}
           \State $\rhd$ Fold parent lists of merged classes into their new root
           \ParFor{$c \in \mathit{Work}$ with $c \neq \Call{Find}{c}$} \Comment{$c$ is not the representative of its class}
             \State $\mathit{Parents}[\Call{Find}{c}] \gets \mathit{Parents}[\Call{Find}{c}] \cup \mathit{Parents}[c]$
           \EndParFor
-          \State $\mathit{Frontier} \gets \bigcup_{c \in \mathit{Work}} \mathit{Parents}[\Call{Find}{c}]$
+          \If{$r = 0$} \Comment{Round 0 canonicalizes every compound term}
+            \State $\mathit{Frontier} \gets \{\, t \in \mathcal{T} \mid t \text{ is a compound term} \,\}$
+          \Else
+            \State $\mathit{Frontier} \gets \bigcup_{c \in \mathit{Work}} \mathit{Parents}[\Call{Find}{c}]$
+          \EndIf
           \State $\mathit{groups} \gets \Call{GroupBy}{\textsc{Congruent}, \mathit{Frontier}}$
           \State $\mathit{Work} \gets \emptyset$
           \ParFor{$g \in \mathit{groups}$ spanning more than one class}
             \State $\rhd$ Merge every term within congruence class
-            \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{g}$
-            \State \mbox{$\mathit{Work} \gets \mathit{Work} \; \cup$}
-            \Statex \hspace{\algorithmicindent}$\{\text{pre-merge roots of } g\text{'s classes}\}\setminus\{\mathit{rep}\}$
+            \State $\Call{MergeCongruenceClass}{g}$
+            \State $\mathit{Work} \gets \mathit{Work} \cup \{\text{pre-merge roots of } g\text{'s classes}\}$
           \EndParFor
+          \State $r \gets r + 1$
         \EndWhile
     \EndFunction
 \end{algorithmic}
@@ -257,11 +269,13 @@ deterministic partition. The barrier between grouping and
 merging ensures every signature is computed by \textsc{Find} against a
 union-find whose partition no thread is concurrently modifying.
 
-\emph{Termination.} Beyond the initial seed, a term enters $\mathit{Work}$
-only when a merge dethrones it as a representative. A term is dethroned at
-most once across the run, so at most $|\mathcal{T}|-1$ terms ever enter
-$\mathit{Work}$; a round in which every group lies within a single class adds
-nothing to $\mathit{Work}$, and the loop halts.
+\emph{Termination.} A group spanning more than one class contains members
+of at least two distinct classes when the round's signatures are computed, so
+the first \textsc{Union} that reaches two of them succeeds and the number of
+classes decreases. Every round that adds anything to $\mathit{Work}$
+therefore reduces the number of classes, which can happen at most
+$|\mathcal{T}|-1$ times; a round in which every group lies within a single
+class adds nothing to $\mathit{Work}$, and the loop halts.
 
 \emph{Soundness.} We maintain the invariant that every union-find class is
 contained in a congruence class of $\equiv$. It holds after the initial
@@ -281,15 +295,20 @@ termination.'' Then $\sim$ is an equivalence relation, and the initial
 $\sim$ is closed under congruence: $\equiv$, the \emph{smallest} such relation
 (\autoref{def:cc}), is then contained in $\sim$. Suppose
 $e = f(M_1,\ldots,M_n)$ and $e' = f(N_1,\ldots,N_n)$ with $M_i \sim N_i$ for
-every $i$. Each pair $M_i, N_i$ is merged at some round; consider the round
-performing the last such merge (counting the initial \textsc{Union}s as round
-zero, which seed $\mathit{Work}$ with the terms of $\mathit{Eq}$). That merge
-places the losing representatives in $\mathit{Work}$, so the next round folds
-their parent lists into the new root---maintaining the invariant that a
-class's root holds the parents of all its members---and its frontier contains
-the merged class's parents, including $e$ and $e'$. There they receive
-identical signatures and are merged (or already share a class). Classes never
-shrink, so $e \sim e'$.
+every $i$. If every pair $M_i, N_i$ already shares a class when round~0
+computes its signatures---because $M_i = N_i$, or because the initial
+\textsc{Union}s joined them---then $e$ and $e'$ both lie in the round-0
+frontier, which contains every compound term; there they receive identical
+signatures and are merged. Otherwise some pair $M_i, N_i$ is first joined by
+a merge in a round $r \geq 0$; consider the round performing the last such
+merge. Every pre-merge root of the classes it joins is placed in
+$\mathit{Work}$, including a root that the same round later deposes through
+another group's merge, so round $r+1$ folds the parent lists of all of them
+into the final representative---maintaining the invariant that a class's
+root holds the parents of all its members---and its frontier contains that
+class's parents, including $e$ and $e'$. There they receive identical
+signatures and are merged (or already share a class). Classes never shrink,
+so $e \sim e'$.
 
 
 \subsection{Filtering-Based Algorithm (\filteralgo)}
@@ -299,19 +318,26 @@ the parents associated with each congruence class, which is expensive due
 to frequent allocations. We now present an algorithm that achieves the same
 effect without keeping these parent lists.
 
-Instead of explicitly maintaining lists, we instead maintain which classes
-are ``dirty'' at a given round---i.e., were involved in a merge during the
-prior round. We then filter all terms to retain those with a child in a dirty
-class, and propagate these terms to the next round to be semisorted and
-recanonicalized. This avoids the
-cost of maintaining parent lists, but also requires scanning all nodes every
-round. We have found that this tradeoff is generally worthwhile on most
-workloads. \autoref{alg:dirty-children} gives the pseudocode.
+Instead of explicitly maintaining lists, we maintain which classes are
+``dirty'' at a given round---i.e., were involved in a merge during the prior
+round. Round~0 treats every compound term as dirty, just as \parentalgo{}
+canonicalizes every compound term in its first round. In every later round
+we filter all terms to retain those with a child in a dirty class, and
+propagate these terms to the next round to be semisorted and
+recanonicalized. This avoids the cost of maintaining parent lists, but also
+requires scanning all nodes every round, so the per-round cost is
+proportional to the size of the term set rather than to the size of the
+frontier. The tradeoff favors \filteralgo{} on workloads that converge in
+few rounds and \parentalgo{} on workloads that need many.
+\autoref{alg:dirty-children} gives the pseudocode.
 
 \filteralgo{} is correct by the same argument as \parentalgo{}: it computes
-the same frontier---every term with a child in a class merged since the last
+the same frontier in every round---all compound terms in round~0, and
+thereafter every term with a child in a class merged during the previous
 round---by filtering all terms for dirty children rather than consulting
-parent lists.
+parent lists. Marking $\mathit{dirty}[\Call{Find}{c}]$ for every pre-merge
+root $c$ after the merge marks the final representative of each merged
+class, whichever group's \textsc{Union} produced it.
 
 \begin{algorithm}
 \begin{algorithmic}[1]
@@ -322,15 +348,15 @@ parent lists.
           \State $\Call{Union}{u, v}$
         \EndParFor
         \State $\rhd$ Dirty flags, indexed by term id (one per term)
-        \State $\mathit{dirty}[\Call{Find}{u}] \gets \textbf{true}$ for each $u$ appearing in $\mathit{Eq}$
-        \State $\mathit{Frontier} \gets \{g(\ldots u \ldots) \mid \mathit{dirty}[\Call{Find}{u}]\}$
+        \State $\rhd$ Round 0 canonicalizes every compound term
+        \State $\mathit{Frontier} \gets \{\, t \in \mathcal{T} \mid t \text{ is a compound term} \,\}$
         \While{$\mathit{Frontier}$ is not empty}
           \State $\mathit{dirty} \gets [\textbf{false} \mid 0 \leq i < |\mathcal{T}|]$
           \State $\mathit{groups} \gets \Call{GroupBy}{\textsc{Congruent}, \mathit{Frontier}}$
           \ParFor{$g \in \mathit{groups}$ spanning more than one class}
             \State $\rhd$ Merge every term within congruence class
-            \State $\mathit{rep} \gets \Call{MergeCongruenceClass}{g}$
-            \State $\mathit{dirty}[\mathit{rep}] \gets \textbf{true}$
+            \State $\Call{MergeCongruenceClass}{g}$
+            \State $\mathit{dirty}[\Call{Find}{c}] \gets \textbf{true}$ for each pre-merge root $c$ of $g$'s classes
           \EndParFor
           \State $\mathit{Frontier} \gets \{g(\ldots u \ldots) \mid \mathit{dirty}[\Call{Find}{u}]\}$
         \EndWhile
@@ -350,6 +376,12 @@ by hash and then \emph{sequentially} bucket the resulting array manually---this
 requires detecting hash collisions. This is more performant for small buckets.
 \textsc{ParlayLib}'s semisort buckets in parallel, which is advantageous for
 large buckets, but not the small ones we typically encounter in our workloads.
+
+The round-0 frontier is produced by a parallel filter over the term array
+rather than by gathering parent lists, so it is emitted in term order and
+free of duplicates. Computing signatures over it is then a sequential sweep
+of the term array rather than a scattered gather, which we found to matter
+on multi-socket machines.
 
 Several implementation choices also had significant impact on the performance
 of the sequential algorithm. Firstly, we maintain different signature tables
