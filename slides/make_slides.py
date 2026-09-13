@@ -336,9 +336,13 @@ def union_mark(slide, ox, a, b, oy=OY):
 ROUND_ROWS = [(['r', 'rp', 's', 'sp', 'c', 'cp', 'u', 'up', 'v', 'vp'], 'round 0'),
               (['a1', 'a2', 'x1', 'x2'], 'round 1'), (['m1', 'm2'], 'round 2')]
 
-def round_bands(slide, ox, oy=OY):
-    """A labelled ring around each round of the schedule."""
-    for ids, lab in ROUND_ROWS:
+def round_bands(slide, ox, oy=OY, only=None):
+    """A labelled ring around each round of the schedule.
+
+    ``only`` is an optional set of round indices to draw; default is all."""
+    for i, (ids, lab) in enumerate(ROUND_ROWS):
+        if only is not None and i not in only:
+            continue
         bx, by, bw, bh = _bbox(ids, 0.27)
         add_rect(slide, ox + bx, oy + by, bw, bh, fill=None, line=NAVY, width=2.25,
                  dash=MSO_LINE.LONG_DASH, radius=0.35)
@@ -664,12 +668,27 @@ par_mark(s, OX_FULL)
 banner(s, 'Unrelated merges run in parallel')
 
 s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
-    'Read the dependences as a schedule. Everything with no unmet dependence goes in the '
-    'current round, all at once; a barrier; then everything the round just enabled. Round 0 '
-    'is the input equalities, round 1 the two gate merges, round 2 the output merge. This is '
-    'Valiant’s bulk-synchronous model, and it falls straight out of the term structure.'))
+    'Read the dependences as a schedule. Everything with no unmet dependence goes first, all '
+    'at once. That is round 0: the input equalities we were handed. Nothing had to happen '
+    'before them.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
-round_bands(s, OX)
+round_bands(s, OX, only={0})
+banner(s, 'Round 0: the input equalities, nothing waits on them')
+
+s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
+    'Barrier, then everything round 0 just enabled. The inputs changed class, so their '
+    'parents get retested: the AND merge and the XOR merge. Neither depends on the other, so '
+    'both go in the same round.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
+round_bands(s, OX, only={0, 1})
+banner(s, 'Round 1: both gate merges, enabled by round 0')
+
+s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
+    'Barrier again, and the gate merges enable the output merge. Round 2, and nothing is '
+    'left to enable, so we stop. This is Valiant’s bulk-synchronous model, and it falls '
+    'straight out of the term structure.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
+round_bands(s, OX, only={0, 1, 2})
 banner(s, 'Bulk-synchronous parallel: rounds of independent merges')
 
 s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
