@@ -249,7 +249,7 @@ approach; we merge the left and right halves (in parallel), and then
           \ParFor{$g \in \mathit{groups}$ spanning more than one class}
             \State $\rhd$ Merge every term within congruence class
             \State $\Call{MergeCongruenceClass}{g}$
-            \State $\mathit{Work} \gets \mathit{Work} \cup \{\text{pre-merge roots of } g\text{'s classes}\}$
+            \State \mbox{$\mathit{Work} \gets \mathit{Work} \cup \{\text{pre-merge roots of } g\text{'s classes}\}$}
           \EndParFor
           \State $r \gets r + 1$
         \EndWhile
