@@ -183,7 +183,7 @@ def new_slide(title=None, notes=None, number=True):
                  anchor=MSO_ANCHOR.MIDDLE)
         add_line(s, 0.62, 1.12, 3.0, 1.12, color=ORANGE, width=2.5)
     if number:
-        add_text(s, str(SLIDE_NO[0]), 12.3, 7.0, 0.8, 0.35, size=11, color=GRAY,
+        add_text(s, str(SLIDE_NO[0]), 12.1, 6.94, 1.0, 0.4, size=15, color=INK,
                  align=PP_ALIGN.RIGHT)
         add_text(s, 'Parallelizing Congruence Closure  ·  FMCAD 2026', 0.55, 7.0,
                  6, 0.35, size=11, color=GRAY)
@@ -232,6 +232,7 @@ def lpos(nid):
         return None            # leaves carry their name inside
     return 'right' if sym == 'ITE' else 'above'
 
+LEAF_EQ = ['r', 'rp', 's', 'sp', 'c', 'cp', 'u', 'up', 'v', 'vp']
 LEAF_CLASSES = [(['r', 'rp'], 'leaf'), (['s', 'sp'], 'leaf'), (['c', 'cp'], 'leaf'),
                 (['u', 'up'], 'leaf'), (['v', 'vp'], 'leaf')]
 A_CLASS = (['a1', 'a2'], 'a')
@@ -322,7 +323,7 @@ EQ_PAIRS = [('r', 'rp'), ('s', 'sp'), ('c', 'cp'), ('u', 'up'), ('v', 'vp')]
 def query_mark(slide, ox, oy=OY, sym='=?', color=ORANGE):
     """The query, drawn in the gap between the two ITE nodes."""
     mid = (NODES['m1'][2] + NODES['m2'][2]) / 2.0
-    add_text(slide, 'Query', ox + mid - 0.55, oy + ITE - 0.66, 1.1, 0.3, size=12,
+    add_text(slide, 'Query', ox + mid - 0.7, oy + ITE - 0.78, 1.4, 0.36, size=16,
              bold=True, color=GRAY, align=PP_ALIGN.CENTER)
     add_text(slide, sym, ox + mid - 0.55, oy + ITE - 0.26, 1.1, 0.52, size=24, bold=True,
              color=color, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
@@ -580,39 +581,45 @@ add_text(s, 'github.com/amarshah10/ParallelEgraph', 1.5, 6.3, 10, 0.4, size=16, 
 # 6 ---- equivalence checking, built up
 CIRC_FILL = RGBColor(0xDC, 0xEA, 0xF8)
 CIRC_LINE = RGBColor(0x2E, 0x6F, 0xB0)
-C1X, C2X = 5.05, 8.29          # left edge of each circuit box
-CW, CH, CY = 2.0, 1.0, 4.30    # circuit boxes
+C1X, C2X = 4.05, 7.29          # left edge of each circuit box
+CW, CH, CY = 2.0, 1.0, 4.10    # circuit boxes
 MIDX = (C1X + CW / 2 + C2X + CW / 2) / 2
+XOR_T, XOR_B = 2.98, 3.70      # XOR box top / bottom
+BAR_T = 5.55                   # shared-input bar top
 
 def miter(slide, beat):
-    """beat 1 circuits, 2 question, 3 inputs, 4 XOR, 5 p, 6 the unsat framing."""
+    """beat 1 circuits, 2 question, 3 inputs, 4 XOR, 5 p, 6 the p=1 reading,
+    7 the unsat framing."""
     add_rect(slide, C1X, CY, CW, CH, fill=CIRC_FILL, line=CIRC_LINE, width=1.5,
              text='**C\u2081**', size=22, color=NAVY)
     add_rect(slide, C2X, CY, CW, CH, fill=CIRC_FILL, line=CIRC_LINE, width=1.5,
              text='**C\u2082**', size=22, color=NAVY)
     if beat >= 2:
-        add_text(slide, 'Are C\u2081 and C\u2082 equivalent?', 0.8, 1.3, 11.8, 0.6, size=28,
-                 bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+        add_text(slide, 'Are C\u2081 and C\u2082 equivalent?', 0.77, 1.30, 11.8, 0.6,
+                 size=28, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
     if beat >= 3:
-        add_rect(slide, MIDX - 1.85, 5.85, 3.7, 0.5, fill=RGBColor(0xEE, 0xF0, 0xF3),
+        add_rect(slide, MIDX - 1.85, BAR_T, 3.7, 0.5, fill=RGBColor(0xEE, 0xF0, 0xF3),
                  line=RGBColor(0x9A, 0xA0, 0xA8), width=1.25,
                  text='same inputs  r, s, u, v, c', size=15)
-        add_line(slide, C1X + CW / 2, 5.85, C1X + CW / 2, CY + CH, arrow=True)
-        add_line(slide, C2X + CW / 2, 5.85, C2X + CW / 2, CY + CH, arrow=True)
+        add_line(slide, C1X + CW / 2, BAR_T, C1X + CW / 2, CY + CH, arrow=True)
+        add_line(slide, C2X + CW / 2, BAR_T, C2X + CW / 2, CY + CH, arrow=True)
     if beat >= 4:
-        add_rect(slide, MIDX - 0.85, 2.95, 1.7, 0.78, fill=RGBColor(0xFB, 0xE4, 0xD3),
+        add_rect(slide, MIDX - 0.85, XOR_T, 1.7, XOR_B - XOR_T,
+                 fill=RGBColor(0xFB, 0xE4, 0xD3),
                  line=ORANGE, width=1.5, text='**XOR**', size=19, color=NAVY)
-        add_line(slide, C1X + CW / 2, CY, MIDX - 0.45, 3.73, arrow=True)
-        add_line(slide, C2X + CW / 2, CY, MIDX + 0.45, 3.73, arrow=True)
-        add_text(slide, 'm\u2081', C1X + CW / 2 + 0.05, 3.88, 0.5, 0.3, size=15, bold=True,
-                 color=GRAY)
-        add_text(slide, 'm\u2082', C2X + CW / 2 - 0.45, 3.88, 0.5, 0.3, size=15, bold=True,
-                 color=GRAY, align=PP_ALIGN.RIGHT)
+        add_line(slide, C1X + CW / 2, CY, MIDX - 0.45, XOR_B, arrow=True)
+        add_line(slide, C2X + CW / 2, CY, MIDX + 0.45, XOR_B, arrow=True)
+        add_text(slide, 'm\u2081', C1X + CW / 2 + 0.05, 3.76, 0.5, 0.3, size=15,
+                 bold=True, color=GRAY)
+        add_text(slide, 'm\u2082', C2X + CW / 2 - 0.45, 3.76, 0.5, 0.3, size=15,
+                 bold=True, color=GRAY, align=PP_ALIGN.RIGHT)
     if beat >= 5:
-        add_line(slide, MIDX, 2.95, MIDX, 2.42, arrow=True)
-        add_text(slide, 'p', MIDX + 0.12, 2.45, 0.5, 0.35, size=17, bold=True, color=NAVY)
+        add_line(slide, MIDX, XOR_T, MIDX, 2.50, arrow=True)
+        add_text(slide, 'p', MIDX + 0.12, 2.52, 0.5, 0.35, size=17, bold=True,
+                 color=NAVY)
+    if beat >= 6:
         add_text(slide, 'p = 1   \u27fa   C\u2081 and C\u2082 disagree on this input',
-                 0.8, 2.02, 11.8, 0.45, size=22, bold=True, color=ORANGE,
+                 0.77, 2.00, 11.8, 0.45, size=22, bold=True, color=ORANGE,
                  align=PP_ALIGN.CENTER)
 
 s = new_slide('Equivalence checking', notes=(
@@ -634,8 +641,12 @@ s = new_slide('Equivalence checking', notes=(
 miter(s, 4)
 
 s = new_slide('Equivalence checking', notes=(
-    'So p is 1 exactly when the circuits disagree on the input we fed them.'))
+    'The XOR output is the single bit p, the miter output.'))
 miter(s, 5)
+
+s = new_slide('Equivalence checking', notes=(
+    'So p is 1 exactly when the circuits disagree on the input we fed them.'))
+miter(s, 6)
 
 s = new_slide('Equivalence checking', notes=(
     'Flip it around and it is a satisfiability question: assert p = 1 and ask whether any '
@@ -643,33 +654,9 @@ s = new_slide('Equivalence checking', notes=(
     'are equivalent. Encoding a miter to CNF destroys the gate structure, so Biere et al. '
     'recover the gates and close them under congruence, which often decides the instance '
     'outright.'))
-miter(s, 6)
-add_rect(s, 0.62, 6.42, 12.1, 0.56, fill=NAVY, line=None,
+miter(s, 7)
+add_rect(s, 0.62, 6.35, 12.1, 0.55, fill=NAVY, line=None,
          text='equivalent   \u27fa   p = 1 is unsatisfiable', size=21, bold=True, color=WHITE)
-
-# 6b ---- gates as terms
-s = new_slide('Gates as terms', notes=(
-    'How a circuit becomes a congruence-closure instance. Input wires are leaves; every gate '
-    'is a function symbol applied to its input wires. Two gates are congruent when they have '
-    'the same symbol and their inputs are already known equal, which is exactly what makes '
-    'congruence closure decide many of these instances.'))
-add_rect(s, 2.6, 2.1, 8.1, 2.0, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
-gb = s.shapes.add_textbox(Inches(3.0), Inches(2.45), Inches(7.6), Inches(1.4))
-gtf = gb.text_frame
-gtf.word_wrap = False
-for i, (code_, note) in enumerate([
-        ('t  ::=  x', 'leaf: an input wire'),
-        ('   |   f(t\u2081, \u2026, t\u2096)', 'gate: f \u2208 F,  arity k'),
-        ('F = {AND, OR, XOR, ITE, \u2026}', '')]):
-    par = gtf.paragraphs[0] if i == 0 else gtf.add_paragraph()
-    par.space_after = Pt(6)
-    add_runs(par, code_.ljust(24), 18, font=MONO)
-    if note:
-        add_runs(par, note, 16, color=GRAY)
-add_text(s, 'a gate over input wires r, s:   AND(r, s)        a gate over gates:   '
-         'ITE(c, AND(r, s), XOR(u, v))', 0.8, 4.45, 11.8, 0.45, size=17, color=GRAY,
-         align=PP_ALIGN.CENTER)
-banner(s, 'Same symbol, equal inputs  \u27f9  equal gates', size=24)
 
 # 7 ---- running example: the miter
 s = new_slide('Running example', notes=(
@@ -687,14 +674,6 @@ s = new_slide('Running example', notes=(
     'gates.'))
 draw_egraph(s, ox=OX_FULL, highlight=['m1', 'm2'])
 query_mark(s, OX_FULL)
-
-# 9 ---- the input equalities
-s = new_slide('Running example', notes=(
-    'The equalities tie the two copies together: each input wire of copy one equals the '
-    'corresponding wire of copy two. These are the only given equalities, and they are what '
-    'we union first.'))
-draw_egraph(s, ox=OX_FULL, highlight=['r', 'rp', 's', 'sp', 'c', 'cp', 'u', 'up', 'v', 'vp'])
-eq_marks(s, OX_FULL)
 
 # 10 ---- reading the diagram: one node, one term
 FOCUS = ['m2', 'cp', 'a2', 'x2']
@@ -727,8 +706,10 @@ for kid, dx, dy in [('cp', 0.0, 0.42), ('a2', 0.88, 0.0), ('x2', 0.88, 0.0)]:
 
 # 10-13 ---- sequential walkthrough
 s = new_slide('Closure by hand', notes=(
-    'Start from the given equalities.'))
-draw_egraph(s)
+    'Start from the given equalities: each input wire of copy one equals the corresponding '
+    'wire of copy two. These are the only given equalities, and they are what we union '
+    'first.'))
+draw_egraph(s, highlight=LEAF_EQ)
 eq_marks(s, OX)
 
 s = new_slide('Closure by hand', notes=(
@@ -833,13 +814,6 @@ round_bands(s, OX)
 banner(s, 'depth: number of rounds        width: merges per round', size=22)
 
 # ---- ParentCC, one round
-s = new_slide('ParentCC: one round', notes=(
-    'Now the algorithm, at the level of a round. Three phases. Who might have become '
-    'congruent? Only a term whose child just changed class, so: the parents of whatever merged '
-    'last round. Of those, who actually is congruent? Group them by signature. Then merge '
-    'every group, in parallel. Repeat while a round merged something. The very first round '
-    'has no previous merges to look at, so it considers every term; that also catches terms '
-    'that were congruent before any equality was applied.'))
 PH = [
     ('1', 'Who might have become congruent?', 'the parents of last round’s merges',
      RGBColor(0xDC, 0xEA, 0xF8), RGBColor(0x2E, 0x6F, 0xB0)),
@@ -851,24 +825,52 @@ PH = [
 PW, PHT = 3.6, 2.7
 px = [0.75, 4.87, 8.99]
 py = 1.85
-for (num, q, a, fill, line), x in zip(PH, px):
-    add_rect(s, x, py, PW, PHT, fill=fill, line=line, width=1.5)
-    add_rect(s, x + 0.2, py + 0.2, 0.5, 0.5, fill=line, line=None, radius=0.5, text=num,
-             size=16, bold=True, color=WHITE)
-    add_text(s, q, x + 0.2, py + 0.85, PW - 0.4, 0.85, size=17, color=GRAY, align=PP_ALIGN.CENTER)
-    add_text(s, a, x + 0.2, py + 1.75, PW - 0.4, 0.8, size=19, bold=True, color=NAVY,
-             align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-for i in range(2):
-    add_line(s, px[i] + PW, py + PHT / 2, px[i + 1], py + PHT / 2, color=INK, width=2.0, arrow=True)
-# loop back
-ly = py + PHT + 0.55
-add_line(s, px[2] + PW / 2, py + PHT, px[2] + PW / 2, ly, color=INK, width=2.0)
-add_line(s, px[2] + PW / 2, ly, px[0] + PW / 2, ly, color=INK, width=2.0)
-add_line(s, px[0] + PW / 2, ly, px[0] + PW / 2, py + PHT, color=INK, width=2.0, arrow=True)
-add_text(s, 'repeat while a round merged something', 3.6, ly + 0.05, 6.1, 0.4, size=16,
-         bold=True, color=NAVY, align=PP_ALIGN.CENTER)
-add_text(s, 'first round: consider every term', 0.75, ly + 0.55, 11.8, 0.4, size=15, color=GRAY,
-         align=PP_ALIGN.CENTER)
+
+def parentcc_flow(slide, beat):
+    """beat 1-3 reveal one phase box each, beat 4 closes the loop."""
+    for i, (num, q, a_, fill, line) in enumerate(PH[:min(beat, 3)]):
+        x = px[i]
+        add_rect(slide, x, py, PW, PHT, fill=fill, line=line, width=1.5)
+        add_rect(slide, x + 0.2, py + 0.2, 0.5, 0.5, fill=line, line=None, radius=0.5,
+                 text=num, size=16, bold=True, color=WHITE)
+        add_text(slide, q, x + 0.2, py + 0.85, PW - 0.4, 0.85, size=17, color=GRAY,
+                 align=PP_ALIGN.CENTER)
+        add_text(slide, a_, x + 0.2, py + 1.75, PW - 0.4, 0.8, size=19, bold=True, color=NAVY,
+                 align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+        if i:
+            add_line(slide, px[i - 1] + PW, py + PHT / 2, x, py + PHT / 2, color=INK,
+                     width=2.0, arrow=True)
+    if beat >= 4:
+        ly = py + PHT + 0.55
+        add_line(slide, px[2] + PW / 2, py + PHT, px[2] + PW / 2, ly, color=INK, width=2.0)
+        add_line(slide, px[2] + PW / 2, ly, px[0] + PW / 2, ly, color=INK, width=2.0)
+        add_line(slide, px[0] + PW / 2, ly, px[0] + PW / 2, py + PHT, color=INK, width=2.0,
+                 arrow=True)
+        add_text(slide, 'repeat while a round merged something', 3.6, ly + 0.05, 6.1, 0.4,
+                 size=16, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+        add_text(slide, 'first round: consider every term', 0.75, ly + 0.55, 11.8, 0.4,
+                 size=15, color=GRAY, align=PP_ALIGN.CENTER)
+
+s = new_slide('ParentCC: one round', notes=(
+    'Now the algorithm, at the level of a round. Three phases. First: who might have become '
+    'congruent? Only a term whose child just changed class, so the parents of whatever merged '
+    'last round.'))
+parentcc_flow(s, 1)
+
+s = new_slide('ParentCC: one round', notes=(
+    'Of those candidates, who actually is congruent? Group them by signature: the symbol '
+    'together with the classes of the children.'))
+parentcc_flow(s, 2)
+
+s = new_slide('ParentCC: one round', notes=(
+    'Then merge every group, and all the groups in parallel.'))
+parentcc_flow(s, 3)
+
+s = new_slide('ParentCC: one round', notes=(
+    'Repeat while a round merged something. The very first round has no previous merges to '
+    'look at, so it considers every term; that also catches terms that were congruent before '
+    'any equality was applied.'))
+parentcc_flow(s, 4)
 
 # ---- ParentCC on the example
 FRONT1 = ['a1', 'a2', 'x1', 'x2', 'm1', 'm2']
@@ -909,23 +911,22 @@ union_mark(s, OX, 'm1', 'm2')
 
 # ---- correctness
 s = new_slide('Correctness', notes=(
-    'One line each; the paper has the proofs. Deterministic: the union-find is linearizable '
-    'and a set of unions yields the same partition in any order. Terminates: a round that '
-    'merges anything reduces the number of classes. Sound: every group has equal symbol and '
+    'One line each; the paper has the proofs. Sound: every group has equal symbol and '
     'equal child classes, so each merge is an instance of the congruence rule. Complete: '
-    'when the last of a pair’s children merge, both parents are candidates next round.'))
+    'when the last of a pair’s children merge, both parents are candidates next round. '
+    'Terminates: a round that merges anything reduces the number of classes.'))
 props = [
-    ('Deterministic', 'same classes whatever the thread order'),
-    ('Terminates', 'every productive round removes a class'),
-    ('Sound', 'each merge is an instance of the congruence rule'),
-    ('Complete', 'a newly congruent pair is a candidate next round'),
+    ('Soundness', 'each merge is an instance of the congruence rule'),
+    ('Completeness', 'a newly congruent pair is a candidate next round'),
+    ('Termination', 'every productive round removes a class'),
 ]
-y = 1.7
+y = 2.35
 for head, line in props:
-    add_rect(s, 0.8, y, 3.2, 0.9, fill=NAVY, line=None, text=head, size=21, bold=True, color=WHITE)
-    add_rect(s, 4.0, y, 8.5, 0.9, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None, rounded=False,
+    add_rect(s, 0.8, y, 3.4, 1.0, fill=NAVY, line=None, text=head, size=22, bold=True,
+             color=WHITE)
+    add_rect(s, 4.2, y, 8.3, 1.0, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None, rounded=False,
              text=line, size=20)
-    y += 1.15
+    y += 1.3
 
 # ---- FilterCC
 s = new_slide('FilterCC', notes=(
