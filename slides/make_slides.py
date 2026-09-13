@@ -350,11 +350,12 @@ def round_bands(slide, ox, oy=OY, only=None):
         add_text(slide, lab, ox + bx + bw + 0.1, oy + by + bh / 2 - 0.2, 1.3, 0.4, size=16,
                  bold=True, color=NAVY, anchor=MSO_ANCHOR.MIDDLE)
 
-def eq_marks(slide, ox, oy=OY, sym='='):
-    """A symbol under every pair of input wires tied by E, below the class boxes."""
+def eq_marks(slide, ox, oy=OY, sym='=', dy=0.0):
+    """A symbol under every pair of input wires tied by E, below the class boxes.
+    ``dy`` pushes the row down, e.g. to clear a round ring."""
     for a, b in EQ_PAIRS:
         mid = (NODES[a][2] + NODES[b][2]) / 2.0
-        add_text(slide, sym, ox + mid - 0.35, oy + LEAF + LH / 2 + 0.14, 0.7, 0.5,
+        add_text(slide, sym, ox + mid - 0.35, oy + LEAF + LH / 2 + 0.14 + dy, 0.7, 0.5,
                  size=(32 if sym == '=' else 24), bold=True, color=ORANGE,
                  align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
@@ -391,6 +392,25 @@ def legend(slide, entries, x=0.55, y=6.45):
             add_rect(slide, cx, y + 0.05, 0.36, 0.24, fill=f, line=l, width=1.5, dash=MSO_LINE.DASH)
         add_text(slide, text, cx + 0.42, y, 2.4, 0.35, size=12, color=GRAY)
         cx += 0.42 + 0.12 * len(text) + 0.35
+
+def legend_v(slide, entries, x=0.55, y=1.75, w=2.15, gap=0.46):
+    """Stacked key in the left margin, clear of the diagram and its round rings.
+    entries: list of (kind, text) with kind in {'hl','group','class','round'}"""
+    for i, (kind, text) in enumerate(entries):
+        yy = y + i * gap
+        if kind == 'hl':
+            add_rect(slide, x, yy + 0.05, 0.36, 0.24, fill=AMBER_FILL, line=AMBER, width=2)
+        elif kind == 'group':
+            add_rect(slide, x, yy + 0.05, 0.36, 0.24, fill=None, line=PURPLE, width=1.75,
+                     dash=MSO_LINE.ROUND_DOT)
+        elif kind == 'round':
+            add_rect(slide, x, yy + 0.05, 0.36, 0.24, fill=None, line=NAVY, width=2.25,
+                     dash=MSO_LINE.LONG_DASH)
+        else:
+            f, l = CLASS_STYLE['a']
+            add_rect(slide, x, yy + 0.05, 0.36, 0.24, fill=f, line=l, width=1.5, dash=MSO_LINE.DASH)
+        add_text(slide, text, x + 0.44, yy, w - 0.44, 0.35, size=12, color=GRAY,
+                 anchor=MSO_ANCHOR.MIDDLE)
 
 # ================================================================ slides
 # 1 ---- title
@@ -874,6 +894,7 @@ parentcc_flow(s, 4)
 
 # ---- ParentCC on the example
 FRONT1 = ['a1', 'a2', 'x1', 'x2', 'm1', 'm2']
+KEY_DY = -0.62     # signature keys sit just above the round ring
 
 def sig_key(slide, ox, ids, text, dy, oy=OY):
     """The grouping key written above a signature group; [t] means the class of t."""
@@ -881,33 +902,63 @@ def sig_key(slide, ox, ids, text, dy, oy=OY):
     add_text(slide, text, ox + bx + bw / 2 - 1.2, oy + by + dy, 2.4, 0.3, size=11.5, bold=True,
              color=PURPLE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
-s = new_slide('ParentCC on the example', notes=(
-    'After the input unions, the first round considers every gate. Each gets a key: its symbol '
-    'and the class of each child, written here in brackets. Equal keys group together: the '
-    'ANDs match, the XORs match, the ITEs do not yet because a1 and a2 are still in different '
-    'classes. The grouping is the semisort.'))
+CAND_LEGEND = [('hl', 'candidate'), ('group', 'signature group'), ('round', 'round')]
+MERGE_LEGEND = [('hl', 'merged this round'), ('round', 'round')]
+
+s = new_slide('ParentCC on the example: round 0', notes=(
+    'Same example, same rings as the schedule. Round 0 is the input: union each pair of '
+    'equated wires, all five at once. No congruence yet, just the equalities we were handed.'))
+draw_egraph(s, classes=LEAF_CLASSES, highlight=LEAF_EQ)
+round_bands(s, OX, only={0})
+eq_marks(s, OX, sym='\u222a', dy=0.22)
+legend_v(s, MERGE_LEGEND)
+
+s = new_slide('ParentCC on the example: round 1', notes=(
+    'Round 1. Phase one, candidates: the first round considers every gate, in amber. Phase '
+    'two, group them by signature: symbol plus the class of each child, written in brackets '
+    'above each purple group. The ANDs share a key, the XORs share a key, the ITEs do not yet '
+    'because a1 and a2 are still in different classes. The grouping is the semisort.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1,
             groups=[['a1', 'a2'], ['x1', 'x2'], ['m1'], ['m2']])
-sig_key(s, OX, ['a1', 'a2'], 'AND([r], [s])', -0.3)
-sig_key(s, OX, ['x1', 'x2'], 'XOR([u], [v])', -0.3)
-sig_key(s, OX, ['m1'], 'ITE([c], [a₁], [x₁])', -0.3)
-sig_key(s, OX, ['m2'], 'ITE([c], [a₂], [x₂])', -0.3)
+round_bands(s, OX, only={0, 1})
+sig_key(s, OX, ['a1', 'a2'], 'AND([r], [s])', KEY_DY)
+sig_key(s, OX, ['x1', 'x2'], 'XOR([u], [v])', KEY_DY)
+sig_key(s, OX, ['m1'], 'ITE([c], [a\u2081], [x\u2081])', -0.3)
+sig_key(s, OX, ['m2'], 'ITE([c], [a\u2082], [x\u2082])', -0.3)
+legend_v(s, CAND_LEGEND)
 
-s = new_slide('ParentCC on the example', notes=(
-    'Both two-member groups merge, concurrently. This is the slide that differs from the hand '
-    'trace: two unions in one round.'))
+s = new_slide('ParentCC on the example: round 1', notes=(
+    'Phase three, merge: both two-member groups merge, concurrently. This is where the '
+    'parallel run differs from the hand trace: two unions in one round.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['a1', 'a2', 'x1', 'x2'])
+round_bands(s, OX, only={0, 1})
 union_mark(s, OX, 'a1', 'a2')
 union_mark(s, OX, 'x1', 'x2')
+legend_v(s, MERGE_LEGEND)
 
-s = new_slide('ParentCC on the example', notes=(
-    'Candidates are the parents of what just merged: the two ITEs. Their keys now agree, so '
-    'they merge. They have no parents, so round 3 has no candidates and the loop stops. Three '
-    'rounds instead of eight sequential merges.'))
-draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'],
+s = new_slide('ParentCC on the example: round 2', notes=(
+    'Round 2. Candidates are the parents of what just merged: the two ITEs. Their keys now '
+    'agree, so they form one group.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2'],
             groups=[['m1', 'm2']])
-sig_key(s, OX, ['m1', 'm2'], 'ITE([c], [a₁], [x₁])', -0.5)
+round_bands(s, OX, only={0, 1, 2})
+sig_key(s, OX, ['m1', 'm2'], 'ITE([c], [a\u2081], [x\u2081])', KEY_DY)
+legend_v(s, CAND_LEGEND)
+
+s = new_slide('ParentCC on the example: round 2', notes=(
+    'Merge them. One union.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
+round_bands(s, OX, only={0, 1, 2})
 union_mark(s, OX, 'm1', 'm2')
+legend_v(s, MERGE_LEGEND)
+
+s = new_slide('ParentCC on the example: done', notes=(
+    'The ITEs have no parents, so round 3 has no candidates and the loop stops. Eight merges '
+    'in three rounds, and the rings are exactly the bulk-synchronous schedule from before: '
+    'ParentCC found all of the available parallelism.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
+round_bands(s, OX)
+banner(s, 'Round 3: no candidates, done.  Same schedule as before', size=24)
 
 # ---- correctness
 s = new_slide('Correctness', notes=(
@@ -929,48 +980,32 @@ for head, line in props:
     y += 1.3
 
 # ---- FilterCC
-s = new_slide('FilterCC', notes=(
-    'Parent lists cost allocation: every round appends lists. FilterCC keeps one dirty bit '
-    'per class instead and recomputes the candidates by filtering all terms for a child in a '
-    'dirty class. It touches every term each round, but the filter is a cheap parallel scan '
-    'with no allocation. Which wins depends on how many rounds the input needs; Amar has the numbers.'))
-add_text(s, 'Same rounds, different way to find the candidates', 0.8, 1.55, 12, 0.5, size=22,
-         bold=True, color=NAVY)
-tx, ty = 0.8, 2.4
-cols = [('', 2.6), ('ParentCC', 4.6), ('FilterCC', 4.6)]
-rowsT = [
-    ('remember', 'parent list per class', 'one dirty bit per class'),
-    ('candidates', 'parents of last round’s merges', 'filter all terms for a dirty child'),
-    ('cost per round', '∝ candidates, plus allocation', '∝ all terms, no allocation'),
-    ('wins when', 'many rounds', 'few rounds'),
-]
-cx = tx
-for name, w in cols:
-    add_rect(s, cx, ty, w - 0.06, 0.6, fill=NAVY, line=None, rounded=False, text=name, size=18,
-             bold=True, color=WHITE)
-    cx += w
-ry = ty + 0.66
-for row in rowsT:
-    cx = tx
-    for (name, w), val in zip(cols, row):
-        add_rect(s, cx, ry, w - 0.06, 0.72, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None,
-                 rounded=False, text=val, size=17, bold=(name == ''),
-                 color=(NAVY if name == '' else INK))
-        cx += w
-    ry += 0.78
-
-# ---- FilterCC on the example
-s = new_slide('FilterCC on the example', notes=(
-    'First round: every gate is a candidate, exactly as in ParentCC. Groups and merges are the '
-    'same; afterwards the two merged classes are marked dirty.'))
-draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1, dirty=[0, 1, 2, 3, 4],
-            groups=[['a1', 'a2'], ['x1', 'x2'], ['m1'], ['m2']])
-
-s = new_slide('FilterCC on the example', notes=(
-    'Only the two gate classes are dirty. Filter every term for a child in a dirty class: the '
-    'two ITEs. Merge them. The next filter finds nothing, so stop.'))
-draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2'], dirty=[5, 6],
-            groups=[['m1', 'm2']])
+s = new_slide('FilterCC: same rounds, no parent lists', notes=(
+    'One slide on the second algorithm. ParentCC finds candidates through parent lists, one '
+    'per class, and every merge appends to them: allocation on the hot path. FilterCC drops '
+    'the lists. A merge just sets a dirty bit on its classes, and the next round filters all '
+    'terms for a child in a dirty class. Threads racing to set the same bit is harmless, '
+    'setting a bit is idempotent. The price is a scan of every term each round, so FilterCC '
+    'wins when rounds are few and ParentCC when they are many; Amar has the numbers.'))
+add_rect(s, 0.6, 1.5, 6.0, 2.75, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
+add_text(s, 'ParentCC', 0.8, 1.6, 5.6, 0.45, size=21, bold=True, color=NAVY)
+add_bullets(s, [
+    '**parent list per class**',
+    'every merge appends: allocation',
+    'candidates: parents of merged classes',
+], 0.7, 2.25, 5.8, 2.4, size=18, gap=10)
+add_rect(s, 6.85, 1.5, 5.9, 2.75, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
+add_text(s, 'FilterCC', 7.05, 1.6, 5.5, 0.45, size=21, bold=True, color=NAVY)
+add_bullets(s, [
+    '**one dirty bit per class**',
+    'a merge marks its classes dirty',
+    'candidates: filter all terms for a dirty child',
+    'racing marks are fine: setting a bit is idempotent',
+], 6.95, 2.25, 5.7, 2.4, size=18, gap=10)
+add_text(s, 'Same candidates every round, same merges, same proofs',
+         0.6, 4.5, 12.2, 0.45, size=18, color=GRAY)
+banner(s, 'no allocation, but a scan of every term per round: wins when rounds are few',
+       size=22)
 
 # ---- implementation details
 s = new_slide('Implementation', notes=(
