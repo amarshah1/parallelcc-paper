@@ -553,7 +553,7 @@ s = new_slide('Use in practice', notes=(
     'the evaluation looks at several benchmark families.'))
 use_in_practice(s)
 add_rect(s, 0.6, 4.7, 12.1, 1.0, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None,
-         text='Called repeatedly over a solver run, so its cost adds up', size=20,
+         text='Called repeatedly per solver run: the cost adds up', size=20,
          bold=True, color=NAVY)
 
 # 4 ---- state of the art
@@ -565,13 +565,13 @@ s = new_slide('State of the art', notes=(
     'sequential. But worst case is not the same as the instances people actually solve, and '
     'that is the question we ask.'))
 add_bullets(s, [
-    'Despite ubiquity, algorithms used in practice **fully sequential**',
-    'Unfortunately, congruence closure is **P-complete**',
-    'Likely **inherently sequential in the worst case**',
+    'Practice: every implementation **fully sequential**, on machines with **96 cores**',
+    'Theory: congruence closure is **P-complete**',
+    'Worst case: likely **inherently sequential**',
 ], 0.9, 1.9, 11.8, 3.0, size=26, gap=18)
 add_text(s, 'Kanellakis & Revesz 1989', 0.9, 4.4, 11.8, 0.35, size=13, color=GRAY)
 add_rect(s, 0.62, 5.25, 12.1, 1.2, fill=NAVY, line=None,
-         text='Question: do practical instances expose enough\nindependent merges for real speedups?',
+         text='Question: worst case is sequential.\nAre the instances people actually solve?',
          size=24, bold=True, color=WHITE)
 
 # 5 ---- contributions
@@ -691,9 +691,12 @@ draw_egraph(s, ox=OX_FULL)
 s = new_slide('Running example', notes=(
     'Assert that the two outputs differ. If that is unsatisfiable the circuits are '
     'equivalent. The query is the only thing on the slide, sitting between the two output '
-    'gates.'))
+    'gates. The point of the miter for us: once the gate structure is recovered from the CNF, '
+    'congruence closure alone often decides the instance, which is why Biere et al. run it '
+    'inside a SAT solver.'))
 draw_egraph(s, ox=OX_FULL, highlight=['m1', 'm2'])
 query_mark(s, OX_FULL)
+banner(s, 'Often decided by congruence closure alone   (Biere et al., SAT 2024)', size=22)
 
 # 10 ---- reading the diagram: one node, one term
 FOCUS = ['m2', 'cp', 'a2', 'x2']
@@ -768,9 +771,11 @@ union_mark(s, OX, 'm1', 'm2')
 
 s = new_slide('Closure by hand', notes=(
     'The outputs are in one class, so the query m1 differs from m2 is unsatisfiable: the '
-    'circuits are equivalent.'))
+    'circuits are equivalent. Count what we did: eight merges, one at a time. That is exactly '
+    'the sequential worklist algorithm, and it is the baseline the parallel version has to beat.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
 query_mark(s, OX, sym='=', color=RGBColor(0x3A, 0x9A, 0x5B))
+banner(s, 'Equivalent.  8 merges, one at a time')
 
 # 15 ---- observation: depth and width
 s = new_slide('Observation', notes=(
@@ -826,12 +831,13 @@ round_bands(s, OX, only={0, 1, 2})
 banner(s, BSP_BANNER)
 
 s = new_slide('Bulk-synchronous schedule', notes=(
-    'Two names for the evaluation. Depth is the number of rounds, width the merges available '
-    'in one round. Here both are 2. On the circuit benchmarks width reaches millions while '
-    'depth stays small, and Amar will show that width is what predicts speedup.'))
+    'Two names for the evaluation. Depth is the number of congruence rounds after the input '
+    'round, here 2. Width is the most merges any one round offers, here 5, in round 0. Depth '
+    'is what we cannot parallelize; width is what we can. On the circuit benchmarks width '
+    'reaches millions while depth stays small, and Amar will show that width predicts speedup.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX)
-banner(s, 'depth: number of rounds        width: merges per round', size=22)
+banner(s, 'depth: congruence rounds (2)      width: most merges in a round (5)', size=22)
 
 # ---- ParentCC, one round
 PH = [
@@ -870,6 +876,8 @@ def parentcc_flow(slide, beat):
                  size=16, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
         add_text(slide, 'first round: consider every term', 0.75, ly + 0.55, 11.8, 0.4,
                  size=15, color=GRAY, align=PP_ALIGN.CENTER)
+        add_text(slide, 'barrier between phases: signatures read a union-find nobody is writing',
+                 0.75, ly + 0.9, 11.8, 0.4, size=15, color=GRAY, align=PP_ALIGN.CENTER)
 
 s = new_slide('ParentCC: one round', notes=(
     'Now the algorithm, at the level of a round. Three phases. First: who might have become '
@@ -889,7 +897,9 @@ parentcc_flow(s, 3)
 s = new_slide('ParentCC: one round', notes=(
     'Repeat while a round merged something. The very first round has no previous merges to '
     'look at, so it considers every term; that also catches terms that were congruent before '
-    'any equality was applied.'))
+    'any equality was applied. The barrier between phases is what makes the parallelism '
+    'safe: while we compute signatures nobody is merging, so every thread reads the same '
+    'classes, and while we merge nobody is reading signatures.'))
 parentcc_flow(s, 4)
 
 # ---- ParentCC on the example
@@ -917,10 +927,14 @@ s = new_slide('ParentCC on the example: round 1', notes=(
     'Round 1. Phase one, candidates: the first round considers every gate, in amber. Phase '
     'two, group them by signature: symbol plus the class of each child, written in brackets '
     'above each purple group. The ANDs share a key, the XORs share a key, the ITEs do not yet '
-    'because a1 and a2 are still in different classes. The grouping is the semisort.'))
+    'because a1 and a2 are still in different classes. The grouping is a semisort. This is '
+    'the step that changes: the sequential algorithm looks each signature up in a hash table, '
+    'one at a time; here all the signatures of the round are sorted together, in one '
+    'data-parallel step.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1,
             groups=[['a1', 'a2'], ['x1', 'x2'], ['m1'], ['m2']])
 round_bands(s, OX, only={0, 1})
+banner(s, 'grouping by signature = a semisort: one parallel step, no table lookups', size=22)
 sig_key(s, OX, ['a1', 'a2'], 'AND([r], [s])', KEY_DY)
 sig_key(s, OX, ['x1', 'x2'], 'XOR([u], [v])', KEY_DY)
 sig_key(s, OX, ['m1'], 'ITE([c], [a\u2081], [x\u2081])', -0.3)
@@ -958,7 +972,7 @@ s = new_slide('ParentCC on the example: done', notes=(
     'ParentCC found all of the available parallelism.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX)
-banner(s, 'Round 3: no candidates, done.  Same schedule as before', size=24)
+banner(s, 'Done: 8 merges in 3 rounds, the schedule from before', size=24)
 
 # ---- correctness
 s = new_slide('Correctness', notes=(
@@ -1042,7 +1056,9 @@ add_rect(s, 0, 0, 13.333, 7.5, fill=NAVY, line=None, rounded=False)
 add_line(s, 0.9, 3.55, 4.2, 3.55, color=ORANGE, width=3)
 add_text(s, 'Evaluation', 0.85, 2.2, 11.5, 1.3, size=44, bold=True, color=WHITE,
          anchor=MSO_ANCHOR.BOTTOM)
-add_text(s, 'random, synthetic, and circuit-equivalence benchmarks', 0.85, 3.75, 11, 0.6,
+add_text(s, 'Do real instances have width?', 0.85, 3.75, 11, 0.6,
+         size=26, bold=True, color=WHITE)
+add_text(s, 'random, synthetic, and circuit-equivalence benchmarks', 0.85, 4.4, 11, 0.6,
          size=22, color=RGBColor(0xC9, 0xD3, 0xE6))
 
 # ---- backup: pseudocode (not in the talk)
