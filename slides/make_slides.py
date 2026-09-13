@@ -546,7 +546,7 @@ s = new_slide('Running example: a miter', notes=(
 draw_egraph(s, ox=OX_FULL)
 
 # 8 ---- the query
-s = new_slide('Running example: the query', notes=(
+s = new_slide('Running example: a miter', notes=(
     'Assert that the two outputs differ. If that is unsatisfiable the circuits are '
     'equivalent. The query is the only thing on the slide, sitting between the two output '
     'gates.'))
@@ -554,7 +554,7 @@ draw_egraph(s, ox=OX_FULL, highlight=['m1', 'm2'])
 query_mark(s, OX_FULL)
 
 # 9 ---- the input equalities
-s = new_slide('Running example: input equalities', notes=(
+s = new_slide('Running example: a miter', notes=(
     'The equalities tie the two copies together: each input wire of copy one equals the '
     'corresponding wire of copy two. These are the only given equalities, and they are what '
     'we union first.'))
@@ -565,7 +565,7 @@ eq_marks(s, OX_FULL)
 FOCUS = ['m2', 'cp', 'a2', 'x2']
 DIMMED = [n for n in NODES if n not in FOCUS]
 M2X, M2Y = OX_FULL + NODES['m2'][2], OY + ITE
-s = new_slide('Reading the diagram: one node, one term', notes=(
+s = new_slide('Reading the diagram', notes=(
     'Focus on a single node before the trace starts. The box carries the operator, the name '
     'sits alongside, and the three outgoing edges are its children in argument order. '
     'Everything else is greyed out so only this term and its children are in view.'))
@@ -577,7 +577,7 @@ add_line(s, M2X + 0.75, 1.45, M2X + 0.22, M2Y - GH / 2 - 0.02, color=AMBER, widt
          arrow=True)
 
 # 11 ---- parent and children
-s = new_slide('Reading the diagram: parent and children', notes=(
+s = new_slide('Reading the diagram', notes=(
     'Name the relationship the algorithms are built around. An edge goes from a term to the '
     'arguments it is applied to. m2 is the parent, its three arguments are the children. '
     'Every term is the parent of its arguments and a child of every term that mentions it.'))
@@ -591,53 +591,53 @@ for kid, dx, dy in [('cp', 0.0, 0.42), ('a2', 0.88, 0.0), ('x2', 0.88, 0.0)]:
              color=ORANGE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
 # 10-13 ---- sequential walkthrough
-s = new_slide('Congruence closure by hand: step 0', notes=(
+s = new_slide('Congruence closure by hand', notes=(
     'Start from the given equalities.'))
 draw_egraph(s)
 eq_marks(s, OX)
 
-s = new_slide('Congruence closure by hand: step 0', notes=(
+s = new_slide('Congruence closure by hand', notes=(
     'Union each pair. The dashed boxes are the equivalence classes.'))
 draw_egraph(s, classes=LEAF_CLASSES)
 eq_marks(s, OX, sym='∪')
 
-s = new_slide('Congruence closure by hand: step 1', notes=(
+s = new_slide('Congruence closure by hand', notes=(
     'Examine the two AND gates. Same symbol, and their children are pairwise in the same '
     'class, so the congruence rule applies. Yellow means we are looking at them.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=['a1', 'a2'])
 
-s = new_slide('Congruence closure by hand: step 1', notes=(
+s = new_slide('Congruence closure by hand', notes=(
     'Congruence fires, so union the two classes.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS], highlight=['a1', 'a2'])
 union_mark(s, OX, 'a1', 'a2')
 
-s = new_slide('Congruence closure by hand: step 2', notes=(
+s = new_slide('Congruence closure by hand', notes=(
     'Examine the two XOR gates: same symbol, children pairwise equivalent.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS], highlight=['x1', 'x2'])
 
-s = new_slide('Congruence closure by hand: step 2', notes=('Union them.'))
+s = new_slide('Congruence closure by hand', notes=('Union them.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['x1', 'x2'])
 union_mark(s, OX, 'x1', 'x2')
 
-s = new_slide('Congruence closure by hand: step 3', notes=(
+s = new_slide('Congruence closure by hand', notes=(
     'Examine the two ITE gates. Only now are their children pairwise equivalent, because '
     'steps 1 and 2 merged the AND and XOR classes.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2'])
 
-s = new_slide('Congruence closure by hand: step 3', notes=(
+s = new_slide('Congruence closure by hand', notes=(
     'Union them. Note that step 3 depended on steps 1 and 2, but 1 and 2 did not depend on '
     'each other.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
 union_mark(s, OX, 'm1', 'm2')
 
-s = new_slide('Congruence closure by hand: query answered', notes=(
+s = new_slide('Congruence closure by hand', notes=(
     'The outputs are in one class, so the query m1 differs from m2 is unsatisfiable: the '
     'circuits are equivalent.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
 query_mark(s, OX, sym='=', color=RGBColor(0x3A, 0x9A, 0x5B))
 
 # 15 ---- observation: depth and width
-s = new_slide('Observation: what does a merge wait on?', notes=(
+s = new_slide('Observation', notes=(
     'The pivot of the talk. Go back over the trace we just did and ask what forced its '
     'order. The ITE merge waited for the AND merge and the XOR merge, and for nothing else. '
     'Why: congruence tests the classes of the children, so a term can only become mergeable '
@@ -652,7 +652,7 @@ draw_egraph(s, ox=OX_FULL, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS],
             edge_hl=[('m1', 'a1'), ('m1', 'x1'), ('m2', 'a2'), ('m2', 'x2')])
 banner(s, 'Data dependences are parent\u2013child edges')
 
-s = new_slide('Observation: unrelated merges do not wait', notes=(
+s = new_slide('Observation', notes=(
     'The other half. Nothing connects the AND merge to the XOR merge: neither is an '
     'ancestor of the other, so neither can change the other\u2019s signature. They can run '
     'at the same time, on different cores, in either order, with the same result. That is '
@@ -760,7 +760,7 @@ def sig_key(slide, ox, ids, text, dy, oy=OY):
     add_text(slide, text, ox + bx + bw / 2 - 1.2, oy + by + dy, 2.4, 0.3, size=11.5, bold=True,
              color=PURPLE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
-s = new_slide('ParentCC on the example: round 1', notes=(
+s = new_slide('ParentCC on the example', notes=(
     'After the input unions, the first round considers every gate. Each gets a key: its symbol '
     'and the class of each child, written here in brackets. Equal keys group together: the '
     'ANDs match, the XORs match, the ITEs do not yet because a1 and a2 are still in different '
@@ -772,14 +772,14 @@ sig_key(s, OX, ['x1', 'x2'], 'XOR([u], [v])', -0.3)
 sig_key(s, OX, ['m1'], 'ITE([c], [a₁], [x₁])', -0.3)
 sig_key(s, OX, ['m2'], 'ITE([c], [a₂], [x₂])', -0.3)
 
-s = new_slide('ParentCC on the example: round 1', notes=(
+s = new_slide('ParentCC on the example', notes=(
     'Both two-member groups merge, concurrently. This is the slide that differs from the hand '
     'trace: two unions in one round.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['a1', 'a2', 'x1', 'x2'])
 union_mark(s, OX, 'a1', 'a2')
 union_mark(s, OX, 'x1', 'x2')
 
-s = new_slide('ParentCC on the example: round 2', notes=(
+s = new_slide('ParentCC on the example', notes=(
     'Candidates are the parents of what just merged: the two ITEs. Their keys now agree, so '
     'they merge. They have no parents, so round 3 has no candidates and the loop stops. Three '
     'rounds instead of eight sequential merges.'))
@@ -881,13 +881,13 @@ for row in rowsT:
     ry += 0.78
 
 # ---- FilterCC on the example
-s = new_slide('FilterCC on the example: round 1', notes=(
+s = new_slide('FilterCC on the example', notes=(
     'First round: every gate is a candidate, exactly as in ParentCC. Groups and merges are the '
     'same; afterwards the two merged classes are marked dirty.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1, dirty=[0, 1, 2, 3, 4],
             groups=[['a1', 'a2'], ['x1', 'x2'], ['m1'], ['m2']])
 
-s = new_slide('FilterCC on the example: round 2', notes=(
+s = new_slide('FilterCC on the example', notes=(
     'Only the two gate classes are dirty. Filter every term for a child in a dirty class: the '
     'two ITEs. Merge them. The next filter finds nothing, so stop.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2'], dirty=[5, 6],
