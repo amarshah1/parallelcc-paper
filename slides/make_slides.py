@@ -214,7 +214,7 @@ def ox_for(left=0.5, right=8.95):
     return (left + right) / 2.0 - DIAG_CX
 
 OX_FULL = ox_for(0.5, 12.83)   # whole slide, no side text
-OX, OY = ox_for(), 1.55        # beside a side panel
+OX, OY = OX_FULL, 1.55         # every diagram is centred on the slide
 
 def nsize(nid):
     return (GW, GH) if NODES[nid][1] else (LW, LH)
@@ -319,20 +319,39 @@ def draw_egraph(slide, ox=OX, oy=OY, classes=(), highlight=(), groups=(),
 
 EQ_PAIRS = [('r', 'rp'), ('s', 'sp'), ('c', 'cp'), ('u', 'up'), ('v', 'vp')]
 
-def query_mark(slide, ox, oy=OY):
+def query_mark(slide, ox, oy=OY, sym='=?', color=ORANGE):
     """The query, drawn in the gap between the two ITE nodes."""
     mid = (NODES['m1'][2] + NODES['m2'][2]) / 2.0
     add_text(slide, 'Query', ox + mid - 0.55, oy + ITE - 0.66, 1.1, 0.3, size=12,
              bold=True, color=GRAY, align=PP_ALIGN.CENTER)
-    add_text(slide, '=?', ox + mid - 0.55, oy + ITE - 0.26, 1.1, 0.52, size=24, bold=True,
-             color=ORANGE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+    add_text(slide, sym, ox + mid - 0.55, oy + ITE - 0.26, 1.1, 0.52, size=24, bold=True,
+             color=color, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
-def eq_marks(slide, ox, oy=OY):
-    """An equals sign under every pair of input wires tied by E."""
+def union_mark(slide, ox, a, b, oy=OY):
+    """A union symbol in the gap between two nodes on the same row."""
+    mid = (NODES[a][2] + NODES[b][2]) / 2.0
+    add_text(slide, '\u222a', ox + mid - 0.4, oy + NODES[a][3] - 0.3, 0.8, 0.6, size=22,
+             bold=True, color=ORANGE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+
+ROUND_ROWS = [(['r', 'rp', 's', 'sp', 'c', 'cp', 'u', 'up', 'v', 'vp'], 'round 0'),
+              (['a1', 'a2', 'x1', 'x2'], 'round 1'), (['m1', 'm2'], 'round 2')]
+
+def round_bands(slide, ox, oy=OY):
+    """A labelled ring around each round of the schedule."""
+    for ids, lab in ROUND_ROWS:
+        bx, by, bw, bh = _bbox(ids, 0.27)
+        add_rect(slide, ox + bx, oy + by, bw, bh, fill=None, line=NAVY, width=2.25,
+                 dash=MSO_LINE.LONG_DASH, radius=0.35)
+        add_text(slide, lab, ox + bx + bw + 0.1, oy + by + bh / 2 - 0.2, 1.3, 0.4, size=16,
+                 bold=True, color=NAVY, anchor=MSO_ANCHOR.MIDDLE)
+
+def eq_marks(slide, ox, oy=OY, sym='='):
+    """A symbol under every pair of input wires tied by E, below the class boxes."""
     for a, b in EQ_PAIRS:
         mid = (NODES[a][2] + NODES[b][2]) / 2.0
-        add_text(slide, '=', ox + mid - 0.35, oy + LEAF + LH / 2 + 0.0, 0.7, 0.4,
-                 size=32, bold=True, color=ORANGE, align=PP_ALIGN.CENTER)
+        add_text(slide, sym, ox + mid - 0.35, oy + LEAF + LH / 2 + 0.14, 0.7, 0.5,
+                 size=(32 if sym == '=' else 24), bold=True, color=ORANGE,
+                 align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
 def banner(slide, text, size=26):
     """Full-width takeaway strip under a centred diagram."""
@@ -387,33 +406,25 @@ add_text(s, 'github.com/amarshah10/ParallelEgraph', 7.3, 6.6, 5.6, 0.4, size=13,
 
 # 2 ---- what is congruence closure
 s = new_slide('Congruence closure', notes=(
-    'Define the problem: given ground equalities over uninterpreted function terms, '
-    'compute the smallest equivalence relation containing them that is closed under '
-    'congruence. The tiny example shows transitivity followed by congruence refuting a '
-    'disequality. Standard implementation: union-find plus a signature table, i.e. an e-graph.'))
-add_bullets(s, [
-    '**Input:** terms over uninterpreted functions, equalities E',
-    '**Output:** smallest equivalence relation ⊇ E closed under congruence',
-    '**Deciding a query** s ≠ t: unsatisfiable iff s ≡ t',
-    '**Standard engine:** union-find + signature table (an e-graph)',
-    (1, 'Nelson & Oppen 1980, Downey, Sethi & Tarjan 1980, Nieuwenhuis & Oliveras 2007'),
-], 0.6, 1.5, 7.0, 4.5, size=20)
-# congruence rule
-add_rect(s, 0.9, 5.15, 6.2, 1.35, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
-add_text(s, 'Congruence rule', 1.05, 5.2, 3, 0.35, size=13, bold=True, color=GRAY)
-add_text(s, 's₁ ≡ t₁    …    sₖ ≡ tₖ', 1.05, 5.5, 5.9, 0.4, size=20, align=PP_ALIGN.CENTER)
-add_line(s, 1.7, 5.95, 6.4, 5.95, color=INK, width=1.5)
-add_text(s, 'f(s₁, …, sₖ) ≡ f(t₁, …, tₖ)', 1.05, 6.0, 5.9, 0.4, size=20, align=PP_ALIGN.CENTER)
-# example box
-add_rect(s, 7.9, 1.6, 4.9, 3.5, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
-add_text(s, 'Example', 8.1, 1.7, 3, 0.4, size=16, bold=True, color=NAVY)
-add_text(s, 'a = b        b = c        f(a) ≠ f(c)', 8.1, 2.2, 4.5, 0.5, size=22, bold=True)
-add_bullets(s, [
-    'transitivity:   a ≡ c',
-    'congruence:   f(a) ≡ f(c)',
-    'contradicts f(a) ≠ f(c)',
-    '**⇒ unsatisfiable**',
-], 8.1, 2.9, 4.5, 3.0, size=19, gap=10)
+    'Define the problem in words: given equalities between terms over uninterpreted functions, '
+    'compute the smallest equivalence relation containing them that is closed under this one '
+    'rule. Equal arguments give equal applications. The example: transitivity gives a and c '
+    'equal, congruence gives f(a) and f(c) equal, which refutes the disequality. The standard '
+    'engine is a union-find plus a signature table, an e-graph, and every implementation we '
+    'know of is sequential.'))
+add_rect(s, 0.8, 1.7, 5.6, 3.3, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
+add_text(s, 'Congruence rule', 1.0, 1.78, 3, 0.35, size=13, bold=True, color=GRAY)
+add_text(s, 's₁ ≡ t₁    …    sₖ ≡ tₖ', 1.0, 2.6, 5.2, 0.6, size=28, align=PP_ALIGN.CENTER)
+add_line(s, 1.5, 3.35, 5.7, 3.35, color=INK, width=1.75)
+add_text(s, 'f(s₁, …, sₖ) ≡ f(t₁, …, tₖ)', 1.0, 3.5, 5.2, 0.6, size=28, align=PP_ALIGN.CENTER)
+add_rect(s, 7.0, 1.7, 5.5, 3.3, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
+add_text(s, 'Example', 7.2, 1.78, 3, 0.35, size=13, bold=True, color=GRAY)
+add_text(s, 'a = b      b = c      f(a) ≠ f(c)', 7.2, 2.6, 5.1, 0.6, size=26, bold=True,
+         align=PP_ALIGN.CENTER)
+add_text(s, 'a ≡ c   ⇒   f(a) ≡ f(c)', 7.2, 3.5, 5.1, 0.6, size=26, align=PP_ALIGN.CENTER)
+banner(s, 'Smallest equivalence relation containing E, closed under congruence', size=22)
+add_text(s, 'Nelson & Oppen 1980   ·   Downey, Sethi & Tarjan 1980   ·   Nieuwenhuis & Oliveras 2007',
+         0.8, 5.35, 12, 0.35, size=12, color=GRAY, align=PP_ALIGN.CENTER)
 
 # 3 ---- why it matters
 s = new_slide('Where congruence closure runs', notes=(
@@ -440,20 +451,17 @@ add_rect(s, 0.6, 4.7, 12.1, 1.0, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None,
 
 # 4 ---- the gap
 s = new_slide('Sequential in practice, hard in theory', notes=(
-    'Every implementation we know of is sequential. Machines are wide. Theory is '
-    'discouraging: congruence closure is P-complete, so a polylog-span algorithm is '
-    'unlikely. The question we ask is whether practical instances still parallelize well.'))
-add_bullets(s, [
-    '**All existing congruence closure implementations are sequential**',
-    (1, 'worklist algorithms in the style of Nelson & Oppen'),
-    '**Multicore is the default**: our test machine has 96 cores, 192 hardware threads',
-    '**P-complete** (Kanellakis & Revesz 1989)',
-    (1, 'polylogarithmic span with polynomial work is not expected'),
-    (1, 'worst-case instances force a long chain of dependent merges'),
-], 0.6, 1.5, 12.0, 4.0, size=21, gap=10)
-add_rect(s, 0.6, 5.0, 12.1, 1.2, fill=NAVY, line=None,
-         text='Question: do practical instances expose enough independent merges for real speedups?',
-         size=21, bold=True, color=WHITE)
+    'Every implementation we know of is sequential, and machines are wide: our test box has '
+    '96 cores. Theory is discouraging. Congruence closure is P-complete, so a polylog-span '
+    'algorithm is not expected; worst-case instances force a long chain of dependent merges. '
+    'The question we ask is whether the instances people actually solve behave like the worst case.'))
+add_text(s, 'every implementation: sequential', 0.8, 1.9, 12, 0.7, size=30, bold=True, color=NAVY,
+         align=PP_ALIGN.CENTER)
+add_text(s, 'P-complete', 0.8, 3.0, 12, 0.7, size=30, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+add_text(s, 'Kanellakis & Revesz 1989', 0.8, 3.65, 12, 0.35, size=13, color=GRAY, align=PP_ALIGN.CENTER)
+add_rect(s, 0.6, 4.9, 12.1, 1.2, fill=NAVY, line=None,
+         text='Do practical instances expose enough independent merges?',
+         size=24, bold=True, color=WHITE)
 
 # 5 ---- contributions
 s = new_slide('Contributions', notes=(
@@ -582,135 +590,51 @@ for kid, dx, dy in [('cp', 0.0, 0.42), ('a2', 0.88, 0.0), ('x2', 0.88, 0.0)]:
     add_text(s, 'child', kx + dx - 0.45, ky + dy - 0.16, 0.9, 0.32, size=15, bold=True,
              color=ORANGE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
-# 9 ---- what the hand trace is doing
-s = new_slide('What we do by hand', notes=(
-    'Before the trace, state the procedure. Put every input equality into the union-find, '
-    'then repeatedly look for two terms with the same operator whose children are pairwise '
-    'in the same class, merge them, and re-examine the parents of whatever just merged. '
-    'Stop when no pair matches. That fixpoint is the congruence closure. The next four '
-    'slides run exactly this loop on the miter, one merge per slide.'))
-steps = [
-    ('1', 'Union every input equality',
-     'r \u2261 r\u2032,  s \u2261 s\u2032,  u \u2261 u\u2032,  v \u2261 v\u2032,  c \u2261 c\u2032'),
-    ('2', 'Look for a congruent pair',
-     'same operator, children pairwise equivalent'),
-    ('3', 'Merge their two classes',
-     'one merge at a time, in whatever order we pick'),
-    ('4', 'Re-examine the parents of what just merged',
-     'a merge can make new pairs congruent'),
-    ('5', 'Stop when no pair matches',
-     'that fixpoint is the congruence closure'),
-]
-y = 1.55
-for num, head, sub in steps:
-    add_rect(s, 0.7, y + 0.02, 0.55, 0.55, fill=ORANGE, line=None, radius=0.5, text=num,
-             size=18, bold=True, color=WHITE)
-    add_text(s, head, 1.45, y - 0.04, 6.6, 0.5, size=19, bold=True, color=NAVY)
-    add_text(s, sub, 1.45, y + 0.38, 6.6, 0.4, size=15, color=GRAY)
-    y += 0.97
-add_rect(s, 8.35, 1.55, 4.35, 3.15, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
-add_text(s, 'Test in step 2', 8.55, 1.65, 4.0, 0.4, size=17, bold=True, color=NAVY)
-add_text(s, 'f(M\u2081, \u2026, M\u2099)   and   f(N\u2081, \u2026, N\u2099)', 8.5, 2.1, 4.05, 0.4,
-         size=16, align=PP_ALIGN.CENTER)
-add_text(s, 'congruent when', 8.5, 2.52, 4.05, 0.32, size=13, color=GRAY, align=PP_ALIGN.CENTER)
-add_text(s, 'Find(M\u1d62) = Find(N\u1d62)  for every i', 8.5, 2.86, 4.05, 0.4, size=16,
-         align=PP_ALIGN.CENTER)
-add_bullets(s, [
-    'classes live in a union-find',
-    'Find(t) = representative of t',
-], 8.45, 3.4, 4.15, 1.2, size=15, gap=6)
-add_rect(s, 8.35, 4.95, 4.35, 1.35, fill=NAVY, line=None,
-         text='Next: this loop on the miter,\none merge per slide', size=17, bold=True, color=WHITE)
-
 # 10-13 ---- sequential walkthrough
 s = new_slide('Congruence closure by hand: step 0', notes=(
-    'First record the input equalities. The dashed boxes are equivalence classes.'))
+    'Start from the given equalities.'))
+draw_egraph(s)
+eq_marks(s, OX)
+
+s = new_slide('Congruence closure by hand: step 0', notes=(
+    'Union each pair. The dashed boxes are the equivalence classes.'))
 draw_egraph(s, classes=LEAF_CLASSES)
-side_panel(s, 'Step 0: input equalities', [
-    'Union(r, r′), Union(s, s′), Union(u, u′), Union(v, v′), Union(c, c′)',
-    'dashed box = equivalence class',
-    'every gate still in its own class',
-])
-legend(s, [('class', 'equivalence class')])
+eq_marks(s, OX, sym='∪')
 
 s = new_slide('Congruence closure by hand: step 1', notes=(
     'Examine the two AND gates. Same symbol, and their children are pairwise in the same '
     'class, so the congruence rule applies. Yellow means we are looking at them.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=['a1', 'a2'])
-side_panel(s, 'Step 1: the AND gates', [
-    'a₁ = AND(r, s)     a₂ = AND(r′, s′)',
-    'same symbol, children pairwise equivalent',
-])
-legend(s, [('hl', 'terms compared')])
 
 s = new_slide('Congruence closure by hand: step 1', notes=(
-    'Congruence fires, so union the two classes. The new dashed box is the merged class.'))
+    'Congruence fires, so union the two classes.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS], highlight=['a1', 'a2'])
-side_panel(s, 'Step 1: the AND gates', [
-    '**congruence ⇒ a₁ ≡ a₂**',
-    'Union(a₁, a₂)',
-])
-legend(s, [('class', 'equivalence class')])
+union_mark(s, OX, 'a1', 'a2')
 
 s = new_slide('Congruence closure by hand: step 2', notes=(
     'Examine the two XOR gates: same symbol, children pairwise equivalent.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS], highlight=['x1', 'x2'])
-side_panel(s, 'Step 2: the XOR gates', [
-    'x₁ = XOR(u, v)     x₂ = XOR(u′, v′)',
-    'same symbol, children pairwise equivalent',
-])
-legend(s, [('hl', 'terms compared')])
 
 s = new_slide('Congruence closure by hand: step 2', notes=('Union them.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['x1', 'x2'])
-side_panel(s, 'Step 2: the XOR gates', [
-    '**congruence ⇒ x₁ ≡ x₂**',
-    'Union(x₁, x₂)',
-])
-legend(s, [('class', 'equivalence class')])
+union_mark(s, OX, 'x1', 'x2')
 
 s = new_slide('Congruence closure by hand: step 3', notes=(
     'Examine the two ITE gates. Only now are their children pairwise equivalent, because '
     'steps 1 and 2 merged the AND and XOR classes.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2'])
-side_panel(s, 'Step 3: the ITE gates', [
-    'm₁ = ITE(c, a₁, x₁)     m₂ = ITE(c′, a₂, x₂)',
-    'children equivalent only after steps 1 and 2',
-])
-legend(s, [('hl', 'terms compared')])
 
 s = new_slide('Congruence closure by hand: step 3', notes=(
-    'Union them, which refutes the query. Note that step 3 depended on steps 1 and 2, but 1 '
-    'and 2 did not depend on each other.'))
+    'Union them. Note that step 3 depended on steps 1 and 2, but 1 and 2 did not depend on '
+    'each other.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
-side_panel(s, 'Step 3: the ITE gates', [
-    '**congruence ⇒ m₁ ≡ m₂**',
-    'contradicts query m₁ ≠ m₂',
-    '**⇒ circuits equivalent**',
-])
-legend(s, [('class', 'equivalence class')])
+union_mark(s, OX, 'm1', 'm2')
 
-# 14 ---- sequential baseline
-s = new_slide('Sequential baseline: the worklist algorithm', notes=(
-    'What we just did by hand is the classical worklist algorithm, in the variant of '
-    'Nieuwenhuis and Oliveras. The signature table detects congruences in O(1). Each '
-    'merge pushes the loser\'s parents back onto the worklist. We compared three sequential '
-    'variants and this was the fastest, so it is our baseline.'))
-add_bullets(s, [
-    '**Union-find** over all terms',
-    '**Signature table**: hash of (symbol, Find(child₁), …, Find(childₖ)) → representative',
-    '**Parents[class]**: terms with a child in the class',
-    '**FIFO worklist** of compound terms, seeded in reverse-topological order',
-    '**Loop**: pop e; on a signature collision with e′, Union(e, e′); push Parents[loser]',
-    'one merge at a time; each merge re-examines the parents of the losing class',
-], 0.6, 1.5, 7.6, 5, size=19, gap=8)
-add_rect(s, 8.6, 1.6, 4.2, 3.4, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
-add_text(s, 'Sequential variants we tried', 8.8, 1.7, 3.9, 0.4, size=15, bold=True, color=NAVY)
-add_bullets(s, [
-    '**Worklist** (Nieuwenhuis & Oliveras): fastest, used as baseline',
-    '**Topological-sort fixpoint**: repeated full passes',
-    '**Downey–Sethi–Tarjan**: O(n log n) work, hashtable instead of trie',
-], 8.65, 2.15, 4.1, 4, size=15, gap=8)
+s = new_slide('Congruence closure by hand: query answered', notes=(
+    'The outputs are in one class, so the query m1 differs from m2 is unsatisfiable: the '
+    'circuits are equivalent.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
+query_mark(s, OX, sym='=', color=RGBColor(0x3A, 0x9A, 0x5B))
 
 # 15 ---- observation: depth and width
 s = new_slide('Observation: what does a merge wait on?', notes=(
@@ -739,57 +663,25 @@ draw_egraph(s, ox=OX_FULL, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS],
 par_mark(s, OX_FULL)
 banner(s, 'Unrelated merges run in parallel')
 
-s = new_slide('Congruence depth and width', notes=(
-    'Name the two quantities the evaluation turns on. Depth is the number of rounds, width '
-    'is the most merges available in one round. Here depth 2 and width 2, which is why the '
-    'example is a toy. On the circuit benchmarks width reaches millions while depth stays '
-    'small, and Amar will show that width is the factor that predicts speedup.'))
-draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS],
-            labels={5: 'round 1', 6: 'round 1', 7: 'round 2'})
-side_panel(s, 'Two quantities', [
-    '#Congruence depth',
-    'rounds until fixpoint  (here 2)',
-    '#Congruence width',
-    'merges available in one round  (here 2)',
-    '#On real benchmarks',
-    'width reaches thousands to millions',
-    'depth stays small',
-])
-
-# ---- the structure induces rounds
 s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
     'Read the dependences as a schedule. Everything with no unmet dependence goes in the '
     'current round, all at once; a barrier; then everything the round just enabled. Round 0 '
     'is the input equalities, round 1 the two gate merges, round 2 the output merge. This is '
     'Valiant’s bulk-synchronous model, and it falls straight out of the term structure.'))
-ROUNDS = [
-    ('Round 0', 'input equalities', ['r ≡ r′', 's ≡ s′', 'c ≡ c′',
-                                      'u ≡ u′', 'v ≡ v′'], 'leaf'),
-    ('Round 1', 'independent merges', ['a₁ ≡ a₂', 'x₁ ≡ x₂'], 'a'),
-    ('Round 2', 'enabled by round 1', ['m₁ ≡ m₂'], 'm'),
-]
-CW, BOXH, BOXG = 3.0, 0.52, 0.16
-colx = [1.15, 5.15, 9.15]
-mid_y = 4.0
-for (head, cap, merges, key), cx in zip(ROUNDS, colx):
-    add_text(s, head, cx, 1.45, CW, 0.5, size=22, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
-    add_text(s, cap, cx, 1.9, CW, 0.35, size=14, color=GRAY, align=PP_ALIGN.CENTER)
-    fill, line = CLASS_STYLE[key]
-    total = len(merges) * BOXH + (len(merges) - 1) * BOXG
-    y = mid_y - total / 2
-    for m in merges:
-        add_rect(s, cx + 0.45, y, CW - 0.9, BOXH, fill=fill, line=line, width=1.5, text=m,
-                 size=17, bold=True)
-        y += BOXH + BOXG
-for i in range(2):
-    bx = colx[i] + CW + (colx[i + 1] - colx[i] - CW) / 2
-    add_line(s, bx, 1.5, bx, 5.75, color=INK, width=2.0, dash=MSO_LINE.DASH)
-    add_text(s, 'barrier', bx - 0.6, 5.72, 1.2, 0.3, size=12, bold=True, color=GRAY,
-             align=PP_ALIGN.CENTER)
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
+round_bands(s, OX)
 banner(s, 'Bulk-synchronous parallel: rounds of independent merges')
 
+s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
+    'Two names for the evaluation. Depth is the number of rounds, width the merges available '
+    'in one round. Here both are 2. On the circuit benchmarks width reaches millions while '
+    'depth stays small, and Amar will show that width is what predicts speedup.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
+round_bands(s, OX)
+banner(s, 'depth: number of rounds        width: merges per round', size=22)
+
 # ---- two questions per round
-s = new_slide('Two questions per round', notes=(
+s = new_slide('Two questions per round, two primitives', notes=(
     'The schedule tells us when. Two questions remain about how. First, how do we find every '
     'merge a round allows, all at once, rather than one at a time? Semisort: compute each '
     'term’s signature, the symbol plus the classes of its children, and group equal '
@@ -800,19 +692,26 @@ s = new_slide('Two questions per round', notes=(
     'literature and both are in ParlayLib.'))
 QA = [
     ('How do we find all the merges of a round?',
-     'Semisort groups congruent terms together',
+     'after one Find per child, congruence is equality of a key',
+     'semisort by that key',
      'Gu, Shun, Sun & Blelloch, SPAA 2015'),
-    ('How do we perform them in parallel, correctly?',
-     'A concurrent union-find',
+    ('How do we run thousands of unions at once, correctly?',
+     'the partition a set of unions produces does not depend on their order',
+     'lock-free concurrent union-find, no coordination',
      'Alistarh, Fedorov & Koval, OPODIS 2019'),
 ]
-y = 1.9
-for q, a, cite in QA:
-    add_text(s, q, 0.8, y, 11.8, 0.6, size=26, bold=True, color=NAVY)
-    add_rect(s, 1.4, y + 0.85, 10.6, 0.85, fill=RGBColor(0xFB, 0xE4, 0xD3), line=ORANGE,
-             width=1.5, text=a, size=24, bold=True)
-    add_text(s, cite, 1.4, y + 1.75, 10.6, 0.35, size=12, color=GRAY, align=PP_ALIGN.RIGHT)
-    y += 2.55
+y = 1.55
+for q, insight, prim, cite in QA:
+    add_text(s, q, 0.8, y, 11.8, 0.55, size=24, bold=True, color=NAVY)
+    add_text(s, 'insight', 1.4, y + 0.7, 1.3, 0.4, size=13, bold=True, color=GRAY,
+             anchor=MSO_ANCHOR.MIDDLE)
+    add_text(s, insight, 2.7, y + 0.66, 9.4, 0.5, size=19, anchor=MSO_ANCHOR.MIDDLE)
+    add_text(s, 'so apply', 1.4, y + 1.25, 1.3, 0.55, size=13, bold=True, color=GRAY,
+             anchor=MSO_ANCHOR.MIDDLE)
+    add_rect(s, 2.7, y + 1.22, 9.4, 0.62, fill=RGBColor(0xFB, 0xE4, 0xD3), line=ORANGE,
+             width=1.5, text=prim, size=20, bold=True)
+    add_text(s, cite, 2.7, y + 1.86, 9.4, 0.3, size=11, color=GRAY, align=PP_ALIGN.RIGHT)
+    y += 2.65
 
 # ---- ParentCC, one round
 s = new_slide('ParentCC: one round', notes=(
@@ -854,63 +753,40 @@ add_text(s, 'first round: consider every term', 0.75, ly + 0.55, 11.8, 0.4, size
 
 # ---- ParentCC on the example
 FRONT1 = ['a1', 'a2', 'x1', 'x2', 'm1', 'm2']
-s = new_slide('ParentCC on the example: round 0', notes=(
-    'All five input unions run in parallel.'))
-draw_egraph(s, classes=LEAF_CLASSES)
-side_panel(s, 'Round 0', [
-    'union the input equalities, in parallel',
-])
+
+def sig_key(slide, ox, ids, text, dy, oy=OY):
+    """The grouping key written above a signature group; [t] means the class of t."""
+    bx, by, bw, bh = _bbox(ids, 0.06)
+    add_text(slide, text, ox + bx + bw / 2 - 1.2, oy + by + dy, 2.4, 0.3, size=11.5, bold=True,
+             color=PURPLE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
 s = new_slide('ParentCC on the example: round 1', notes=(
-    'First round, so every gate is a candidate. Group by signature: the ANDs match, the XORs '
-    'match, the ITEs do not yet because a1 and a2 are still in different classes.'))
+    'After the input unions, the first round considers every gate. Each gets a key: its symbol '
+    'and the class of each child, written here in brackets. Equal keys group together: the '
+    'ANDs match, the XORs match, the ITEs do not yet because a1 and a2 are still in different '
+    'classes. The grouping is the semisort.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1,
             groups=[['a1', 'a2'], ['x1', 'x2'], ['m1'], ['m2']])
-side_panel(s, 'Round 1', [
-    'first round: every gate is a candidate',
-    'groups by signature',
-    (1, '{a₁, a₂}   {x₁, x₂}   {m₁}   {m₂}'),
-])
-legend(s, [('hl', 'candidate'), ('group', 'signature group')])
+sig_key(s, OX, ['a1', 'a2'], 'AND([r], [s])', -0.3)
+sig_key(s, OX, ['x1', 'x2'], 'XOR([u], [v])', -0.3)
+sig_key(s, OX, ['m1'], 'ITE([c], [a₁], [x₁])', -0.3)
+sig_key(s, OX, ['m2'], 'ITE([c], [a₂], [x₂])', -0.3)
 
 s = new_slide('ParentCC on the example: round 1', notes=(
-    'Both two-member groups merge concurrently.'))
+    'Both two-member groups merge, concurrently. This is the slide that differs from the hand '
+    'trace: two unions in one round.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['a1', 'a2', 'x1', 'x2'])
-side_panel(s, 'Round 1', [
-    'merge each group with two members',
-    (1, 'a₁ ≡ a₂   ∥   x₁ ≡ x₂'),
-])
-legend(s, [('hl', 'merged this round')])
+union_mark(s, OX, 'a1', 'a2')
+union_mark(s, OX, 'x1', 'x2')
 
 s = new_slide('ParentCC on the example: round 2', notes=(
-    'Candidates are the parents of what just merged: the two ITEs. Their signatures now agree.'))
-draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2'],
+    'Candidates are the parents of what just merged: the two ITEs. Their keys now agree, so '
+    'they merge. They have no parents, so round 3 has no candidates and the loop stops. Three '
+    'rounds instead of eight sequential merges.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'],
             groups=[['m1', 'm2']])
-side_panel(s, 'Round 2', [
-    'candidates: parents of last round’s merges',
-    (1, 'm₁, m₂'),
-    'one group: {m₁, m₂}',
-])
-legend(s, [('hl', 'candidate'), ('group', 'signature group')])
-
-s = new_slide('ParentCC on the example: round 2', notes=('One union.'))
-draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
-side_panel(s, 'Round 2', [
-    'merge:  m₁ ≡ m₂',
-])
-legend(s, [('hl', 'merged this round')])
-
-s = new_slide('ParentCC on the example: done', notes=(
-    'The ITEs have no parents, so round 3 has no candidates and the loop stops. Three rounds '
-    'instead of eight sequential merges, and the query is refuted.'))
-draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
-side_panel(s, 'Round 3', [
-    'parents of last round’s merge: none',
-    '**done**',
-    '#Result',
-    'm₁ ≡ m₂: circuits equivalent',
-    '3 rounds vs. 8 sequential merges',
-])
+sig_key(s, OX, ['m1', 'm2'], 'ITE([c], [a₁], [x₁])', -0.5)
+union_mark(s, OX, 'm1', 'm2')
 
 # ---- pseudocode
 s = new_slide('ParentCC pseudocode', notes=(
@@ -1010,32 +886,22 @@ s = new_slide('FilterCC on the example: round 1', notes=(
     'same; afterwards the two merged classes are marked dirty.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1, dirty=[0, 1, 2, 3, 4],
             groups=[['a1', 'a2'], ['x1', 'x2'], ['m1'], ['m2']])
-side_panel(s, 'Round 1', [
-    'first round: every gate is a candidate',
-    'groups and merges as in ParentCC',
-    'then mark the merged classes dirty',
-])
-legend(s, [('hl', 'candidate'), ('group', 'signature group')])
 
 s = new_slide('FilterCC on the example: round 2', notes=(
     'Only the two gate classes are dirty. Filter every term for a child in a dirty class: the '
     'two ITEs. Merge them. The next filter finds nothing, so stop.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2'], dirty=[5, 6],
             groups=[['m1', 'm2']])
-side_panel(s, 'Round 2', [
-    'filter all terms for a dirty child',
-    (1, 'm₁, m₂'),
-    'merge:  m₁ ≡ m₂',
-    'next filter finds nothing:  **done**',
-])
-legend(s, [('hl', 'candidate'), ('group', 'signature group')])
 
 # ---- implementation details
 s = new_slide('Implementation notes', notes=(
     'Grouping: ParlayLib integer sort on the signature hashes followed by a bucket pass per '
     'hash, which beat the library semisort on the small buckets we see. Merging a group: '
-    'divide and conquer unions. The sequential baseline got the same care: arity-specialized '
-    'signature tables and a bump allocator, so speedups are against a strong baseline.'))
+    'divide and conquer unions. The baseline is the classical worklist algorithm in the '
+    'Nieuwenhuis and Oliveras variant, which is what the hand trace did: one merge at a time, '
+    'each merge re-examining the parents of the losing class. We tried a topological-sort '
+    'fixpoint and Downey-Sethi-Tarjan as well; the worklist was fastest. It got the same '
+    'tuning care as the parallel code, so speedups are against a strong baseline.'))
 add_rect(s, 0.6, 1.5, 6.0, 2.6, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
 add_text(s, 'Parallel algorithms', 0.8, 1.6, 5.6, 0.45, size=21, bold=True, color=NAVY)
 add_bullets(s, [
@@ -1046,9 +912,9 @@ add_bullets(s, [
 add_rect(s, 6.85, 1.5, 5.9, 2.6, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
 add_text(s, 'Sequential baseline, tuned', 7.05, 1.6, 5.5, 0.45, size=21, bold=True, color=NAVY)
 add_bullets(s, [
+    '**worklist algorithm** of Nieuwenhuis & Oliveras, fastest of three variants',
     '**signature tables specialized by arity**',
     '**bump allocator**',
-    '**worklist** in reverse topological order',
 ], 6.95, 2.25, 5.7, 3.4, size=18, gap=10)
 add_text(s, 'C++ with g++ -O3.  Code and benchmarks: github.com/amarshah10/ParallelEgraph',
          0.6, 4.5, 12.2, 0.4, size=14, color=GRAY)
