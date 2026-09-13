@@ -667,13 +667,15 @@ draw_egraph(s, ox=OX_FULL, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS],
 par_mark(s, OX_FULL)
 banner(s, 'Unrelated merges run in parallel')
 
+BSP_BANNER = 'Bulk-synchronous parallel: rounds of independent merges'
+
 s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
     'Read the dependences as a schedule. Everything with no unmet dependence goes first, all '
     'at once. That is round 0: the input equalities we were handed. Nothing had to happen '
     'before them.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX, only={0})
-banner(s, 'Round 0: the input equalities, nothing waits on them')
+banner(s, BSP_BANNER)
 
 s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
     'Barrier, then everything round 0 just enabled. The inputs changed class, so their '
@@ -681,7 +683,7 @@ s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
     'both go in the same round.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX, only={0, 1})
-banner(s, 'Round 1: both gate merges, enabled by round 0')
+banner(s, BSP_BANNER)
 
 s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
     'Barrier again, and the gate merges enable the output merge. Round 2, and nothing is '
@@ -689,7 +691,7 @@ s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
     'straight out of the term structure.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX, only={0, 1, 2})
-banner(s, 'Bulk-synchronous parallel: rounds of independent merges')
+banner(s, BSP_BANNER)
 
 s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
     'Two names for the evaluation. Depth is the number of rounds, width the merges available '
@@ -698,39 +700,6 @@ s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX)
 banner(s, 'depth: number of rounds        width: merges per round', size=22)
-
-# ---- two questions per round
-s = new_slide('Two questions per round, two primitives', notes=(
-    'The schedule tells us when. Two questions remain about how. First, how do we find every '
-    'merge a round allows, all at once, rather than one at a time? Semisort: compute each '
-    'term’s signature, the symbol plus the classes of its children, and group equal '
-    'signatures together; every group is a set of congruent terms. Second, how do we perform '
-    'thousands of unions from many threads and still end up with the right classes? A '
-    'concurrent union-find: lock-free, linearizable, so the result is the same as if the '
-    'unions had happened one after another. Both come from the parallel algorithms '
-    'literature and both are in ParlayLib.'))
-QA = [
-    ('How do we find all the merges of a round?',
-     'after one Find per child, congruence is equality of a key',
-     'semisort by that key',
-     'Gu, Shun, Sun & Blelloch, SPAA 2015'),
-    ('How do we run thousands of unions at once, correctly?',
-     'the partition a set of unions produces does not depend on their order',
-     'lock-free concurrent union-find, no coordination',
-     'Alistarh, Fedorov & Koval, OPODIS 2019'),
-]
-y = 1.55
-for q, insight, prim, cite in QA:
-    add_text(s, q, 0.8, y, 11.8, 0.55, size=24, bold=True, color=NAVY)
-    add_text(s, 'insight', 1.4, y + 0.7, 1.3, 0.4, size=13, bold=True, color=GRAY,
-             anchor=MSO_ANCHOR.MIDDLE)
-    add_text(s, insight, 2.7, y + 0.66, 9.4, 0.5, size=19, anchor=MSO_ANCHOR.MIDDLE)
-    add_text(s, 'so apply', 1.4, y + 1.25, 1.3, 0.55, size=13, bold=True, color=GRAY,
-             anchor=MSO_ANCHOR.MIDDLE)
-    add_rect(s, 2.7, y + 1.22, 9.4, 0.62, fill=RGBColor(0xFB, 0xE4, 0xD3), line=ORANGE,
-             width=1.5, text=prim, size=20, bold=True)
-    add_text(s, cite, 2.7, y + 1.86, 9.4, 0.3, size=11, color=GRAY, align=PP_ALIGN.RIGHT)
-    y += 2.65
 
 # ---- ParentCC, one round
 s = new_slide('ParentCC: one round', notes=(
@@ -935,8 +904,11 @@ add_bullets(s, [
     '**signature tables specialized by arity**',
     '**bump allocator**',
 ], 6.95, 2.25, 5.7, 3.4, size=18, gap=10)
+add_text(s, 'semisort: Gu, Shun, Sun & Blelloch, SPAA 2015   \u00b7   '
+         'concurrent union-find: Alistarh, Fedorov & Koval, OPODIS 2019',
+         0.6, 4.22, 12.2, 0.4, size=14, color=GRAY)
 add_text(s, 'C++ with g++ -O3.  Code and benchmarks: github.com/amarshah10/ParallelEgraph',
-         0.6, 4.5, 12.2, 0.4, size=14, color=GRAY)
+         0.6, 4.62, 12.2, 0.4, size=14, color=GRAY)
 
 # 30 ---- handoff divider
 s = new_slide(number=False, notes='Hand off to Amar for the evaluation.')
