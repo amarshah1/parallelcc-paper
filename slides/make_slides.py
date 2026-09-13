@@ -502,40 +502,55 @@ add_text(s, 'Nelson & Oppen 1980   \u00b7   Downey, Sethi & Tarjan 1980', 9.9, 5
          size=11, color=GRAY, align=PP_ALIGN.RIGHT, anchor=MSO_ANCHOR.MIDDLE)
 
 # 3 ---- why it matters
-s = new_slide('Where congruence closure runs', notes=(
-    'It is a core, performance-critical component in many engines and hence in the '
-    'applications built on them. Decades of engineering have gone into sequential '
-    'implementations.'))
-add_text(s, 'Engines', 0.7, 1.5, 5, 0.45, size=22, bold=True, color=NAVY)
-add_bullets(s, [
+ENGINES = [
     '**SMT solvers**: Z3, cvc5 (theory of uninterpreted functions)',
     '**SAT solvers**: Kissat (clausal congruence closure)',
     '**Equality saturation**: egg, egglog',
     '**Type unification**',
-], 0.6, 2.0, 5.9, 4, size=19)
-add_text(s, 'Applications', 6.95, 1.5, 5, 0.45, size=22, bold=True, color=NAVY)
-add_bullets(s, [
+]
+APPS = [
     '**Circuit equivalence checking**',
     '**Software verification**: Dafny, Verus',
     '**Hardware design**',
     '**Theorem proving**: Lean grind',
-], 6.85, 2.0, 5.9, 4, size=19)
+]
+
+def use_in_practice(slide):
+    add_text(slide, 'Engines', 0.7, 1.5, 5, 0.45, size=22, bold=True, color=NAVY)
+    add_bullets(slide, ENGINES, 0.6, 2.0, 5.9, 4, size=19)
+    add_text(slide, 'Applications', 6.95, 1.5, 5, 0.45, size=22, bold=True, color=NAVY)
+    add_bullets(slide, APPS, 6.85, 2.0, 5.9, 4, size=19)
+
+s = new_slide('Use in practice', notes=(
+    'Congruence closure sits inside a lot of engines, and hence inside the applications '
+    'built on them. Decades of engineering have gone into sequential implementations.'))
+use_in_practice(s)
+
+s = new_slide('Use in practice', notes=(
+    'And in these engines it runs a lot: it is called repeatedly over the course of a solver '
+    'run, so its cost shows up in the total. How much depends on the instance, which is why '
+    'the evaluation looks at several benchmark families.'))
+use_in_practice(s)
 add_rect(s, 0.6, 4.7, 12.1, 1.0, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None,
-         text='Performance critical: called millions of times inside a solver run', size=20,
+         text='Called repeatedly over a solver run, so its cost adds up', size=20,
          bold=True, color=NAVY)
 
-# 4 ---- the gap
-s = new_slide('Sequential in practice, hard in theory', notes=(
-    'Every implementation we know of is sequential, and machines are wide: our test box has '
-    '96 cores. Theory is discouraging. Congruence closure is P-complete, so a polylog-span '
-    'algorithm is not expected; worst-case instances force a long chain of dependent merges. '
-    'The question we ask is whether the instances people actually solve behave like the worst case.'))
-add_text(s, 'every implementation: sequential', 0.8, 1.9, 12, 0.7, size=30, bold=True, color=NAVY,
-         align=PP_ALIGN.CENTER)
-add_text(s, 'P-complete', 0.8, 3.0, 12, 0.7, size=30, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
-add_text(s, 'Kanellakis & Revesz 1989', 0.8, 3.65, 12, 0.35, size=13, color=GRAY, align=PP_ALIGN.CENTER)
-add_rect(s, 0.6, 4.9, 12.1, 1.2, fill=NAVY, line=None,
-         text='Do practical instances expose enough independent merges?',
+# 4 ---- state of the art
+s = new_slide('State of the art', notes=(
+    'Where things stand. Despite how widely it is used, every implementation we know of is '
+    'fully sequential, while the machines are wide: our test box has 96 cores. The theory is '
+    'discouraging too. Congruence closure is P-complete, so we should not expect an algorithm '
+    'that is fast on every input; in the worst case it really does look inherently '
+    'sequential. But worst case is not the same as the instances people actually solve, and '
+    'that is the question we ask.'))
+add_bullets(s, [
+    'Despite ubiquity, algorithms used in practice **fully sequential**',
+    'Unfortunately, congruence closure is **P-complete**',
+    'Likely **inherently sequential in the worst case**',
+], 0.9, 1.9, 11.8, 3.0, size=26, gap=18)
+add_text(s, 'Kanellakis & Revesz 1989', 0.9, 4.4, 11.8, 0.35, size=13, color=GRAY)
+add_rect(s, 0.62, 5.25, 12.1, 1.2, fill=NAVY, line=None,
+         text='Question: do practical instances expose enough\nindependent merges for real speedups?',
          size=24, bold=True, color=WHITE)
 
 # 5 ---- contributions
@@ -549,7 +564,7 @@ s = new_slide('Contributions', notes=(
     'benchmarks, with near-linear speedup up to 32 cores over a tuned sequential baseline. '
     'Everything is open source.'))
 rows = [
-    ('1', 'Two bulk-synchronous parallel algorithms'),
+    ('1', 'Two bulk-synchronous parallel algorithms: ParentCC and FilterCC'),
     ('2', 'Workload characterization for parallelization effectiveness'),
     ('3', 'Evaluation demonstrating effective speedup in practice'),
 ]
@@ -562,45 +577,84 @@ for num, head in rows:
     y += 1.25
 add_text(s, 'github.com/amarshah10/ParallelEgraph', 1.5, 6.3, 10, 0.4, size=16, color=GRAY)
 
-# 6 ---- setting: miters and the term grammar
-s = new_slide('Setting: combinational equivalence checking', notes=(
-    'Where the running example comes from. A miter feeds the same inputs to two circuits, '
-    'XORs the corresponding outputs, and asserts the result is 1. The circuits agree on '
-    'every input exactly when that assertion is unsatisfiable. Encoding a miter to CNF '
-    'destroys the gate structure, so Biere et al. recover the gates and close them under '
-    'congruence, which often decides the instance outright. Gates become terms under this '
-    'grammar: input wires are leaves, every gate is a function symbol applied to its inputs.'))
-# --- miter block diagram ---
-add_rect(s, 2.05, 5.72, 3.1, 0.45, fill=RGBColor(0xEE, 0xF0, 0xF3), line=RGBColor(0x9A, 0xA0, 0xA8),
-         width=1.25, text='shared inputs  r, s, u, v, c', size=13)
-CB = RGBColor(0xDC, 0xEA, 0xF8)
-add_rect(s, 1.55, 4.35, 1.7, 0.85, fill=CB, line=RGBColor(0x2E, 0x6F, 0xB0), width=1.5,
-         text='**C\u2081**', size=19, color=NAVY)
-add_rect(s, 3.95, 4.35, 1.7, 0.85, fill=CB, line=RGBColor(0x2E, 0x6F, 0xB0), width=1.5,
-         text='**C\u2082**', size=19, color=NAVY)
-add_line(s, 2.40, 5.72, 2.40, 5.20, arrow=True)
-add_line(s, 4.80, 5.72, 4.80, 5.20, arrow=True)
-add_rect(s, 2.80, 2.95, 1.6, 0.72, fill=RGBColor(0xFB, 0xE4, 0xD3), line=ORANGE, width=1.5,
-         text='**XOR**', size=17, color=NAVY)
-add_line(s, 2.40, 4.35, 3.20, 3.67, arrow=True)
-add_line(s, 4.80, 4.35, 4.00, 3.67, arrow=True)
-add_text(s, 'm\u2081', 2.38, 3.85, 0.5, 0.3, size=14, bold=True, color=GRAY)
-add_text(s, 'm\u2082', 4.52, 3.85, 0.5, 0.3, size=14, bold=True, color=GRAY)
-add_line(s, 3.60, 2.95, 3.60, 2.45, arrow=True)
-add_text(s, 'p', 3.30, 2.08, 0.5, 0.35, size=16, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
-add_rect(s, 4.00, 2.05, 1.85, 0.42, fill=NAVY, line=None, text='assert p = 1', size=14,
-         bold=True, color=WHITE)
-# --- right column ---
-add_bullets(s, [
-    '#Miter',
-    'two circuits, same inputs',
-    'XOR the corresponding outputs',
-    'p = 1  \u27fa  the circuits disagree',
-    '**equivalent  \u27fa  p = 1 unsatisfiable**',
-], 6.25, 1.42, 6.5, 2.2, size=18, gap=5)
-add_rect(s, 6.35, 3.45, 6.35, 1.45, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
-add_text(s, 'Terms', 6.55, 3.52, 3, 0.35, size=15, bold=True, color=NAVY)
-gb = s.shapes.add_textbox(Inches(6.55), Inches(3.86), Inches(6.0), Inches(1.0))
+# 6 ---- equivalence checking, built up
+CIRC_FILL = RGBColor(0xDC, 0xEA, 0xF8)
+CIRC_LINE = RGBColor(0x2E, 0x6F, 0xB0)
+C1X, C2X = 5.05, 8.29          # left edge of each circuit box
+CW, CH, CY = 2.0, 1.0, 4.30    # circuit boxes
+MIDX = (C1X + CW / 2 + C2X + CW / 2) / 2
+
+def miter(slide, beat):
+    """beat 1 circuits, 2 question, 3 inputs, 4 XOR, 5 p, 6 the unsat framing."""
+    add_rect(slide, C1X, CY, CW, CH, fill=CIRC_FILL, line=CIRC_LINE, width=1.5,
+             text='**C\u2081**', size=22, color=NAVY)
+    add_rect(slide, C2X, CY, CW, CH, fill=CIRC_FILL, line=CIRC_LINE, width=1.5,
+             text='**C\u2082**', size=22, color=NAVY)
+    if beat >= 2:
+        add_text(slide, 'Are C\u2081 and C\u2082 equivalent?', 0.8, 1.3, 11.8, 0.6, size=28,
+                 bold=True, color=NAVY, align=PP_ALIGN.CENTER)
+    if beat >= 3:
+        add_rect(slide, MIDX - 1.85, 5.85, 3.7, 0.5, fill=RGBColor(0xEE, 0xF0, 0xF3),
+                 line=RGBColor(0x9A, 0xA0, 0xA8), width=1.25,
+                 text='same inputs  r, s, u, v, c', size=15)
+        add_line(slide, C1X + CW / 2, 5.85, C1X + CW / 2, CY + CH, arrow=True)
+        add_line(slide, C2X + CW / 2, 5.85, C2X + CW / 2, CY + CH, arrow=True)
+    if beat >= 4:
+        add_rect(slide, MIDX - 0.85, 2.95, 1.7, 0.78, fill=RGBColor(0xFB, 0xE4, 0xD3),
+                 line=ORANGE, width=1.5, text='**XOR**', size=19, color=NAVY)
+        add_line(slide, C1X + CW / 2, CY, MIDX - 0.45, 3.73, arrow=True)
+        add_line(slide, C2X + CW / 2, CY, MIDX + 0.45, 3.73, arrow=True)
+        add_text(slide, 'm\u2081', C1X + CW / 2 + 0.05, 3.88, 0.5, 0.3, size=15, bold=True,
+                 color=GRAY)
+        add_text(slide, 'm\u2082', C2X + CW / 2 - 0.45, 3.88, 0.5, 0.3, size=15, bold=True,
+                 color=GRAY, align=PP_ALIGN.RIGHT)
+    if beat >= 5:
+        add_line(slide, MIDX, 2.95, MIDX, 2.42, arrow=True)
+        add_text(slide, 'p', MIDX + 0.12, 2.45, 0.5, 0.35, size=17, bold=True, color=NAVY)
+        add_text(slide, 'p = 1   \u27fa   C\u2081 and C\u2082 disagree on this input',
+                 0.8, 2.02, 11.8, 0.45, size=22, bold=True, color=ORANGE,
+                 align=PP_ALIGN.CENTER)
+
+s = new_slide('Equivalence checking', notes=(
+    'The setting our running example comes from, and where the circuit benchmarks come from. '
+    'Two combinational circuits.'))
+miter(s, 1)
+
+s = new_slide('Equivalence checking', notes=(
+    'The question: do they compute the same function? Equivalent means they agree on every '
+    'input, all two to the n of them, so we cannot simply simulate.'))
+miter(s, 2)
+
+s = new_slide('Equivalence checking', notes=(
+    'Standard construction, a miter. Feed both circuits the same inputs.'))
+miter(s, 3)
+
+s = new_slide('Equivalence checking', notes=(
+    'XOR the corresponding outputs. The XOR is 1 exactly when the two outputs differ.'))
+miter(s, 4)
+
+s = new_slide('Equivalence checking', notes=(
+    'So p is 1 exactly when the circuits disagree on the input we fed them.'))
+miter(s, 5)
+
+s = new_slide('Equivalence checking', notes=(
+    'Flip it around and it is a satisfiability question: assert p = 1 and ask whether any '
+    'input satisfies it. Unsatisfiable means no disagreeing input exists, so the circuits '
+    'are equivalent. Encoding a miter to CNF destroys the gate structure, so Biere et al. '
+    'recover the gates and close them under congruence, which often decides the instance '
+    'outright.'))
+miter(s, 6)
+add_rect(s, 0.62, 6.42, 12.1, 0.56, fill=NAVY, line=None,
+         text='equivalent   \u27fa   p = 1 is unsatisfiable', size=21, bold=True, color=WHITE)
+
+# 6b ---- gates as terms
+s = new_slide('Gates as terms', notes=(
+    'How a circuit becomes a congruence-closure instance. Input wires are leaves; every gate '
+    'is a function symbol applied to its input wires. Two gates are congruent when they have '
+    'the same symbol and their inputs are already known equal, which is exactly what makes '
+    'congruence closure decide many of these instances.'))
+add_rect(s, 2.6, 2.1, 8.1, 2.0, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
+gb = s.shapes.add_textbox(Inches(3.0), Inches(2.45), Inches(7.6), Inches(1.4))
 gtf = gb.text_frame
 gtf.word_wrap = False
 for i, (code_, note) in enumerate([
@@ -608,13 +662,17 @@ for i, (code_, note) in enumerate([
         ('   |   f(t\u2081, \u2026, t\u2096)', 'gate: f \u2208 F,  arity k'),
         ('F = {AND, OR, XOR, ITE, \u2026}', '')]):
     par = gtf.paragraphs[0] if i == 0 else gtf.add_paragraph()
-    par.space_after = Pt(2)
-    add_runs(par, code_.ljust(22), 14, font=MONO)
+    par.space_after = Pt(6)
+    add_runs(par, code_.ljust(24), 18, font=MONO)
     if note:
-        add_runs(par, note, 13, color=GRAY)
+        add_runs(par, note, 16, color=GRAY)
+add_text(s, 'a gate over input wires r, s:   AND(r, s)        a gate over gates:   '
+         'ITE(c, AND(r, s), XOR(u, v))', 0.8, 4.45, 11.8, 0.45, size=17, color=GRAY,
+         align=PP_ALIGN.CENTER)
+banner(s, 'Same symbol, equal inputs  \u27f9  equal gates', size=24)
 
 # 7 ---- running example: the miter
-s = new_slide('Running example: a miter', notes=(
+s = new_slide('Running example', notes=(
     'Miter adapted from Biere et al., Clausal Congruence Closure, SAT 2024. Two copies of '
     'the same three-gate circuit, side by side. Each copy has its own input wires. Nodes '
     'are terms, one per gate; edges point to children. Say out loud that the left half is '
@@ -623,7 +681,7 @@ s = new_slide('Running example: a miter', notes=(
 draw_egraph(s, ox=OX_FULL)
 
 # 8 ---- the query
-s = new_slide('Running example: a miter', notes=(
+s = new_slide('Running example', notes=(
     'Assert that the two outputs differ. If that is unsatisfiable the circuits are '
     'equivalent. The query is the only thing on the slide, sitting between the two output '
     'gates.'))
@@ -631,7 +689,7 @@ draw_egraph(s, ox=OX_FULL, highlight=['m1', 'm2'])
 query_mark(s, OX_FULL)
 
 # 9 ---- the input equalities
-s = new_slide('Running example: a miter', notes=(
+s = new_slide('Running example', notes=(
     'The equalities tie the two copies together: each input wire of copy one equals the '
     'corresponding wire of copy two. These are the only given equalities, and they are what '
     'we union first.'))
@@ -668,46 +726,46 @@ for kid, dx, dy in [('cp', 0.0, 0.42), ('a2', 0.88, 0.0), ('x2', 0.88, 0.0)]:
              color=ORANGE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 
 # 10-13 ---- sequential walkthrough
-s = new_slide('Congruence closure by hand', notes=(
+s = new_slide('Closure by hand', notes=(
     'Start from the given equalities.'))
 draw_egraph(s)
 eq_marks(s, OX)
 
-s = new_slide('Congruence closure by hand', notes=(
+s = new_slide('Closure by hand', notes=(
     'Union each pair. The dashed boxes are the equivalence classes.'))
 draw_egraph(s, classes=LEAF_CLASSES)
 eq_marks(s, OX, sym='∪')
 
-s = new_slide('Congruence closure by hand', notes=(
+s = new_slide('Closure by hand', notes=(
     'Examine the two AND gates. Same symbol, and their children are pairwise in the same '
     'class, so the congruence rule applies. Yellow means we are looking at them.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=['a1', 'a2'])
 
-s = new_slide('Congruence closure by hand', notes=(
+s = new_slide('Closure by hand', notes=(
     'Congruence fires, so union the two classes.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS], highlight=['a1', 'a2'])
 union_mark(s, OX, 'a1', 'a2')
 
-s = new_slide('Congruence closure by hand', notes=(
+s = new_slide('Closure by hand', notes=(
     'Examine the two XOR gates: same symbol, children pairwise equivalent.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS], highlight=['x1', 'x2'])
 
-s = new_slide('Congruence closure by hand', notes=('Union them.'))
+s = new_slide('Closure by hand', notes=('Union them.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['x1', 'x2'])
 union_mark(s, OX, 'x1', 'x2')
 
-s = new_slide('Congruence closure by hand', notes=(
+s = new_slide('Closure by hand', notes=(
     'Examine the two ITE gates. Only now are their children pairwise equivalent, because '
     'steps 1 and 2 merged the AND and XOR classes.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2'])
 
-s = new_slide('Congruence closure by hand', notes=(
+s = new_slide('Closure by hand', notes=(
     'Union them. Note that step 3 depended on steps 1 and 2, but 1 and 2 did not depend on '
     'each other.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
 union_mark(s, OX, 'm1', 'm2')
 
-s = new_slide('Congruence closure by hand', notes=(
+s = new_slide('Closure by hand', notes=(
     'The outputs are in one class, so the query m1 differs from m2 is unsatisfiable: the '
     'circuits are equivalent.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
@@ -742,7 +800,7 @@ banner(s, 'Unrelated merges run in parallel')
 
 BSP_BANNER = 'Bulk-synchronous parallel: rounds of independent merges'
 
-s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
+s = new_slide('Bulk-synchronous schedule', notes=(
     'Read the dependences as a schedule. Everything with no unmet dependence goes first, all '
     'at once. That is round 0: the input equalities we were handed. Nothing had to happen '
     'before them.'))
@@ -750,7 +808,7 @@ draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX, only={0})
 banner(s, BSP_BANNER)
 
-s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
+s = new_slide('Bulk-synchronous schedule', notes=(
     'Barrier, then everything round 0 just enabled. The inputs changed class, so their '
     'parents get retested: the AND merge and the XOR merge. Neither depends on the other, so '
     'both go in the same round.'))
@@ -758,7 +816,7 @@ draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX, only={0, 1})
 banner(s, BSP_BANNER)
 
-s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
+s = new_slide('Bulk-synchronous schedule', notes=(
     'Barrier again, and the gate merges enable the output merge. Round 2, and nothing is '
     'left to enable, so we stop. This is Valiant’s bulk-synchronous model, and it falls '
     'straight out of the term structure.'))
@@ -766,7 +824,7 @@ draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX, only={0, 1, 2})
 banner(s, BSP_BANNER)
 
-s = new_slide('The structure induces a bulk-synchronous schedule', notes=(
+s = new_slide('Bulk-synchronous schedule', notes=(
     'Two names for the evaluation. Depth is the number of rounds, width the merges available '
     'in one round. Here both are 2. On the circuit benchmarks width reaches millions while '
     'depth stays small, and Amar will show that width is what predicts speedup.'))
@@ -850,7 +908,7 @@ sig_key(s, OX, ['m1', 'm2'], 'ITE([c], [a₁], [x₁])', -0.5)
 union_mark(s, OX, 'm1', 'm2')
 
 # ---- correctness
-s = new_slide('Why ParentCC is correct', notes=(
+s = new_slide('Correctness', notes=(
     'One line each; the paper has the proofs. Deterministic: the union-find is linearizable '
     'and a set of unions yields the same partition in any order. Terminates: a round that '
     'merges anything reduces the number of classes. Sound: every group has equal symbol and '
@@ -870,7 +928,7 @@ for head, line in props:
     y += 1.15
 
 # ---- FilterCC
-s = new_slide('FilterCC: drop the parent lists', notes=(
+s = new_slide('FilterCC', notes=(
     'Parent lists cost allocation: every round appends lists. FilterCC keeps one dirty bit '
     'per class instead and recomputes the candidates by filtering all terms for a child in a '
     'dirty class. It touches every term each round, but the filter is a cheap parallel scan '
@@ -914,7 +972,7 @@ draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2']
             groups=[['m1', 'm2']])
 
 # ---- implementation details
-s = new_slide('Implementation notes', notes=(
+s = new_slide('Implementation', notes=(
     'Grouping: ParlayLib integer sort on the signature hashes followed by a bucket pass per '
     'hash, which beat the library semisort on the small buckets we see. Merging a group: '
     'divide and conquer unions. The baseline is the classical worklist algorithm in the '
