@@ -408,27 +408,98 @@ add_text(s, '* equal contribution', 0.85, 6.6, 6, 0.4, size=13, color=RGBColor(0
 add_text(s, 'github.com/amarshah10/ParallelEgraph', 7.3, 6.6, 5.6, 0.4, size=13,
          color=RGBColor(0x9A, 0xA8, 0xC4), align=PP_ALIGN.RIGHT)
 
-# 2 ---- what is congruence closure
+# 2 ---- what is congruence closure (built up over six beats)
+DEFN = ('Given a set of terms and equalities over them, compute the least '
+        'equivalence relation respecting function symbols')
+
+INTRO_LEAVES = [('a', 4.4), ('b', 6.6), ('c', 8.8)]
+INTRO_PARENTS = [('f(a)', 4.4), ('f(c)', 8.8)]
+IW, IH = 1.05, 0.62
+LEAF_Y, PAR_Y = 4.45, 2.95
+
+def _inode(slide, lab, cx, cy, style='leaf', bold=False):
+    f, l = CLASS_STYLE[style]
+    add_rect(slide, cx - IW / 2, cy - IH / 2, IW, IH, fill=f, line=l, width=1.5,
+             radius=0.25, text=lab, size=20, bold=bold, color=NAVY)
+
+def _iring(slide, xs, cy, lab=None):
+    x0, x1 = min(xs) - IW / 2 - 0.28, max(xs) + IW / 2 + 0.28
+    add_rect(slide, x0, cy - IH / 2 - 0.26, x1 - x0, IH + 0.52, fill=None, line=NAVY,
+             width=2.25, dash=MSO_LINE.LONG_DASH, radius=0.35)
+    if lab:
+        add_text(slide, lab, x1 + 0.12, cy - 0.2, 2.2, 0.4, size=16, bold=True, color=NAVY,
+                 anchor=MSO_ANCHOR.MIDDLE)
+
+def intro_graph(slide, beat):
+    """beat 2 terms, 3 equalities, 4 equivalence, 5 congruence, 6 the rule."""
+    add_text(slide, DEFN, 1.6, 1.25, 10.1, 0.8, size=21, color=INK,
+             align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+    if beat < 2:
+        return
+    for lab, cx in INTRO_PARENTS:
+        add_line(slide, cx, PAR_Y + IH / 2, cx, LEAF_Y - IH / 2, color=EDGE, width=1.5)
+    for lab, cx in INTRO_LEAVES:
+        _inode(slide, lab, cx, LEAF_Y)
+    for lab, cx in INTRO_PARENTS:
+        _inode(slide, lab, cx, PAR_Y)
+    if beat >= 3:
+        for (_, x1), (_, x2) in zip(INTRO_LEAVES, INTRO_LEAVES[1:]):
+            add_text(slide, '=', (x1 + x2) / 2 - 0.35, LEAF_Y - 0.3, 0.7, 0.6, size=30,
+                     bold=True, color=ORANGE, align=PP_ALIGN.CENTER,
+                     anchor=MSO_ANCHOR.MIDDLE)
+    if beat >= 4:
+        _iring(slide, [x for _, x in INTRO_LEAVES], LEAF_Y)
+    if beat >= 5:
+        _iring(slide, [x for _, x in INTRO_PARENTS], PAR_Y)
+
+def intro_caption(slide, text):
+    add_text(slide, text, 0.8, 5.55, 11.8, 0.5, size=22, bold=True, color=NAVY,
+             align=PP_ALIGN.CENTER)
+
 s = new_slide('Congruence closure', notes=(
-    'Define the problem in words: given equalities between terms over uninterpreted functions, '
-    'compute the smallest equivalence relation containing them that is closed under this one '
-    'rule. Equal arguments give equal applications. The example: transitivity gives a and c '
-    'equal, congruence gives f(a) and f(c) equal, which refutes the disequality. The standard '
-    'engine is a union-find plus a signature table, an e-graph, and every implementation we '
-    'know of is sequential.'))
-add_rect(s, 0.8, 1.7, 5.6, 3.3, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
-add_text(s, 'Congruence rule', 1.0, 1.78, 3, 0.35, size=13, bold=True, color=GRAY)
-add_text(s, 's₁ ≡ t₁    …    sₖ ≡ tₖ', 1.0, 2.6, 5.2, 0.6, size=28, align=PP_ALIGN.CENTER)
-add_line(s, 1.5, 3.35, 5.7, 3.35, color=INK, width=1.75)
-add_text(s, 'f(s₁, …, sₖ) ≡ f(t₁, …, tₖ)', 1.0, 3.5, 5.2, 0.6, size=28, align=PP_ALIGN.CENTER)
-add_rect(s, 7.0, 1.7, 5.5, 3.3, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
-add_text(s, 'Example', 7.2, 1.78, 3, 0.35, size=13, bold=True, color=GRAY)
-add_text(s, 'a = b      b = c      f(a) ≠ f(c)', 7.2, 2.6, 5.1, 0.6, size=26, bold=True,
-         align=PP_ALIGN.CENTER)
-add_text(s, 'a ≡ c   ⇒   f(a) ≡ f(c)', 7.2, 3.5, 5.1, 0.6, size=26, align=PP_ALIGN.CENTER)
-banner(s, 'Smallest equivalence relation containing E, closed under congruence', size=22)
-add_text(s, 'Nelson & Oppen 1980   ·   Downey, Sethi & Tarjan 1980   ·   Nieuwenhuis & Oliveras 2007',
-         0.8, 5.35, 12, 0.35, size=12, color=GRAY, align=PP_ALIGN.CENTER)
+    'State the problem in one sentence and leave it up for the rest of the build. Terms, '
+    'equalities between them, and we want the smallest equivalence relation that contains '
+    'those equalities and still respects function symbols.'))
+intro_graph(s, 1)
+
+s = new_slide('Congruence closure', notes=(
+    'A tiny instance. Three constants and two applications of f. Nothing is equal to '
+    'anything yet: five terms, five classes.'))
+intro_graph(s, 2)
+
+s = new_slide('Congruence closure', notes=(
+    'Now the input equalities: a equals b, and b equals c. This is the set E we are '
+    'handed.'))
+intro_graph(s, 3)
+intro_caption(s, 'input equalities')
+
+s = new_slide('Congruence closure', notes=(
+    'Close under equivalence: reflexive, symmetric, transitive. a, b and c land in one '
+    'class, so a and c are equal even though nobody said so.'))
+intro_graph(s, 4)
+intro_caption(s, 'equivalence:  a \u2261 b \u2261 c')
+
+s = new_slide('Congruence closure', notes=(
+    'The part that makes this more than union-find. f(a) and f(c) were never mentioned in '
+    'the input, but their arguments are now equal, so the two applications are equal too. '
+    'That is congruence, and it is what forces the closure to be recomputed as classes '
+    'change.'))
+intro_graph(s, 5)
+intro_caption(s, 'congruence:  equal arguments, so  f(a) \u2261 f(c)')
+
+s = new_slide('Congruence closure', notes=(
+    'The rule, once, in general form. Equal arguments give equal applications. Everything in '
+    'the talk is about applying this rule to many terms at the same time.'))
+intro_graph(s, 6)
+add_rect(s, 3.55, 5.5, 6.25, 1.45, fill=RGBColor(0xF4, 0xF5, 0xF7), line=None)
+add_text(s, 'Congruence rule', 3.75, 5.56, 3, 0.32, size=13, bold=True, color=GRAY)
+add_text(s, 's\u2081 \u2261 t\u2081    \u2026    s\u2096 \u2261 t\u2096', 3.75, 5.88, 5.85, 0.42,
+         size=22, align=PP_ALIGN.CENTER)
+add_line(s, 4.25, 6.36, 9.1, 6.36, color=INK, width=1.75)
+add_text(s, 'f(s\u2081, \u2026, s\u2096) \u2261 f(t\u2081, \u2026, t\u2096)', 3.75, 6.42, 5.85, 0.42,
+         size=22, align=PP_ALIGN.CENTER)
+add_text(s, 'Nelson & Oppen 1980   \u00b7   Downey, Sethi & Tarjan 1980', 9.9, 5.5, 3.0, 0.6,
+         size=11, color=GRAY, align=PP_ALIGN.RIGHT, anchor=MSO_ANCHOR.MIDDLE)
 
 # 3 ---- why it matters
 s = new_slide('Where congruence closure runs', notes=(
@@ -469,25 +540,27 @@ add_rect(s, 0.6, 4.9, 12.1, 1.2, fill=NAVY, line=None,
 
 # 5 ---- contributions
 s = new_slide('Contributions', notes=(
-    'Three contributions plus open-source code. Emphasize that the algorithms replace the '
-    'sequential worklist with bulk-synchronous rounds.'))
+    'Read the detail out loud, one line per bullet. One: two parallel algorithms, ParentCC '
+    'and FilterCC, which replace the sequential worklist with bulk-synchronous rounds of '
+    'data-parallel primitives over a lock-free concurrent union-find. Two: a workload '
+    'characterization in terms of congruence depth and width, where width, the number of '
+    'independent merges available in a round, turns out to be the dominant factor '
+    'empirically. Three: an evaluation on random, synthetic and circuit-equivalence '
+    'benchmarks, with near-linear speedup up to 32 cores over a tuned sequential baseline. '
+    'Everything is open source.'))
 rows = [
-    ('1', 'Two parallel algorithms: ParentCC and FilterCC',
-     'bulk-synchronous rounds of data-parallel primitives over a lock-free concurrent union-find'),
-    ('2', 'Workload characterization: congruence depth and width',
-     'width, the number of independent merges per round, is the dominant factor empirically'),
-    ('3', 'Evaluation on random, synthetic, and circuit-equivalence benchmarks',
-     'near-linear speedup up to 32 cores over a tuned sequential baseline'),
-    ('4', 'Open source implementation and benchmarks',
-     'github.com/amarshah10/ParallelEgraph'),
+    ('1', 'Two bulk-synchronous parallel algorithms'),
+    ('2', 'Workload characterization for parallelization effectiveness'),
+    ('3', 'Evaluation demonstrating effective speedup in practice'),
 ]
-y = 1.55
-for num, head, sub in rows:
-    add_rect(s, 0.7, y + 0.05, 0.62, 0.62, fill=ORANGE, line=None, radius=0.5, text=num,
+y = 2.1
+for num, head in rows:
+    add_rect(s, 1.5, y + 0.02, 0.62, 0.62, fill=ORANGE, line=None, radius=0.5, text=num,
              size=20, bold=True, color=WHITE)
-    add_text(s, head, 1.55, y - 0.02, 11, 0.5, size=22, bold=True, color=NAVY)
-    add_text(s, sub, 1.55, y + 0.45, 11, 0.5, size=17, color=GRAY)
-    y += 1.3
+    add_text(s, head, 2.35, y, 10, 0.66, size=26, bold=True, color=NAVY,
+             anchor=MSO_ANCHOR.MIDDLE)
+    y += 1.25
+add_text(s, 'github.com/amarshah10/ParallelEgraph', 1.5, 6.3, 10, 0.4, size=16, color=GRAY)
 
 # 6 ---- setting: miters and the term grammar
 s = new_slide('Setting: combinational equivalence checking', notes=(
@@ -776,47 +849,6 @@ draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m
 sig_key(s, OX, ['m1', 'm2'], 'ITE([c], [a₁], [x₁])', -0.5)
 union_mark(s, OX, 'm1', 'm2')
 
-# ---- pseudocode
-s = new_slide('ParentCC pseudocode', notes=(
-    'The same three phases, precisely. Work is the set of classes that changed last round; the '
-    'frontier is their parents; groups come from a semisort on signatures; each group merges by '
-    'divide and conquer. Barriers separate the phases, so signatures are always computed '
-    'against a union-find no thread is modifying. This slide is for the record; do not read it.'))
-code = [
-    ('ParentCC(E):', 0),
-    ('parfor (u = v) ∈ E:  Union(u, v)', 1),
-    ('Work ← terms of E', 1),
-    ('while Work ≠ ∅:', 1),
-    ('parfor c ∈ Work with c ≠ Find(c):                 ▹ fold parent lists', 2),
-    ('Parents[Find(c)] ← Parents[Find(c)] ∪ Parents[c]', 3),
-    ('Frontier ← all compound terms          on round 0   ▹ seed round', 2),
-    ('Frontier ← ⋃ Parents[Find(c)] for c ∈ Work   otherwise', 2),
-    ('groups ← GroupBy(Congruent, Frontier)          ▹ semisort on sigs', 2),
-    ('Work ← ∅', 2),
-    ('parfor g ∈ groups spanning > 1 class:', 2),
-    ('MergeCongruenceClass(g)                          ▹ parallel unions', 3),
-    ('Work ← Work ∪ pre-merge roots of g', 3),
-    ('', 0),
-    ('MergeCongruenceClass(S):                             ▹ divide and conquer', 0),
-    ('if |S| = 1: return the element', 1),
-    ('l, r ← MergeCongruenceClass(S[0..n/2]) ∥ MergeCongruenceClass(S[n/2..n])', 1),
-    ('return Union(l, r)', 1),
-]
-add_rect(s, 1.6, 1.45, 10.1, 5.35, fill=RGBColor(0xF7, 0xF7, 0xF9), line=None, radius=0.05)
-tb = s.shapes.add_textbox(Inches(1.9), Inches(1.55), Inches(9.6), Inches(5.2))
-tf = tb.text_frame
-tf.word_wrap = False
-for i, (line, ind) in enumerate(code):
-    p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
-    p.space_after = Pt(1.5)
-    txt = '    ' * ind + line
-    if '▹' in txt:
-        a, b = txt.split('▹')
-        add_runs(p, a, 14, font=MONO)
-        add_runs(p, '▹' + b, 14, font=MONO, color=GRAY)
-    else:
-        add_runs(p, txt, 14, font=MONO, bold=(ind == 0 and line != ''))
-
 # ---- correctness
 s = new_slide('Why ParentCC is correct', notes=(
     'One line each; the paper has the proofs. Deterministic: the union-find is linearizable '
@@ -918,6 +950,47 @@ add_text(s, 'Evaluation', 0.85, 2.2, 11.5, 1.3, size=44, bold=True, color=WHITE,
          anchor=MSO_ANCHOR.BOTTOM)
 add_text(s, 'random, synthetic, and circuit-equivalence benchmarks', 0.85, 3.75, 11, 0.6,
          size=22, color=RGBColor(0xC9, 0xD3, 0xE6))
+
+# ---- backup: pseudocode (not in the talk)
+s = new_slide('Backup: ParentCC pseudocode', number=False, notes=(
+    'The same three phases, precisely. Work is the set of classes that changed last round; the '
+    'frontier is their parents; groups come from a semisort on signatures; each group merges by '
+    'divide and conquer. Barriers separate the phases, so signatures are always computed '
+    'against a union-find no thread is modifying. This slide is for the record; do not read it.'))
+code = [
+    ('ParentCC(E):', 0),
+    ('parfor (u = v) ∈ E:  Union(u, v)', 1),
+    ('Work ← terms of E', 1),
+    ('while Work ≠ ∅:', 1),
+    ('parfor c ∈ Work with c ≠ Find(c):                 ▹ fold parent lists', 2),
+    ('Parents[Find(c)] ← Parents[Find(c)] ∪ Parents[c]', 3),
+    ('Frontier ← all compound terms          on round 0   ▹ seed round', 2),
+    ('Frontier ← ⋃ Parents[Find(c)] for c ∈ Work   otherwise', 2),
+    ('groups ← GroupBy(Congruent, Frontier)          ▹ semisort on sigs', 2),
+    ('Work ← ∅', 2),
+    ('parfor g ∈ groups spanning > 1 class:', 2),
+    ('MergeCongruenceClass(g)                          ▹ parallel unions', 3),
+    ('Work ← Work ∪ pre-merge roots of g', 3),
+    ('', 0),
+    ('MergeCongruenceClass(S):                             ▹ divide and conquer', 0),
+    ('if |S| = 1: return the element', 1),
+    ('l, r ← MergeCongruenceClass(S[0..n/2]) ∥ MergeCongruenceClass(S[n/2..n])', 1),
+    ('return Union(l, r)', 1),
+]
+add_rect(s, 1.6, 1.45, 10.1, 5.35, fill=RGBColor(0xF7, 0xF7, 0xF9), line=None, radius=0.05)
+tb = s.shapes.add_textbox(Inches(1.9), Inches(1.55), Inches(9.6), Inches(5.2))
+tf = tb.text_frame
+tf.word_wrap = False
+for i, (line, ind) in enumerate(code):
+    p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+    p.space_after = Pt(1.5)
+    txt = '    ' * ind + line
+    if '▹' in txt:
+        a, b = txt.split('▹')
+        add_runs(p, a, 14, font=MONO)
+        add_runs(p, '▹' + b, 14, font=MONO, color=GRAY)
+    else:
+        add_runs(p, txt, 14, font=MONO, bold=(ind == 0 and line != ''))
 
 out = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'parallelcc-part1.pptx')
 prs.save(out)
