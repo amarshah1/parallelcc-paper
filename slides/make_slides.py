@@ -411,8 +411,13 @@ def legend_v(slide, entries, x=0.55, y=1.75, w=2.15, gap=0.46):
         elif kind == 'round':
             add_rect(slide, x, yy + 0.05, 0.36, 0.24, fill=None, line=NAVY, width=2.25,
                      dash=MSO_LINE.LONG_DASH)
+        elif kind == 'sig':
+            fa, la = CLASS_STYLE['a']
+            fx, lx = CLASS_STYLE['x']
+            add_rect(slide, x, yy + 0.05, 0.16, 0.24, fill=fa, line=la, width=1.5, radius=0.3)
+            add_rect(slide, x + 0.2, yy + 0.05, 0.16, 0.24, fill=fx, line=lx, width=1.5, radius=0.3)
         else:
-            f, l = CLASS_STYLE['a']
+            f, l = CLASS_STYLE['leaf']
             add_rect(slide, x, yy + 0.05, 0.36, 0.24, fill=f, line=l, width=1.5, dash=MSO_LINE.DASH)
         add_text(slide, text, x + 0.44, yy, w - 0.44, 0.35, size=12, color=GRAY,
                  anchor=MSO_ANCHOR.MIDDLE)
@@ -904,6 +909,10 @@ s = new_slide('ParentCC: one round', notes=(
 parentcc_flow(s, 4)
 
 # ---- ParentCC on the example
+def step_note(slide, text, x=0.55, y=3.05, w=2.3):
+    """What this slide does, in plain words, under the key in the left margin."""
+    add_text(slide, text, x, y, w, 0.8, size=15, color=GRAY)
+
 FRONT1 = ['a1', 'a2', 'x1', 'x2', 'm1', 'm2']
 GATES = ['a1', 'a2', 'x1', 'x2']
 ITES = ['m1', 'm2']
@@ -914,11 +923,15 @@ s = new_slide('ParentCC on the example: round 0', notes=(
     'nothing happens to them this round.'))
 draw_egraph(s, classes=LEAF_CLASSES, dim=FRONT1)
 eq_marks(s, OX, sym='\u222a')
+legend_v(s, [('class', 'equivalence class')])
+step_note(s, 'union input equalities')
 
 s = new_slide('ParentCC on the example: round 1', notes=(
     'Round 1, phase one: who might have become congruent? The first round considers every '
     'gate, so all six are candidates, in yellow.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1, dim=LEAF_EQ)
+legend_v(s, [('class', 'equivalence class'), ('hl', 'candidate')])
+step_note(s, 'candidates: all terms')
 
 s = new_slide('ParentCC on the example: round 1', notes=(
     'Phase two: group by signature, the symbol plus the class of each child. Same colour, '
@@ -929,11 +942,15 @@ s = new_slide('ParentCC on the example: round 1', notes=(
     'signatures of the round sorted together.'))
 draw_egraph(s, classes=LEAF_CLASSES, dim=LEAF_EQ,
             fills={'a1': 'a', 'a2': 'a', 'x1': 'x', 'x2': 'x'})
+legend_v(s, [('class', 'equivalence class'), ('sig', 'same signature')])
+step_note(s, 'group by signature')
 
 s = new_slide('ParentCC on the example: round 1', notes=(
     'Phase three: merge every group, concurrently. Two unions in one round; this is where the '
     'parallel run differs from the hand trace.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], dim=LEAF_EQ)
+legend_v(s, [('class', 'equivalence class')])
+step_note(s, 'merge groups')
 union_mark(s, OX, 'a1', 'a2')
 union_mark(s, OX, 'x1', 'x2')
 
@@ -941,9 +958,13 @@ s = new_slide('ParentCC on the example: round 2', notes=(
     'Round 2. Candidates are the parents of what just merged: the two ITEs. Their signatures '
     'now agree, one group.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=ITES, dim=LEAF_EQ + GATES)
+legend_v(s, [('class', 'equivalence class'), ('hl', 'candidate')])
+step_note(s, 'candidates: parents of merged')
 
 s = new_slide('ParentCC on the example: round 2', notes=('Merge them. One union.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], dim=LEAF_EQ + GATES)
+legend_v(s, [('class', 'equivalence class')])
+step_note(s, 'group, merge')
 union_mark(s, OX, 'm1', 'm2')
 
 s = new_slide('ParentCC on the example: done', notes=(
@@ -952,7 +973,8 @@ s = new_slide('ParentCC on the example: done', notes=(
     'of the available parallelism.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX)
-banner(s, 'Round 3: no candidates.  Done')
+legend_v(s, [('class', 'equivalence class'), ('round', 'round')])
+step_note(s, 'no candidates: stop')
 
 # ---- correctness
 s = new_slide('Correctness', notes=(
