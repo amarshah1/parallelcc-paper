@@ -696,7 +696,6 @@ s = new_slide('Running example', notes=(
     'inside a SAT solver.'))
 draw_egraph(s, ox=OX_FULL, highlight=['m1', 'm2'])
 query_mark(s, OX_FULL)
-banner(s, 'Often decided by congruence closure alone   (Biere et al., SAT 2024)', size=22)
 
 # 10 ---- reading the diagram: one node, one term
 FOCUS = ['m2', 'cp', 'a2', 'x2']
@@ -775,7 +774,6 @@ s = new_slide('Closure by hand', notes=(
     'the sequential worklist algorithm, and it is the baseline the parallel version has to beat.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
 query_mark(s, OX, sym='=', color=RGBColor(0x3A, 0x9A, 0x5B))
-banner(s, 'Equivalent.  8 merges, one at a time')
 
 # 15 ---- observation: depth and width
 s = new_slide('Observation', notes=(
@@ -876,8 +874,6 @@ def parentcc_flow(slide, beat):
                  size=16, bold=True, color=NAVY, align=PP_ALIGN.CENTER)
         add_text(slide, 'first round: consider every term', 0.75, ly + 0.55, 11.8, 0.4,
                  size=15, color=GRAY, align=PP_ALIGN.CENTER)
-        add_text(slide, 'barrier between phases: signatures read a union-find nobody is writing',
-                 0.75, ly + 0.9, 11.8, 0.4, size=15, color=GRAY, align=PP_ALIGN.CENTER)
 
 s = new_slide('ParentCC: one round', notes=(
     'Now the algorithm, at the level of a round. Three phases. First: who might have become '
@@ -924,17 +920,21 @@ eq_marks(s, OX, sym='\u222a', dy=0.22)
 legend_v(s, MERGE_LEGEND)
 
 s = new_slide('ParentCC on the example: round 1', notes=(
-    'Round 1. Phase one, candidates: the first round considers every gate, in amber. Phase '
-    'two, group them by signature: symbol plus the class of each child, written in brackets '
-    'above each purple group. The ANDs share a key, the XORs share a key, the ITEs do not yet '
-    'because a1 and a2 are still in different classes. The grouping is a semisort. This is '
-    'the step that changes: the sequential algorithm looks each signature up in a hash table, '
-    'one at a time; here all the signatures of the round are sorted together, in one '
-    'data-parallel step.'))
+    'Round 1. Phase one, candidates: the first round considers every gate, in amber.'))
+draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1)
+round_bands(s, OX, only={0, 1})
+legend_v(s, [('hl', 'candidate'), ('round', 'round')])
+
+s = new_slide('ParentCC on the example: round 1', notes=(
+    'Phase two, group them by signature: symbol plus the class of each child, written in '
+    'brackets above each purple group. The ANDs share a key, the XORs share a key, the ITEs '
+    'do not yet because a1 and a2 are still in different classes. The grouping is a semisort. '
+    'Say out loud that this is the step that changes: the sequential algorithm looks each '
+    'signature up in a hash table, one at a time; here all the signatures of the round are '
+    'sorted together, in one data-parallel step.'))
 draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1,
             groups=[['a1', 'a2'], ['x1', 'x2'], ['m1'], ['m2']])
 round_bands(s, OX, only={0, 1})
-banner(s, 'grouping by signature = a semisort: one parallel step, no table lookups', size=22)
 sig_key(s, OX, ['a1', 'a2'], 'AND([r], [s])', KEY_DY)
 sig_key(s, OX, ['x1', 'x2'], 'XOR([u], [v])', KEY_DY)
 sig_key(s, OX, ['m1'], 'ITE([c], [a\u2081], [x\u2081])', -0.3)
@@ -972,7 +972,7 @@ s = new_slide('ParentCC on the example: done', notes=(
     'ParentCC found all of the available parallelism.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX)
-banner(s, 'Done: 8 merges in 3 rounds, the schedule from before', size=24)
+banner(s, 'Round 3: no candidates.  Done')
 
 # ---- correctness
 s = new_slide('Correctness', notes=(
