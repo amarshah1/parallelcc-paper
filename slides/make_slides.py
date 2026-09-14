@@ -250,12 +250,13 @@ def _bbox(ids, pad):
     return (x0 - pad, y0 - pad, x1 - x0 + 2 * pad, y1 - y0 + 2 * pad)
 
 def draw_egraph(slide, ox=OX, oy=OY, classes=(), highlight=(), groups=(),
-                dirty=(), labels=None, dim=(), edge_hl=()):
+                dirty=(), labels=None, dim=(), edge_hl=(), fills=None):
     """classes: list of (member ids, style key); highlight: node ids with amber
     outline; groups: list of id-lists drawn as dotted purple outlines; dirty:
     indices into classes that get a 'dirty' tag; labels: {class index: text};
     edge_hl: (parent, child) pairs drawn as orange arrows."""
     labels = labels or {}
+    fills = fills or {}      # node id -> CLASS_STYLE key: colour a node by its signature
     edge_hl = set(edge_hl)
     # class boxes
     for ci, (members, key) in enumerate(classes):
@@ -295,10 +296,14 @@ def draw_egraph(slide, ox=OX, oy=OY, classes=(), highlight=(), groups=(),
     for nid, (lab, sym, cx, cy) in NODES.items():
         w, h = nsize(nid)
         hl = nid in highlight
+        if nid in fills:
+            nfill, nline, nwidth = CLASS_STYLE[fills[nid]][0], CLASS_STYLE[fills[nid]][1], 2.75
+        else:
+            nfill = AMBER_FILL if hl else WHITE
+            nline = AMBER if hl else (LIGHT if nid in dim else RGBColor(0x4A, 0x4F, 0x57))
+            nwidth = 2.75 if hl else 1.0
         shp = add_rect(slide, ox + cx - w / 2, oy + cy - h / 2, w, h,
-                       fill=(AMBER_FILL if hl else WHITE),
-                       line=(AMBER if hl else RGBColor(0x4A, 0x4F, 0x57)),
-                       width=(2.75 if hl else 1.0), radius=0.2)
+                       fill=nfill, line=nline, width=nwidth, radius=0.2)
         tf = shp.text_frame
         tf.margin_top = tf.margin_bottom = Inches(0.0)
         txtcol = LIGHT if nid in dim else INK
@@ -900,76 +905,51 @@ parentcc_flow(s, 4)
 
 # ---- ParentCC on the example
 FRONT1 = ['a1', 'a2', 'x1', 'x2', 'm1', 'm2']
-KEY_DY = -0.62     # signature keys sit just above the round ring
-
-def sig_key(slide, ox, ids, text, dy, oy=OY):
-    """The grouping key written above a signature group; [t] means the class of t."""
-    bx, by, bw, bh = _bbox(ids, 0.06)
-    add_text(slide, text, ox + bx + bw / 2 - 1.2, oy + by + dy, 2.4, 0.3, size=11.5, bold=True,
-             color=PURPLE, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-
-CAND_LEGEND = [('hl', 'candidate'), ('group', 'signature group'), ('round', 'round')]
-MERGE_LEGEND = [('hl', 'merged this round'), ('round', 'round')]
+GATES = ['a1', 'a2', 'x1', 'x2']
+ITES = ['m1', 'm2']
 
 s = new_slide('ParentCC on the example: round 0', notes=(
-    'Same example, same rings as the schedule. Round 0 is the input: union each pair of '
-    'equated wires, all five at once. No congruence yet, just the equalities we were handed.'))
-draw_egraph(s, classes=LEAF_CLASSES, highlight=LEAF_EQ)
-round_bands(s, OX, only={0})
-eq_marks(s, OX, sym='\u222a', dy=0.22)
-legend_v(s, MERGE_LEGEND)
+    'Same example. Round 0 is the input: union each pair of equated wires, all five at once. '
+    'No congruence yet, just the equalities we were handed. The gates are greyed out because '
+    'nothing happens to them this round.'))
+draw_egraph(s, classes=LEAF_CLASSES, dim=FRONT1)
+eq_marks(s, OX, sym='\u222a')
 
 s = new_slide('ParentCC on the example: round 1', notes=(
-    'Round 1. Phase one, candidates: the first round considers every gate, in amber.'))
-draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1)
-round_bands(s, OX, only={0, 1})
-legend_v(s, [('hl', 'candidate'), ('round', 'round')])
+    'Round 1, phase one: who might have become congruent? The first round considers every '
+    'gate, so all six are candidates, in yellow.'))
+draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1, dim=LEAF_EQ)
 
 s = new_slide('ParentCC on the example: round 1', notes=(
-    'Phase two, group them by signature: symbol plus the class of each child, written in '
-    'brackets above each purple group. The ANDs share a key, the XORs share a key, the ITEs '
-    'do not yet because a1 and a2 are still in different classes. The grouping is a semisort. '
-    'Say out loud that this is the step that changes: the sequential algorithm looks each '
-    'signature up in a hash table, one at a time; here all the signatures of the round are '
-    'sorted together, in one data-parallel step.'))
-draw_egraph(s, classes=LEAF_CLASSES, highlight=FRONT1,
-            groups=[['a1', 'a2'], ['x1', 'x2'], ['m1'], ['m2']])
-round_bands(s, OX, only={0, 1})
-sig_key(s, OX, ['a1', 'a2'], 'AND([r], [s])', KEY_DY)
-sig_key(s, OX, ['x1', 'x2'], 'XOR([u], [v])', KEY_DY)
-sig_key(s, OX, ['m1'], 'ITE([c], [a\u2081], [x\u2081])', -0.3)
-sig_key(s, OX, ['m2'], 'ITE([c], [a\u2082], [x\u2082])', -0.3)
-legend_v(s, CAND_LEGEND)
+    'Phase two: group by signature, the symbol plus the class of each child. Same colour, '
+    'same signature. The two ANDs match: both are AND of the r class and the s class. The two '
+    'XORs match. The two ITEs do not, because a1 and a2 are still in different classes, so '
+    'they stay uncoloured. This grouping is the semisort. Say out loud that this is the step '
+    'that changes from the sequential algorithm: no hash table lookups one at a time, all the '
+    'signatures of the round sorted together.'))
+draw_egraph(s, classes=LEAF_CLASSES, dim=LEAF_EQ,
+            fills={'a1': 'a', 'a2': 'a', 'x1': 'x', 'x2': 'x'})
 
 s = new_slide('ParentCC on the example: round 1', notes=(
-    'Phase three, merge: both two-member groups merge, concurrently. This is where the '
-    'parallel run differs from the hand trace: two unions in one round.'))
-draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['a1', 'a2', 'x1', 'x2'])
-round_bands(s, OX, only={0, 1})
+    'Phase three: merge every group, concurrently. Two unions in one round; this is where the '
+    'parallel run differs from the hand trace.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], dim=LEAF_EQ)
 union_mark(s, OX, 'a1', 'a2')
 union_mark(s, OX, 'x1', 'x2')
-legend_v(s, MERGE_LEGEND)
 
 s = new_slide('ParentCC on the example: round 2', notes=(
-    'Round 2. Candidates are the parents of what just merged: the two ITEs. Their keys now '
-    'agree, so they form one group.'))
-draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=['m1', 'm2'],
-            groups=[['m1', 'm2']])
-round_bands(s, OX, only={0, 1, 2})
-sig_key(s, OX, ['m1', 'm2'], 'ITE([c], [a\u2081], [x\u2081])', KEY_DY)
-legend_v(s, CAND_LEGEND)
+    'Round 2. Candidates are the parents of what just merged: the two ITEs. Their signatures '
+    'now agree, one group.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS], highlight=ITES, dim=LEAF_EQ + GATES)
 
-s = new_slide('ParentCC on the example: round 2', notes=(
-    'Merge them. One union.'))
-draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], highlight=['m1', 'm2'])
-round_bands(s, OX, only={0, 1, 2})
+s = new_slide('ParentCC on the example: round 2', notes=('Merge them. One union.'))
+draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS], dim=LEAF_EQ + GATES)
 union_mark(s, OX, 'm1', 'm2')
-legend_v(s, MERGE_LEGEND)
 
 s = new_slide('ParentCC on the example: done', notes=(
     'The ITEs have no parents, so round 3 has no candidates and the loop stops. Eight merges '
-    'in three rounds, and the rings are exactly the bulk-synchronous schedule from before: '
-    'ParentCC found all of the available parallelism.'))
+    'in three rounds, and the rounds are exactly the schedule from before: ParentCC found all '
+    'of the available parallelism.'))
 draw_egraph(s, classes=LEAF_CLASSES + [A_CLASS, X_CLASS, M_CLASS])
 round_bands(s, OX)
 banner(s, 'Round 3: no candidates.  Done')
